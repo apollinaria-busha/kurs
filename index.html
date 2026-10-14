@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Код Креатора</title>
+<meta name="theme-color" content="#0d0d0d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Код Креатора">
+<meta name="robots" content="noindex">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{
+  --ink:#0d0d0d;--panel:#161512;--panel2:#201e19;--line:#2e2b24;--text:#f3efe6;--muted:#a29b8c;
+  --sun:#FFAD05;--sun-ink:#1a1200;--ok:#5fcf8a;--bad:#ff6b5b;
+  --f-display:"Montserrat",system-ui,-apple-system,"Segoe UI",sans-serif;--f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--ink);color:var(--text);height:100%}
+body{font-family:var(--f-display);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+button:focus-visible,a:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
+a{color:var(--sun)}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
+
+#app{min-height:100%;display:flex;flex-direction:column}
+.center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:32px 20px;text-align:center}
+.logo{font-weight:900;font-size:28px;letter-spacing:.02em;line-height:1}.logo span{color:var(--sun)}
+.center p{margin:0;color:var(--muted);font-size:14px;max-width:34ch}
+.spinner{width:34px;height:34px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--sun);animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.card{width:min(420px,100%);background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:30px 24px;display:flex;flex-direction:column;gap:18px;align-items:center}
+.tgw{min-height:44px;display:grid;place-items:center}
+
+/* шапка */
+.top{position:sticky;top:0;z-index:4;background:color-mix(in srgb,var(--ink) 92%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:14px;padding:10px 16px;padding-top:max(10px,env(safe-area-inset-top))}
+.top .back{color:var(--sun);font-weight:600;font-size:14px;min-width:64px;text-align:left}
+.top .t{flex:1;min-width:0;font-weight:800;font-size:14px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .sp{min-width:64px}
+.logo-s{font-weight:900;letter-spacing:.03em;font-size:15px}.logo-s span{color:var(--sun)}
+.user{margin-left:auto;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.user b{color:var(--text)}
+
+.wrap{flex:1;min-height:0;display:flex}
+.side{display:none}
+.main{flex:1;min-width:0;padding:16px 16px calc(32px + env(safe-area-inset-bottom))}
+.inner{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+
+.status{border-radius:14px;padding:11px 13px;display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.4;border:1px solid}
+.status .dot{margin-top:5px}
+.status.up{border-color:color-mix(in srgb,var(--ok) 35%,transparent);background:color-mix(in srgb,var(--ok) 8%,transparent)}
+.status.down{border-color:color-mix(in srgb,var(--bad) 40%,transparent);background:color-mix(in srgb,var(--bad) 9%,transparent)}
+.status.wait{border-color:var(--line);color:var(--muted)}
+.status b{display:block;font-size:13.5px}
+.status a{font-weight:700;text-decoration:none;display:inline-block;margin-top:4px}
+
+.hello h1{font-size:clamp(24px,4vw,32px);font-weight:900;line-height:1.1;margin:0;letter-spacing:-.01em}
+.hello p{margin:4px 0 0;color:var(--muted);font-size:13.5px}
+
+.cont{background:var(--sun);color:var(--sun-ink);border-radius:20px;padding:16px;text-align:left;display:flex;flex-direction:column;gap:6px;width:100%}
+.cont .k{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;opacity:.7}
+.cont b{font-size:17px;line-height:1.2;font-weight:800}
+.bar{height:5px;background:rgba(0,0,0,.18);border-radius:3px;overflow:hidden;display:block}
+.bar i{display:block;height:100%;background:var(--sun-ink)}
+.sec-t{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:6px 0 -4px}
+
+.mods{display:flex;flex-direction:column}
+.mod{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:12px;align-items:center;padding:13px 0;border-top:1px solid var(--line);text-align:left;width:100%}
+.mod:first-child{border-top:0}
+.num{width:42px;height:42px;border-radius:12px;background:var(--panel2);display:grid;place-items:center;font-weight:900;color:var(--sun);font-size:15px}
+.mod b{font-size:14.5px;display:block;line-height:1.25}
+.mod small,.les small{color:var(--muted);font-size:12px}
+.pr{font-family:var(--f-mono);font-size:12px;color:var(--muted)}.pr.full{color:var(--ok)}
+
+.lessons{display:flex;flex-direction:column;gap:8px}
+.les{display:grid;grid-template-columns:28px minmax(0,1fr);gap:12px;align-items:center;background:var(--panel);border-radius:14px;padding:12px;text-align:left;width:100%}
+.les b{font-size:14px;line-height:1.25;display:block;font-weight:600}
+.ck{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:13px;font-weight:900}
+.les.done .ck,.d-les.done .ck{background:var(--ok);border-color:var(--ok);color:#06210f}
+.les.cur .ck{border-color:var(--sun)}
+.les.lock{opacity:.5}
+
+.crumbs{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.les-h{margin:0;font-size:clamp(21px,3vw,30px);font-weight:900;line-height:1.12;letter-spacing:-.01em;text-wrap:balance}
+.video{position:relative;aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:var(--panel)}
+.video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.novideo{display:grid;place-items:center;color:var(--muted);font-size:13px;padding:16px;text-align:center}
+.body-text{font-size:15px;line-height:1.6;color:#e4ded1;overflow-wrap:anywhere}
+.body-text>*:first-child{margin-top:0}.body-text>*:last-child{margin-bottom:0}
+.body-text img{max-width:100%;height:auto;border-radius:12px}
+.body-text a{word-break:break-word}
+.files{display:flex;flex-direction:column;gap:8px}
+.file{display:flex;gap:12px;align-items:center;background:var(--panel);border-radius:12px;padding:10px 12px;text-decoration:none;color:var(--text)}
+.file .ext{font-family:var(--f-mono);font-size:10.5px;width:40px;height:40px;border-radius:9px;background:var(--panel2);display:grid;place-items:center;color:var(--sun);flex:none}
+.file b{font-size:13.5px;display:block;font-weight:600}.file small{color:var(--muted);font-size:12px}
+.hw{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.hw>b{font-size:15px}
+.hw .body-text{font-size:14px}
+.hw label{display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:var(--muted)}
+.hw input[type=url],.hw textarea{font:inherit;font-size:14px;color:var(--text);background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
+.hw textarea{min-height:70px;resize:vertical}
+.hw input[type=file]{font-size:13px;color:var(--muted)}
+.btn{display:block;border-radius:13px;padding:13px;font-weight:800;font-size:14.5px;text-align:center;width:100%;text-decoration:none}
+.btn.y{background:var(--sun);color:var(--sun-ink)}
+.btn.g{background:var(--panel2);color:var(--text)}
+.btn.done{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
+.btn[disabled]{opacity:.6;cursor:default}
+.navrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.install{display:flex;gap:12px;align-items:center;background:var(--panel);border:1px dashed var(--line);border-radius:16px;padding:12px 14px;text-align:left;width:100%}
+.install .ic{width:36px;height:36px;border-radius:10px;background:var(--sun);color:var(--sun-ink);display:grid;place-items:center;font-weight:900;flex:none;font-size:11px}
+.install b{font-size:13.5px;display:block}.install small{color:var(--muted);font-size:12px}
+.toast{position:fixed;left:16px;right:16px;bottom:calc(20px + env(safe-area-inset-bottom));max-width:420px;margin:0 auto;background:var(--text);color:var(--ink);font-weight:700;font-size:13.5px;border-radius:12px;padding:11px 14px;z-index:9;text-align:center}
+.veil{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:8;display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:min(520px,100%);background:var(--panel);border-radius:22px 22px 0 0;padding:14px 20px calc(24px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px}
+.sheet h3{margin:0;font-size:17px;font-weight:800}
+.sheet ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px;color:#e4ded1}
+
+/* компьютер: меню слева */
+@media (min-width:900px){
+  .top .back,.top .sp{display:none}
+  .top .t{text-align:left;flex:none}
+  .wrap{height:calc(100vh - 57px)}
+  .side{display:flex;flex-direction:column;gap:2px;width:310px;flex:none;overflow:auto;border-right:1px solid var(--line);padding:16px 12px}
+  .main{overflow:auto;padding:28px clamp(16px,4vw,48px) 40px}
+  .inner{margin:0}
+  .d-prog{padding:4px 8px 14px;display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:var(--muted)}
+  .d-prog .bar{background:var(--panel2)}.d-prog .bar i{background:var(--sun)}
+  .d-mod{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 8px;border-radius:10px;text-align:left;width:100%}
+  .d-mod:hover,.d-les:hover{background:var(--panel)}
+  .d-mod .n{font-weight:900;color:var(--sun);font-size:14px;text-align:center}
+  .d-mod b{font-size:13.5px;line-height:1.25;font-weight:700}
+  .d-mod small{font-family:var(--f-mono);font-size:11px;color:var(--muted)}
+  .d-les{display:grid;grid-template-columns:18px minmax(0,1fr);gap:10px;align-items:start;padding:7px 8px 7px 46px;border-radius:8px;text-align:left;width:100%;font-size:13px;color:#d9d2c3;line-height:1.3}
+  .d-les.on{background:var(--panel2);color:var(--text);font-weight:600}
+  .d-les.lock{opacity:.5}
+  .d-les .ck{width:16px;height:16px;border-width:1.5px;font-size:10px;margin-top:1px}
+  .grid-mods{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+  .grid-mods .mod{display:flex;flex-direction:column;align-items:flex-start;gap:8px;background:var(--panel);border:0;border-radius:16px;padding:16px;min-height:130px}
+  .grid-mods .mod:hover{background:var(--panel2)}
+  .grid-mods .mod .pr{margin-top:auto}
+  .navrow{display:flex;gap:10px}.navrow .btn{width:auto;padding:12px 22px}
+}
+@media (prefers-reduced-motion:reduce){.spinner{animation:none}}
+</style>
+</head>
+<body>
+<div id="app"><div class="center"><div class="logo">КОД<br><span>КРЕАТОРА</span></div><div class="spinner"></div></div></div>
+<script>
+const API = "https://script.google.com/macros/s/AKfycbw2LmiS_HoOdrIQko16UGsLNQj6T1Br2BymAb2bh8_iHPxOB8QyVgbiZ0vuPcwhHCPwyQ/exec";
+const BOT = "oebybusha_bot";
+const TG = window.Telegram && Telegram.WebApp && Telegram.WebApp.initData ? Telegram.WebApp : null;
+const app = document.getElementById("app");
+const S = { session: null, user: null, mods: [], done: new Set(), gk: "auto", gkUrl: "", gkUp: null, open: new Set() };
+
+function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+function store(k,v){try{v===undefined?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
+function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function toast(t){const el=document.createElement("div");el.className="toast";el.textContent=t;document.body.appendChild(el);setTimeout(()=>el.remove(),2600)}
+
+async function call(body, tries=3){
+  for(let i=0;i<tries;i++){
+    try{
+      const r=await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(body)});
+      const t=await r.text();
+      return JSON.parse(t);
+    }catch(e){ if(i===tries-1) throw e; await new Promise(r=>setTimeout(r,800*(i+1))); }
+  }
+}
+async function api(body){
+  const res=await call({...body,session:S.session});
+  if(res&&res.error==="auth"){store("kk_session");S.session=null;start();throw new Error("auth")}
+  return res;
+}
+
+/* ---------- вход ---------- */
+function screen(html){app.innerHTML=`<div class="center">${html}</div>`}
+function logo(){return `<div class="logo">КОД<br><span>КРЕАТОРА</span></div>`}
+
+async function start(){
+  if(TG){TG.ready();TG.expand();try{TG.setHeaderColor("#0d0d0d");TG.setBackgroundColor("#0d0d0d")}catch(e){}}
+  S.session=load("kk_session");
+  if(TG && !S.session){ screen(`${logo()}<div class="spinner"></div><p>Проверяем, есть ли тебя в списке учениц…</p>`); return doLogin({initData:TG.initData}); }
+  if(S.session) return loadCourse();
+  showLogin();
+}
+
+function showLogin(msg){
+  screen(`<div class="card">${logo()}
+    <p>${msg||"Запасной вход в программу. Входи через свой Telegram, пароль не нужен."}</p>
+    <div class="tgw" id="tgw"></div>
+    <p style="font-size:12.5px">Пускаем только учениц программы. Удобнее всего открыть курс в Telegram: <a href="https://t.me/${BOT}">@${BOT}</a> → кнопка «Курс».</p></div>`);
+  const s=document.createElement("script");
+  s.async=true;s.src="https://telegram.org/js/telegram-widget.js?22";
+  s.setAttribute("data-telegram-login",BOT);s.setAttribute("data-size","large");s.setAttribute("data-radius","12");
+  s.setAttribute("data-onauth","onTgAuth(user)");s.setAttribute("data-request-access","write");
+  document.getElementById("tgw").appendChild(s);
+}
+window.onTgAuth=u=>{screen(`${logo()}<div class="spinner"></div><p>Проверяем, есть ли тебя в списке учениц…</p>`);doLogin({widget:u})};
+
+async function doLogin(data){
+  let res;
+  try{res=await call({api:"login",...data})}catch(e){return screen(`${logo()}<p>Не получилось связаться с сервером. Проверь интернет и обнови страницу.</p><button class="btn y" style="max-width:260px" onclick="location.reload()">Обновить</button>`)}
+  if(res.ok){S.session=res.session;store("kk_session",res.session);return loadCourse()}
+  if(res.error==="not_student"){
+    const nick=res.username?"@"+esc(res.username):"без ника";
+    return screen(`${logo()}<p>Не нашли твой Telegram (${nick}) в списке учениц программы.</p><p>Если ты ученица, напиши Аполлинарии: проверим ник в списке. ${res.username?"":"А ещё задай себе ник в настройках Telegram, по нему мы тебя узнаём."}</p>`);
+  }
+  TG?screen(`${logo()}<p>Не получилось войти: ${esc(res.error)}</p><button class="btn y" style="max-width:260px" onclick="location.reload()">Попробовать ещё раз</button>`):showLogin("Не получилось войти: "+esc(res.error)+". Попробуй ещё раз.");
+}
+
+async function loadCourse(){
+  const cached=load("kk_course");
+  if(cached){try{apply(JSON.parse(cached));route()}catch(e){}}
+  else screen(`${logo()}<div class="spinner"></div><p>Загружаем уроки…</p>`);
+  let res;
+  try{res=await api({api:"course"})}catch(e){if(e.message==="auth")return;if(!cached)screen(`${logo()}<p>Нет связи с сервером. Обнови страницу чуть позже.</p>`);return}
+  if(!res.ok){if(!cached)screen(`${logo()}<p>Ошибка: ${esc(res.error)}</p>`);return}
+  store("kk_course",JSON.stringify(res));apply(res);route();checkGk();
+}
+function apply(res){S.user=res.user;S.mods=res.mods;S.done=new Set(res.done);S.gk=res.gk;S.gkUrl=res.gkUrl}
+
+/* ---------- ГетКурс ---------- */
+async function checkGk(){
+  if(S.gk==="up"||S.gk==="down"){S.gkUp=S.gk==="up";return paintGk()}
+  const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),7000);
+  try{await fetch(S.gkUrl+"/favicon.ico?"+Date.now(),{mode:"no-cors",signal:ctl.signal});S.gkUp=true}catch(e){S.gkUp=false}
+  clearTimeout(t);paintGk();
+}
+function gkHtml(){
+  if(S.gkUp===null)return `<div class="status wait"><span class="dot"></span><div>Проверяем, работает ли ГетКурс…</div></div>`;
+  return S.gkUp
+    ?`<div class="status up"><span class="dot ok"></span><div><b>ГетКурс работает</b>Прогресс и домашки лучше вести там. Здесь всё то же самое, на всякий случай.<br><a href="${esc(S.gkUrl)}" target="_blank" rel="noopener">Перейти в ГетКурс ↗</a></div></div>`
+    :`<div class="status down"><span class="dot bad"></span><div><b>ГетКурс сейчас недоступен</b>Ничего не потеряно: все уроки здесь. Отмечай пройденное и сдавай домашки прямо тут.</div></div>`;
+}
+function paintGk(){const el=document.getElementById("gk");if(el)el.innerHTML=gkHtml()}
+
+/* ---------- данные ---------- */
+const allLes=()=>S.mods.flatMap(m=>m.les.map(l=>({...l,m})));
+function findLes(id){return allLes().find(l=>l.id===id)}
+function modDone(m){return m.les.filter(l=>S.done.has(l.id)).length}
+function pct(){const a=allLes();return a.length?Math.round(a.filter(l=>S.done.has(l.id)).length/a.length*100):0}
+function nextLes(){return allLes().find(l=>!l.locked&&!S.done.has(l.id))||allLes()[0]}
+function nextAfter(id){const a=allLes(),i=a.findIndex(l=>l.id===id);return a.slice(i+1).find(l=>!l.locked)}
+function isHw(l){return !!l.task||/^дз|домашн/i.test(l.t)}
+
+/* ---------- экраны ---------- */
+function route(){
+  if(!S.user)return;
+  const h=location.hash.slice(1);
+  let view, title="Код Креатора", back=false;
+  if(h.startsWith("l/")){const l=findLes(decodeURIComponent(h.slice(2)));if(l){view=lessonView(l);title="Урок "+l.m.n+"."+l.n;back=true;S.open.add(l.m.n);S.cur=l.id}}
+  else if(h.startsWith("m/")){const m=S.mods.find(m=>m.n===decodeURIComponent(h.slice(2)));if(m){view=moduleView(m);title="Модуль "+m.n;back=true;S.open.add(m.n);S.cur=null}}
+  if(!view){view=homeView();S.cur=null}
+  const wide=matchMedia("(min-width:900px)").matches;
+  app.innerHTML=`<header class="top">
+      ${back?`<button class="back" onclick="goBack()">‹ Назад</button>`:`<span class="sp"></span>`}
+      <span class="t">${wide||!back?`<span class="logo-s">КОД <span>КРЕАТОРА</span></span>`:esc(title)}</span>
+      ${wide?`<span class="user"><b>${esc(S.user.n)}</b> · @${esc(S.user.u)}</span>`:`<span class="sp"></span>`}
+    </header>
+    <div class="wrap"><aside class="side">${sideView()}</aside><main class="main" id="main"><div class="inner">${view}</div></main></div>`;
+  const main=document.getElementById("main");main.scrollTop=0;window.scrollTo(0,0);
+  if(TG){back?TG.BackButton.show():TG.BackButton.hide()}
+  paintGk();bindLesson();
+}
+function goBack(){const h=location.hash.slice(1);if(h.startsWith("l/")){const l=findLes(decodeURIComponent(h.slice(2)));location.hash=l&&!matchMedia("(min-width:900px)").matches?"m/"+l.m.n:""}else location.hash=""}
+if(TG)TG.BackButton.onClick(goBack);
+window.addEventListener("hashchange",route);
+matchMedia("(min-width:900px)").addEventListener("change",route);
+
+function sideView(){
+  const p=pct();
+  return `<button class="d-mod" onclick="location.hash=''" style="grid-template-columns:28px 1fr"><span class="n">⌂</span><b>Главная</b></button>
+    <div class="d-prog">Пройдено ${p}%<span class="bar"><i style="width:${p}%"></i></span></div>
+    ${S.mods.map(m=>`<button class="d-mod" onclick="tog('${esc(m.n)}')"><span class="n">${esc(m.n)}</span><b>${esc(m.t)}</b><small>${modDone(m)}/${m.les.length}</small></button>
+      ${S.open.has(m.n)?m.les.map(l=>`<button class="d-les ${S.done.has(l.id)?"done":""} ${S.cur===l.id?"on":""} ${l.locked?"lock":""}" onclick="openLes('${esc(l.id)}')"><span class="ck">${S.done.has(l.id)?"✓":""}</span><span>${esc(l.t)}</span></button>`).join(""):""}`).join("")}`;
+}
+function tog(n){S.open.has(n)?S.open.delete(n):S.open.add(n);document.querySelector(".side").innerHTML=sideView()}
+function openLes(id){const l=findLes(id);if(l&&l.locked)return toast("Урок откроется "+fmtDate(l.open));location.hash="l/"+encodeURIComponent(id)}
+function fmtDate(s){const m=String(s).match(/(\d{4})-(\d\d)-(\d\d)/);return m?`${+m[3]}.${m[2]}`:s}
+
+function homeView(){
+  const n=nextLes(),p=pct(),wide=matchMedia("(min-width:900px)").matches;
+  const standalone=matchMedia("(display-mode: standalone)").matches||navigator.standalone;
+  return `<div id="gk">${gkHtml()}</div>
+    <div class="hello"><h1>Привет, ${esc(S.user.n||"креатор")}</h1><p>${S.user.s?esc(S.user.s)+" · ":""}пройдено ${p}% программы</p></div>
+    ${n?`<button class="cont" onclick="openLes('${esc(n.id)}')"><span class="k">${S.done.size?"Продолжить":"Начать"} · модуль ${esc(n.m.n)}</span><b>${esc(n.t)}</b><span class="bar"><i style="width:${p}%"></i></span></button>`:""}
+    <div class="sec-t">Модули</div>
+    <div class="${wide?"grid-mods":"mods"}">${S.mods.map(m=>{const d=modDone(m),t=m.les.length;return `
+      <button class="mod" onclick="location.hash='m/${esc(m.n)}'"><span class="num">${esc(m.n)}</span>
+        <span><b>${esc(m.t)}</b><small>${t} ${plural(t,"урок","урока","уроков")}</small></span>
+        <span class="pr ${d===t?"full":""}">${d}/${t}</span></button>`}).join("")}</div>
+    ${standalone||TG?"":`<button class="install" onclick="installSheet()"><span class="ic">КК</span><span><b>Поставить иконку на ${wide?"компьютер или телефон":"телефон"}</b><small>Открывать курс как приложение, без Telegram</small></span></button>`}`;
+}
+function plural(n,a,b,c){n=Math.abs(n)%100;const n1=n%10;return n>10&&n<20?c:n1>1&&n1<5?b:n1===1?a:c}
+
+function moduleView(m){
+  const n=nextLes();
+  return `<div class="crumbs">Модуль ${esc(m.n)}</div><h1 class="les-h">${esc(m.t)}</h1>
+    <p style="margin:-6px 0 0;color:var(--muted);font-size:13.5px">${modDone(m)} из ${m.les.length} пройдено</p>
+    <div class="lessons">${m.les.map(l=>`<button class="les ${l.locked?"lock":S.done.has(l.id)?"done":n&&n.id===l.id?"cur":""}" onclick="openLes('${esc(l.id)}')">
+      <span class="ck">${l.locked?"🔒":S.done.has(l.id)?"✓":""}</span>
+      <span><b>${esc(l.t)}</b><small>Урок ${esc(m.n)}.${esc(l.n)}${isHw(l)?" · задание":""}${l.locked?" · откроется "+fmtDate(l.open):""}</small></span></button>`).join("")}</div>`;
+}
+
+function videoHtml(v){
+  if(!v)return "";
+  v=String(v).trim();
+  const id=(v.match(/kinescope\.io\/(?:embed\/)?([A-Za-z0-9]+)/)||[])[1]||(/^[A-Za-z0-9]+$/.test(v)?v:"");
+  const src=id?"https://kinescope.io/embed/"+id:v;
+  return `<div class="video"><iframe src="${esc(src)}" allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer; clipboard-write" allowfullscreen loading="lazy"></iframe></div>`;
+}
+function ext(u,t){const m=(t+" "+u).match(/\.(pdf|zip|rar|png|jpe?g|mp4|mov|docx?|xlsx?|cube|prproj|psd|aep|mogrt|ttf|otf)\b/i);if(m)return m[1].toUpperCase();if(/drive\.google|docs\.google/.test(u))return "ДИСК";if(/disk\.yandex|yadi\.sk/.test(u))return "Я.ДИСК";return "↗"}
+
+function lessonView(l){
+  const d=S.done.has(l.id),nx=nextAfter(l.id),hw=isHw(l);
+  if(l.locked)return `<div class="crumbs">Модуль ${esc(l.m.n)} · ${esc(l.m.t)}</div><h1 class="les-h">${esc(l.t)}</h1><div class="status wait"><span class="dot"></span><div>Урок откроется ${esc(fmtDate(l.open))}</div></div>`;
+  return `<div class="crumbs">Модуль ${esc(l.m.n)} · ${esc(l.m.t)} · урок ${esc(l.m.n)}.${esc(l.n)}</div>
+    <h1 class="les-h">${esc(l.t)}</h1>
+    ${videoHtml(l.video)}
+    ${l.html?`<div class="body-text">${l.html}</div>`:""}
+    ${l.files.length?`<div class="sec-t">Материалы</div><div class="files">${l.files.map(f=>`<a class="file" href="${esc(f.u)}" target="_blank" rel="noopener"><span class="ext">${ext(f.u,f.t)}</span><span><b>${esc(f.t)}</b><small>${esc(f.u.replace(/^https?:\/\//,"").split("/")[0])}</small></span></a>`).join("")}</div>`:""}
+    ${hw?`<form class="hw" id="hwf"><b>Домашнее задание</b>${l.task?`<div class="body-text">${l.task}</div>`:""}
+      <label>Ссылка на работу (Google Диск, Яндекс, YouTube…)<input type="url" name="link" placeholder="https://"></label>
+      <label>Или файл до 20 МБ<input type="file" name="file"></label>
+      <label>Комментарий<textarea name="comment" placeholder="Что хочешь, чтобы я посмотрела в первую очередь?"></textarea></label>
+      <button class="btn y" type="submit">Сдать ДЗ</button></form>`:""}
+    <button class="btn ${d?"done":"g"}" id="doneBtn" onclick="toggleDone('${esc(l.id)}')">${d?"✓ Урок пройден":"Отметить пройденным"}</button>
+    <div class="navrow"><button class="btn g" onclick="location.hash='m/${esc(l.m.n)}'">К модулю</button>
+      ${nx?`<button class="btn y" onclick="openLes('${esc(nx.id)}')">Следующий →</button>`:`<button class="btn g" onclick="location.hash=''">На главную</button>`}</div>`;
+}
+
+async function toggleDone(id){
+  const was=S.done.has(id);was?S.done.delete(id):S.done.add(id);
+  const b=document.getElementById("doneBtn");if(b){b.className="btn "+(was?"g":"done");b.textContent=was?"Отметить пройденным":"✓ Урок пройден"}
+  document.querySelector(".side").innerHTML=sideView();
+  if(TG)try{TG.HapticFeedback.notificationOccurred("success")}catch(e){}
+  try{const r=await api({api:"done",lesson:id,value:!was});if(r.ok){S.done=new Set(r.done);saveCache()}else throw 0}
+  catch(e){was?S.done.add(id):S.done.delete(id);toast("Не сохранилось, проверь интернет");route()}
+}
+function saveCache(){try{const c=JSON.parse(load("kk_course")||"{}");c.done=[...S.done];store("kk_course",JSON.stringify(c))}catch(e){}}
+
+function bindLesson(){
+  const f=document.getElementById("hwf");if(!f)return;
+  f.onsubmit=async e=>{
+    e.preventDefault();
+    const id=decodeURIComponent(location.hash.slice(3)),l=findLes(id),btn=f.querySelector("button");
+    const link=f.link.value.trim(),file=f.file.files[0],comment=f.comment.value.trim();
+    if(!link&&!file)return toast("Добавь ссылку или файл");
+    if(file&&file.size>20*1024*1024)return toast("Файл больше 20 МБ — загрузи его на диск и пришли ссылку");
+    btn.disabled=true;btn.textContent=file?"Загружаем файл…":"Отправляем…";
+    try{
+      let fd=null;
+      if(file)fd={name:file.name,type:file.type,data:await new Promise((ok,bad)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(",")[1]);r.onerror=bad;r.readAsDataURL(file)})};
+      const r=await api({api:"homework",lesson:id,lessonTitle:l?l.m.n+"."+l.n+" "+l.t:id,link,comment,file:fd});
+      if(!r.ok)throw new Error(r.error);
+      f.innerHTML=`<b>Домашка отправлена ✓</b><p style="margin:0;color:var(--muted);font-size:13.5px">Аполлинария получила её вместе с твоим ником и названием урока.</p>`;
+    }catch(err){btn.disabled=false;btn.textContent="Сдать ДЗ";if(err.message!=="auth")toast("Не отправилось: "+(err.message||"нет связи"))}
+  };
+}
+
+/* ---------- иконка на телефон ---------- */
+let deferredInstall=null;
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e});
+function installSheet(){
+  if(deferredInstall){deferredInstall.prompt();deferredInstall=null;return}
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  const v=document.createElement("div");v.className="veil";
+  v.innerHTML=`<div class="sheet" role="dialog" aria-label="Иконка на телефон"><h3>Курс как приложение</h3>
+    <ol>${ios?`<li>Открой эту страницу в Safari</li><li>Нажми «Поделиться» (квадрат со стрелкой)</li><li>Выбери «На экран Домой»</li>`
+      :`<li>Открой эту страницу в Chrome</li><li>Нажми ⋮ в правом верхнем углу</li><li>Выбери «Установить приложение» или «Добавить на гл. экран»</li>`}
+    <li>Входить второй раз не придётся</li></ol>
+    <button class="btn y" onclick="this.closest('.veil').remove()">Понятно</button></div>`;
+  v.addEventListener("click",e=>{if(e.target===v)v.remove()});
+  document.body.appendChild(v);
+}
+if("serviceWorker" in navigator&&!TG)navigator.serviceWorker.register("sw.js").catch(()=>{});
+
+start();
+</script>
+</body>
+</html>
