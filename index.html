@@ -91,6 +91,7 @@ a{color:var(--sun)}
 .crumbs{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
 .les-h{margin:0;font-size:clamp(21px,3vw,30px);font-weight:900;line-height:1.12;letter-spacing:-.01em;text-wrap:balance}
 .video{position:relative;aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:var(--panel)}
+.body-text .video{margin:14px 0}
 .video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .novideo{display:grid;place-items:center;color:var(--muted);font-size:13px;padding:16px;text-align:center}
 .body-text{font-size:15px;line-height:1.6;color:#e4ded1;overflow-wrap:anywhere}
@@ -250,6 +251,7 @@ function pct(){const a=allLes();return a.length?Math.round(a.filter(l=>S.done.ha
 function nextLes(){return allLes().find(l=>!l.locked&&!S.done.has(l.id))||allLes()[0]}
 function nextAfter(id){const a=allLes(),i=a.findIndex(l=>l.id===id);return a.slice(i+1).find(l=>!l.locked)}
 function isHw(l){return !!l.task||/^дз|домашн/i.test(l.t)}
+function isTest(l){return /^<p>Задание к этому уроку — тест/.test(l.task||"")}
 
 /* ---------- экраны ---------- */
 function route(){
@@ -307,7 +309,7 @@ function moduleView(m){
     <p style="margin:-6px 0 0;color:var(--muted);font-size:13.5px">${modDone(m)} из ${m.les.length} пройдено</p>
     <div class="lessons">${m.les.map(l=>`<button class="les ${l.locked?"lock":S.done.has(l.id)?"done":n&&n.id===l.id?"cur":""}" onclick="openLes('${esc(l.id)}')">
       <span class="ck">${l.locked?"🔒":S.done.has(l.id)?"✓":""}</span>
-      <span><b>${esc(l.t)}</b><small>Урок ${esc(m.n)}.${esc(l.n)}${isHw(l)?" · задание":""}${l.locked?" · откроется "+fmtDate(l.open):""}</small></span></button>`).join("")}</div>`;
+      <span><b>${esc(l.t)}</b><small>Урок ${esc(m.n)}.${esc(l.n)}${isTest(l)?" · тест":isHw(l)?" · задание":""}${l.locked?" · откроется "+fmtDate(l.open):""}</small></span></button>`).join("")}</div>`;
 }
 
 function videoHtml(v){
@@ -324,10 +326,11 @@ function lessonView(l){
   if(l.locked)return `<div class="crumbs">Модуль ${esc(l.m.n)} · ${esc(l.m.t)}</div><h1 class="les-h">${esc(l.t)}</h1><div class="status wait"><span class="dot"></span><div>Урок откроется ${esc(fmtDate(l.open))}</div></div>`;
   return `<div class="crumbs">Модуль ${esc(l.m.n)} · ${esc(l.m.t)} · урок ${esc(l.m.n)}.${esc(l.n)}</div>
     <h1 class="les-h">${esc(l.t)}</h1>
-    ${videoHtml(l.video)}
-    ${l.html?`<div class="body-text">${l.html}</div>`:""}
+    ${/data-kv=/.test(l.html)?"":videoHtml(l.video)}
+    ${l.html?`<div class="body-text">${l.html.replace(/<div data-kv="([A-Za-z0-9]+)"><\/div>/g,(_,id)=>videoHtml(id))}</div>`:""}
     ${l.files.length?`<div class="sec-t">Материалы</div><div class="files">${l.files.map(f=>`<a class="file" href="${esc(f.u)}" target="_blank" rel="noopener"><span class="ext">${ext(f.u,f.t)}</span><span><b>${esc(f.t)}</b><small>${esc(f.u.replace(/^https?:\/\//,"").split("/")[0])}</small></span></a>`).join("")}</div>`:""}
-    ${hw?`<form class="hw" id="hwf"><b>Домашнее задание</b>${l.task?`<div class="body-text">${l.task}</div>`:""}
+    ${isTest(l)?`<div class="hw"><b>Тест к уроку</b><div class="body-text">${l.task}</div><a class="btn y" href="${esc(l.gk)}" target="_blank" rel="noopener">Пройти тест в ГетКурсе ↗</a></div>`:""}
+    ${hw&&!isTest(l)?`<form class="hw" id="hwf"><b>Домашнее задание</b>${l.task?`<div class="body-text">${l.task}</div>`:""}
       <label>Ссылка на работу (Google Диск, Яндекс, YouTube…)<input type="url" name="link" placeholder="https://"></label>
       <label>Или файл до 20 МБ<input type="file" name="file"></label>
       <label>Комментарий<textarea name="comment" placeholder="Что хочешь, чтобы я посмотрела в первую очередь?"></textarea></label>
