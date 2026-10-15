@@ -102,7 +102,7 @@ details>summary{list-style:none}details>summary::-webkit-details-marker{display:
 .video{position:relative;aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:var(--panel)}
 .video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
 .body-text .video{margin:14px 0}
-.body-text{font-size:15px;line-height:1.6;color:#e4ded1;overflow-wrap:anywhere}
+.body-text{font-size:15px;line-height:1.6;color:#e4ded1;overflow-wrap:break-word;word-break:normal;hyphens:manual}
 .body-text>*:first-child{margin-top:0}.body-text>*:last-child{margin-bottom:0}
 .body-text img{max-width:100%;height:auto;border-radius:12px}
 .files{display:flex;flex-direction:column;gap:8px}
@@ -155,10 +155,40 @@ input[type=file]{font-size:13px;color:var(--muted)}
 .empty{color:var(--muted);font-size:14px;text-align:center;padding:24px 0}
 mark{background:color-mix(in srgb,var(--sun) 35%,transparent);color:inherit;border-radius:3px}
 
+/* обложки */
+.banner{width:100%;border-radius:18px;display:block;aspect-ratio:1400/387;object-fit:cover;background:var(--panel)}
+.covers{display:grid;grid-template-columns:1fr;gap:14px}
+.cover{display:flex;flex-direction:column;gap:8px;text-align:left;width:100%}
+.cover img{width:100%;aspect-ratio:930/418;object-fit:cover;border-radius:16px;display:block;background:var(--panel)}
+.cover .meta{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:0 4px;font-size:13px;color:var(--muted)}
+.cover .meta .bar{flex:1;max-width:160px}
+.mod-cover{width:100%;aspect-ratio:930/418;object-fit:cover;border-radius:18px;display:block}
+.les.th{grid-template-columns:112px minmax(0,1fr) auto;padding:8px}
+.les .thumb{position:relative;width:112px;aspect-ratio:16/9;border-radius:10px;overflow:hidden;background:var(--panel2)}
+.les .thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.les .thumb .ck{position:absolute;left:6px;top:6px;width:22px;height:22px;font-size:11px;background:rgba(13,13,13,.7);border-color:rgba(255,255,255,.5)}
+.les.done .thumb .ck{background:var(--ok);border-color:var(--ok)}
+.gbtn{display:flex;flex-direction:column;gap:8px}
+.gbtn .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.gbtn a.btn{width:auto;flex:1;min-width:200px}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 12px 5px 8px;font-size:13px;font-weight:700;text-decoration:none;background:var(--panel2);color:var(--text);border:1px solid var(--line);margin:2px 2px;vertical-align:middle;white-space:nowrap}
+.pill i{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:10px;font-weight:900}
+.pill.ya i{background:#fc3f1d;color:#fff}.pill.gd i{background:#1fa463;color:#fff}.pill.tg i{background:#2aabee;color:#fff}
+.pill.ig i{background:#d62976;color:#fff}.pill.yt i{background:#ff0000;color:#fff}.pill.gf i{background:#7248b9;color:#fff}.pill.ln i{background:var(--sun);color:var(--sun-ink)}
+.mats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.mat{display:flex;flex-direction:column;gap:8px;text-decoration:none;color:var(--text)}
+.mat .pic{aspect-ratio:3/4;border-radius:14px;overflow:hidden;background:var(--panel2);display:grid;place-items:center;color:var(--sun);font-family:var(--f-mono);font-size:12px}
+.mat .pic img{width:100%;height:100%;object-fit:cover;object-position:top}
+.mat b{font-size:13px;line-height:1.3;font-weight:700}.mat small{color:var(--muted);font-size:11.5px;margin-top:-4px}
+.lvl{display:flex;flex-direction:column;gap:10px}
+.lvl img{width:100%;border-radius:16px;display:block}
+.lvl .big{font-size:32px;font-weight:900;line-height:1}
+@media (min-width:600px){.covers{grid-template-columns:repeat(2,minmax(0,1fr))}.mats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
 /* компьютер: меню слева вместо нижнего */
 @media (min-width:900px){
   .tabs{display:none}
-  .top .back,.top .sp{display:none}
+  .top .sp{display:none}
   .top .t{text-align:left;flex:none}
   .wrap{height:calc(100vh - 57px)}
   .side{display:flex;flex-direction:column;gap:2px;width:310px;flex:none;overflow:auto;border-right:1px solid var(--line);padding:16px 12px}
@@ -207,7 +237,7 @@ const IC = {
   hw:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V5M7 10l5-5 5 5"/><path d="M5 19h14"/></svg>',
   me:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>'
 };
-const TABS = [["", "Уроки", "les", "Уроки"], ["hw", "Сдать ДЗ", "hw", "Сдать ДЗ"], ["mat", "Полезные материалы", "mat", "Полезные<br>материалы"], ["me", "Аккаунт", "me", "Аккаунт"]];
+const TABS = [["", "База знаний", "les", "База<br>знаний"], ["hw", "Сдать ДЗ", "hw", "Сдать ДЗ"], ["mat", "Полезные материалы", "mat", "Полезные<br>материалы"], ["me", "Аккаунт", "me", "Аккаунт"]];
 
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function store(k,v){try{v===undefined?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
@@ -288,12 +318,6 @@ function modDone(m){return m.les.filter(l=>S.done.has(l.id)).length}
 function pct(){const a=allLes();return a.length?Math.round(a.filter(l=>S.done.has(l.id)).length/a.length*100):0}
 function nextLes(){return allLes().find(l=>!l.locked&&!S.done.has(l.id))||allLes()[0]}
 function nextAfter(id){const a=allLes(),i=a.findIndex(l=>l.id===id);return a.slice(i+1).find(l=>!l.locked)}
-function isTest(l){return /^<p>Задание к этому уроку — тест/.test(l.task||"")}
-function hasHw(l){return !!l.task&&!isTest(l)}
-function hwChip(id){const h=S.hw[id];if(!h)return `<span class="chip">не сдано</span>`;
-  if(h.status==="принято")return `<span class="chip ok">принято ✓</span>`;
-  if(h.status==="доработать")return `<span class="chip redo">доработать</span>`;
-  return `<span class="chip sent">${h.how==="в ЛС"?"отправлено в ЛС":"на проверке"}</span>`}
 
 /* ---------- каркас ---------- */
 function section(){const h=location.hash.slice(1);for(const k of ["mat","hw","me"])if(h.startsWith(k))return k;return ""}
@@ -312,7 +336,7 @@ function route(){
   const sec=section();
   app.innerHTML=`<header class="top ${back?"":"home"}">
       ${back?`<button class="back" onclick="goBack()">‹ Назад</button>`:""}
-      <span class="t">${wide()||!back?`<span class="logo-s">КОД <span>КРЕАТОРА</span></span>`:esc(title)}</span>
+      <span class="t">${!back||wide()?`<span class="logo-s">КОД <span>КРЕАТОРА</span></span>`:esc(title)}</span>
       ${wide()?`<span class="user"><b>${esc(S.user.n)}</b> · @${esc(S.user.u)}</span>`:back?`<span class="sp"></span>`:""}
     </header>
     <div class="wrap"><aside class="side">${sideView(sec)}</aside><main class="main" id="main"><div class="inner">${view}</div></main></div>
@@ -340,31 +364,32 @@ function sideView(sec){
 function tog(n){S.open.has(n)?S.open.delete(n):S.open.add(n);document.querySelector(".side").innerHTML=sideView(section())}
 function openLes(id){const l=findLes(id);if(l&&l.locked)return toast("Урок откроется "+fmtDate(l.open));location.hash="l/"+encodeURIComponent(id)}
 
-/* ---------- уроки ---------- */
+/* ---------- уроки (база знаний) ---------- */
+const modCover=n=>`img/mod${esc(n)}.jpg`;
 function homeView(){
-  const n=nextLes(),p=pct();
-  return `<div class="hello"><h1>Привет, ${esc(S.user.n||"креатор")}</h1><p>${S.user.s?esc(S.user.s)+" · ":""}пройдено ${p}% программы</p></div>
-    ${n?`<button class="cont" onclick="openLes('${esc(n.id)}')"><span class="k">${S.done.size?"Продолжить":"Начать"} · модуль ${esc(n.m.n)}</span><b>${esc(n.t)}</b><span class="bar"><i style="width:${p}%"></i></span></button>`:""}
+  const p=pct(),last=findLes(load("kk_last"));
+  const n=last?(S.done.has(last.id)?(nextAfter(last.id)||last):last):allLes()[0];
+  return `<img class="banner" src="img/banner.jpg" alt="КОД КРЕАТОРА — программа обучения профессии режиссёра монтажа">
+    <div class="hello"><h1>Привет, ${esc(S.user.n||"креатор")}</h1><p>${S.user.a?"автор":"ученица"} · пройдено ${p}% программы</p></div>
+    ${n?`<button class="cont" onclick="openLes('${esc(n.id)}')"><span class="k">${last?"Продолжить":"Начать"} · урок ${esc(n.id)}</span><b>${esc(n.t)}</b><span class="bar"><i style="width:${p}%"></i></span></button>`:""}
     <input type="search" id="kbq" placeholder="Найти урок: шрифты, цвет, портфолио…" value="${esc(S.q)}" autocomplete="off">
     <div id="kbres"></div>
     <div class="sec-t">Модули</div>
-    <div class="${wide()?"grid-mods":"mods"}">${S.mods.map(m=>{const d=modDone(m),t=m.les.length;return `
-      <button class="mod" onclick="location.hash='m/${esc(m.n)}'"><span class="num">${esc(m.n)}</span>
-        <span><b>${esc(m.t)}</b><small>${t} ${plural(t,"урок","урока","уроков")}</small></span>
-        <span class="pr ${d===t?"full":""}">${d}/${t}</span></button>`}).join("")}</div>
-    ${matchMedia("(display-mode: standalone)").matches||navigator.standalone||TG?"":`<button class="file" onclick="installSheet()"><span class="ext">КК</span><span><b>Поставить иконку на ${wide()?"компьютер или телефон":"телефон"}</b><small>Открывать программу как приложение</small></span></button>`}`;
+    <div class="covers">${S.mods.map(m=>{const d=modDone(m),t=m.les.length,pc=Math.round(d/t*100);return `
+      <button class="cover" onclick="location.hash='m/${esc(m.n)}'"><img src="${modCover(m.n)}" alt="${esc(m.t)}" loading="lazy">
+        <span class="meta"><span>${t} ${plural(t,"урок","урока","уроков")}</span><span class="bar y"><i style="width:${pc}%"></i></span><span class="pr ${d===t?"full":""}">${d}/${t}</span></span></button>`}).join("")}</div>
+    ${matchMedia("(display-mode: standalone)").matches||navigator.standalone||TG?"":`<button class="file" onclick="installSheet()"><span class="ext"><img src="icon-192.png" alt="" style="width:100%;border-radius:9px"></span><span><b>Поставить иконку на ${wide()?"компьютер или телефон":"телефон"}</b><small>Открывать программу как приложение</small></span></button>`}`;
 }
-
 function moduleView(m){
-  const n=nextLes();
-  return `<div class="crumbs">Модуль ${esc(m.n)}</div><h1 class="h">${esc(m.t)}</h1>
-    <p class="sub">${modDone(m)} из ${m.les.length} пройдено</p>
-    <div class="lessons">${m.les.map(l=>lesRow(l,n)).join("")}</div>`;
+  return `<img class="mod-cover" src="${modCover(m.n)}" alt="${esc(m.t)}">
+    <p class="sub" style="margin:0">Модуль ${esc(m.n)} · ${modDone(m)} из ${m.les.length} пройдено</p>
+    <div class="lessons">${m.les.map(l=>lesRow(l)).join("")}</div>`;
 }
-function lesRow(l,n){
-  return `<button class="les ${l.locked?"lock":S.done.has(l.id)?"done":n&&n.id===l.id?"cur":""}" onclick="openLes('${esc(l.id)}')">
-    <span class="ck">${l.locked?"🔒":S.done.has(l.id)?"✓":""}</span>
-    <span><b>${esc(l.t)}</b><small>Урок ${esc(l.id)}${isTest(l)?" · тест":hasHw(l)?" · задание":""}${l.locked?" · откроется "+fmtDate(l.open):""}</small></span>
+function lesRow(l){
+  const d=S.done.has(l.id);
+  return `<button class="les th ${d?"done":""} ${l.locked?"lock":""}" onclick="openLes('${esc(l.id)}')">
+    <span class="thumb">${l.cover?`<img src="${esc(l.cover)}" alt="" loading="lazy">`:""}<span class="ck">${l.locked?"🔒":d?"✓":""}</span></span>
+    <span><b>${esc(l.t)}</b><small>Урок ${esc(l.id)}${isTest(l)&&!hasHw(l)?" · тест":hasHw(l)?" · задание":""}</small></span>
     ${hasHw(l)&&S.hw[l.id]?hwChip(l.id):"<span></span>"}</button>`;
 }
 
@@ -373,22 +398,41 @@ function videoHtml(v){
   const id=(String(v).match(/kinescope\.io\/(?:embed\/)?([A-Za-z0-9]+)/)||[])[1]||(/^[A-Za-z0-9]+$/.test(v)?v:"");
   return id?`<div class="video"><iframe src="https://kinescope.io/embed/${id}" allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer; clipboard-write" allowfullscreen loading="lazy"></iframe></div>`:"";
 }
-function ext(u,t){const m=(t+" "+u).match(/\.(pdf|zip|rar|png|jpe?g|mp4|mov|docx?|xlsx?|cube|prproj|psd|aep|mogrt|ttf|otf)\b/i);if(m)return m[1].toUpperCase();if(/drive\.google|docs\.google/.test(u))return "ДИСК";if(/disk\.yandex|yadi\.sk/.test(u))return "Я.ДИСК";if(/t\.me/.test(u))return "TG";return "↗"}
-function fileRow(f){return `<a class="file" href="${esc(f.u)}" target="_blank" rel="noopener"><span class="ext">${ext(f.u,f.t)}</span><span><b>${esc(f.t)}</b><small>${esc(f.d||f.u.replace(/^https?:\/\//,"").split("/")[0])}</small></span></a>`}
+// красивые ссылки: вместо голого адреса — кнопочка с названием сервиса
+function svc(u){
+  if(/disk\.yandex|yadi\.sk/.test(u))return ["ya","Я","Яндекс Диск"];
+  if(/docs\.google\.com\/forms|forms\.gle/.test(u))return ["gf","≡","Google Форма"];
+  if(/drive\.google|docs\.google/.test(u))return ["gd","G","Google Диск"];
+  if(/t\.me\//.test(u))return ["tg","✈",/bushas_help_bot/.test(u)?"Бот-помощник":/t\.me\/\+/.test(u)?"Чат программы":"Telegram"];
+  if(/instagram\.com/.test(u))return ["ig","◎",/\/reel\//.test(u)?"Пример: reels":"Instagram"];
+  if(/youtu\.?be/.test(u))return ["yt","▶","YouTube"];
+  if(/pin\.it|pinterest/.test(u))return ["ln","P","Pinterest"];
+  return ["ln","↗",u.replace(/^https?:\/\/(www\.)?/,"").split("/")[0]];
+}
+function pill(u,label){const [c,ic,t]=svc(u);return `<a class="pill ${c}" href="${esc(u)}" target="_blank" rel="noopener"><i>${ic}</i>${esc(label||t)}</a>`}
+function prettyLinks(h){
+  return h.replace(/<a href="([^"]+)"[^>]*>(.*?)<\/a>/g,(all,u,txt)=>{u=u.replace(/&amp;/g,"&");const t=txt.replace(/<[^>]+>/g,"").trim();
+    return /^(https?:\/\/|www\.)|^[\w.-]+\.(ru|com|io|me)(\/|$)/i.test(t)||!t?pill(u):`<a href="${esc(u)}" target="_blank" rel="noopener">${txt}</a>`})
+   .replace(/(^|[\s>(])(https?:\/\/[^\s<)"]+)/g,(all,pre,u)=>pre+pill(u));
+}
+function btnBlock(files){
+  if(!files.length)return "";
+  return `<div class="gbtn">${files.map(f=>f.u.length===1?`<a class="btn y" href="${esc(f.u[0])}" target="_blank" rel="noopener">${esc(f.t)}</a>`
+    :`<div class="box" style="padding:12px 14px;gap:8px"><b style="font-size:14px">${esc(f.t)}</b><div class="row">${f.u.map(u=>pill(u)).join("")}</div></div>`).join("")}</div>`;
+}
 
 function lessonView(l){
   const d=S.done.has(l.id),nx=nextAfter(l.id);
-  if(l.locked)return `<div class="crumbs">Модуль ${esc(l.m.n)} · ${esc(l.m.t)}</div><h1 class="h">${esc(l.t)}</h1><div class="box"><b>Урок откроется ${esc(fmtDate(l.open))}</b></div>`;
   const h=S.hw[l.id];
   return `<div class="crumbs">Модуль ${esc(l.m.n)} · ${esc(l.m.t)} · урок ${esc(l.id)}</div>
     <h1 class="h">${esc(l.t)}</h1>
     ${/data-kv=/.test(l.html)?"":videoHtml(l.video)}
-    ${l.html?`<div class="body-text">${l.html.replace(/<div data-kv="([A-Za-z0-9]+)"><\/div>/g,(_,id)=>videoHtml(id))}</div>`:""}
-    ${l.files.length?`<div class="sec-t">Материалы</div><div class="files">${l.files.map(fileRow).join("")}</div>`:""}
-    ${isTest(l)?`<div class="box"><b>Тест к уроку</b><div class="body-text">${l.task}</div><a class="btn y" href="${esc(l.gk)}" target="_blank" rel="noopener">Пройти тест ↗</a></div>`:""}
-    ${hasHw(l)?`<div class="box"><b>Домашнее задание</b><div class="body-text">${l.task}</div>
+    ${l.html?`<div class="body-text">${prettyLinks(l.html).replace(/<div data-kv="([A-Za-z0-9]+)"><\/div>/g,(_,id)=>videoHtml(id))}</div>`:""}
+    ${l.files.length?`<div class="sec-t">Материалы к уроку</div>${btnBlock(l.files)}`:""}
+    ${isTest(l)?`<div class="box"><b>Тест к уроку</b>${hasHw(l)?"":`<div class="body-text">${prettyLinks(l.task)}</div>`}<a class="btn y" href="${esc(l.gk)}" target="_blank" rel="noopener">Пройти тест ↗</a></div>`:""}
+    ${hasHw(l)?`<div class="box"><b>Домашнее задание</b><div class="body-text">${prettyLinks(l.task)}</div>
       ${h?`<div style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted)">Статус: ${hwChip(l.id)}</div>${h.reply?`<div class="reply">${esc(h.reply)}</div>`:""}`:""}
-      <a class="btn ${h&&h.status!=="доработать"?"g":"y"}" href="#hw/${encodeURIComponent(l.id)}">${h?(h.status==="доработать"?"Сдать заново":"Отправить ещё раз"):"Сдать ДЗ"}</a></div>`:""}
+      <a class="btn ${h&&h.status!=="доработать"?"g":"y"}" href="#hw/${encodeURIComponent(l.id)}">${hwBtnLabel(l)}</a></div>`:""}
     <button class="btn ${d?"done":"g"}" id="doneBtn" onclick="toggleDone('${esc(l.id)}')">${d?"✓ Урок пройден":"Отметить пройденным"}</button>
     <div class="navrow"><button class="btn g" onclick="location.hash='m/${esc(l.m.n)}'">К модулю</button>
       ${nx?`<button class="btn y" onclick="openLes('${esc(nx.id)}')">Следующий →</button>`:`<button class="btn g" onclick="location.hash=''">На главную</button>`}</div>`;
@@ -403,7 +447,7 @@ async function toggleDone(id){
   catch(e){was?S.done.add(id):S.done.delete(id);toast("Не сохранилось, проверь интернет");route()}
 }
 
-/* ---------- база знаний: поиск и быстрый переход ---------- */
+/* ---------- поиск по урокам ---------- */
 function plain(h){return String(h||"").replace(/<div data-kv[^>]*><\/div>/g," ").replace(/<[^>]+>/g," ").replace(/&nbsp;/g," ").replace(/&amp;/g,"&").replace(/\s+/g," ")}
 function kbSearch(q){
   S.q=q;const box=document.getElementById("kbres");if(!box)return;
@@ -411,103 +455,113 @@ function kbSearch(q){
   const hits=allLes().map(l=>{const t=l.t.toLowerCase(),full=plain(l.html+" "+l.task),body=full.toLowerCase();const score=(t.includes(q)?10:0)+(body.split(q).length-1);
     let snip="";const i=body.indexOf(q);if(i>=0&&!t.includes(q))snip=full.slice(Math.max(0,i-50),i+90);return {l,score,snip}}).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,20);
   const rx=new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi"),mk=s=>esc(s).replace(rx,m=>`<mark>${m}</mark>`);
-  box.innerHTML=hits.length?`<div class="lessons">${hits.map(({l,snip})=>`<button class="les" onclick="openLes('${esc(l.id)}')"><span class="ck" style="border:0;color:var(--sun)">${esc(l.m.n)}</span><span><b>${mk(l.t)}</b><small>${snip?"…"+mk(snip)+"…":"Урок "+esc(l.id)+" · "+esc(l.m.t)}</small></span><span></span></button>`).join("")}</div>`:`<div class="empty">Ничего не нашли. Попробуй другое слово.</div>`;
+  box.innerHTML=hits.length?`<div class="lessons">${hits.map(({l,snip})=>`<button class="les th" onclick="openLes('${esc(l.id)}')"><span class="thumb">${l.cover?`<img src="${esc(l.cover)}" alt="">`:""}</span><span><b>${mk(l.t)}</b><small>${snip?"…"+mk(snip)+"…":"Урок "+esc(l.id)+" · "+esc(l.m.t)}</small></span><span></span></button>`).join("")}</div>`:`<div class="empty">Ничего не нашли. Попробуй другое слово.</div>`;
 }
 
 /* ---------- полезные материалы ---------- */
-function lessonLinks(){
-  const out={};
-  allLes().forEach(l=>{
-    (l.html+" "+l.task).replace(/href="([^"]+)"/g,(_,u)=>{u=u.replace(/&amp;/g,"&");
-      if(/drive\.google|docs\.google\.com\/(document|spreadsheets|presentation)/.test(u)){(out[l.id]=out[l.id]||{l,u:[]});if(!out[l.id].u.includes(u))out[l.id].u.push(u)}});
-  });
-  return Object.values(out);
-}
 function matView(){
-  const mats=S.mats.filter(x=>!/база/i.test(x.s)),groups=[...new Set(mats.map(x=>x.g))],ll=lessonLinks(),kb=S.mats.filter(x=>/база/i.test(x.s));
-  return `<h1 class="h">Полезные материалы</h1><p class="sub">Гайды и подборки по модулям, папки программы на Google Диске и исходники ко всем урокам.</p>
-    ${kb.length?`<div class="sec-t">Папки программы</div><div class="files">${kb.map(fileRow).join("")}</div>`:""}
-    ${groups.map(g=>`<div class="sec-t">${esc(g||"Гайды")}</div><div class="files">${mats.filter(x=>x.g===g).map(fileRow).join("")}</div>`).join("")}
-    ${ll.length?`<div class="sec-t">Исходники к урокам</div><div class="files">${ll.map(({l,u})=>u.map((x,i)=>`<a class="file" href="${esc(x)}" target="_blank" rel="noopener"><span class="ext">${ext(x,"")}</span><span><b>${esc(l.t)}${u.length>1?" · "+(i+1):""}</b><small>Урок ${esc(l.id)} · Google Диск</small></span></a>`).join("")).join("")}</div>`:""}`;
+  const mats=S.mats.filter(x=>!/база/i.test(x.s)),groups=[...new Set(mats.map(x=>x.g))];
+  return `<h1 class="h">Полезные материалы</h1><p class="sub">Все гайды и подборки программы в одном месте — без поиска по урокам.</p>
+    ${groups.map(g=>`<div class="sec-t">${esc(g||"Гайды")}</div><div class="mats">${mats.filter(x=>x.g===g).map(f=>`<a class="mat" href="${esc(f.u)}" target="_blank" rel="noopener">
+      <span class="pic">${f.c?`<img src="${esc(f.c)}" alt="" loading="lazy">`:esc((f.d||"").split("·").pop().trim()||"ФАЙЛ")}</span><b>${esc(f.t)}</b><small>${esc(f.d||"")}</small></a>`).join("")}</div>`).join("")}`;
 }
 
 /* ---------- сдать ДЗ ---------- */
+// тип задания (столбец «тип ДЗ»): confirm:<надпись> | text | text+test | file | test
+function hwType(l){return String(l.hw||"").split(":")[0]}
+function isTest(l){return /test/.test(l.hw||"")}
+function hasHw(l){return ["confirm","text","text+test","file"].includes(hwType(l))}
+function hwBtnLabel(l){const h=S.hw[l.id],t=hwType(l);if(h)return h.status==="доработать"?"Сдать заново":"Отправить ещё раз";
+  return t==="confirm"?(l.hw.split(":")[1]||"Готово"):t.startsWith("text")?"Написать ответ":"Сдать ДЗ"}
+function hwChip(id){const h=S.hw[id];if(!h)return `<span class="chip">не сдано</span>`;
+  if(h.status==="принято")return `<span class="chip ok">${h.how&&h.how.startsWith("отметка")?"сделано ✓":"принято ✓"}</span>`;
+  if(h.status==="доработать")return `<span class="chip redo">доработать</span>`;
+  return `<span class="chip sent">${h.how==="в ЛС"?"отправлено в ЛС":"на проверке"}</span>`}
 function hwListView(){
   const list=allLes().filter(hasHw),sent=list.filter(l=>S.hw[l.id]).length;
   const firstTodo=list.find(l=>!S.hw[l.id]&&!l.locked);
-  return `<h1 class="h">Сдать ДЗ</h1><p class="sub">Сдано ${sent} из ${list.length}. Выбери задание — загрузи работу сюда или отметь, что уже отправила ${esc(S.lsName)} в личку.</p>
+  return `<h1 class="h">Сдать ДЗ</h1><p class="sub">Сдано ${sent} из ${list.length}. Выбери задание из списка.</p>
     ${firstTodo?`<button class="cont" onclick="location.hash='hw/${esc(firstTodo.id)}'"><span class="k">Следующее задание · урок ${esc(firstTodo.id)}</span><b>${esc(firstTodo.t)}</b></button>`:""}
     ${S.mods.filter(m=>m.les.some(hasHw)).map(m=>`<div class="sec-t">${esc(m.n)}. ${esc(m.t)}</div>
-      <div class="lessons">${m.les.filter(hasHw).map(l=>`<button class="les ${S.hw[l.id]?"done":""} ${l.locked?"lock":""}" onclick="${l.locked?`toast('Урок откроется ${esc(fmtDate(l.open))}')`:`location.hash='hw/${esc(l.id)}'`}">
-        <span class="ck">${S.hw[l.id]?"✓":""}</span><span><b>${esc(l.t)}</b><small>Урок ${esc(l.id)}</small></span>${hwChip(l.id)}</button>`).join("")}</div>`).join("")}`;
+      <div class="lessons">${m.les.filter(hasHw).map(l=>`<button class="les th ${S.hw[l.id]?"done":""}" onclick="location.hash='hw/${esc(l.id)}'">
+        <span class="thumb">${l.cover?`<img src="${esc(l.cover)}" alt="" loading="lazy">`:""}<span class="ck">${S.hw[l.id]?"✓":""}</span></span><span><b>${esc(l.t)}</b><small>Урок ${esc(l.id)} · ${{confirm:"отметка",text:"ответ текстом","text+test":"тест + ответ",file:"работа файлом"}[hwType(l)]}</small></span>${hwChip(l.id)}</button>`).join("")}</div>`).join("")}`;
 }
 let hwMode="upload";
 function hwView(l){
-  const h=S.hw[l.id];
-  return `<div class="crumbs">Урок ${esc(l.id)} · ${esc(l.m.t)}</div><h1 class="h">${esc(l.t)}</h1>
-    ${h?`<div class="box"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>Уже сдано</b>${hwChip(l.id)}</div>
-      <p class="hint">${esc(h.when)} · ${h.how==="в ЛС"?"отправлено в личку":"загружено в приложение"}</p>${h.reply?`<div class="reply">${esc(h.reply)}</div>`:""}</div>`:""}
-    <details class="box"><summary style="cursor:pointer;font-weight:700;display:flex;justify-content:space-between">Задание <span style="color:var(--sun)">показать ▾</span></summary><div class="body-text" style="margin-top:10px">${l.task}</div></details>
-    <form class="box" id="hwf">
+  const h=S.hw[l.id],t=hwType(l);
+  const done=h?`<div class="box"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>Уже сдано</b>${hwChip(l.id)}</div>
+      <p class="hint">${esc(h.when)} · ${esc(h.how)}</p>${h.reply?`<div class="reply">${esc(h.reply)}</div>`:""}</div>`:"";
+  const task=`<div class="box"><b>Задание</b><div class="body-text">${prettyLinks(l.task)}</div>${t==="text+test"?`<a class="btn g" href="${esc(l.gk)}" target="_blank" rel="noopener">Пройти тест ↗</a>`:""}</div>`;
+  let form;
+  if(t==="confirm")form=`<form class="box" id="hwf" data-mode="done"><p class="hint">Когда всё сделаешь — нажми кнопку, и задание засчитается.</p><button class="btn y" type="submit">${esc(l.hw.split(":")[1]||"Готово")} ✓</button></form>`;
+  else if(t.startsWith("text"))form=`<form class="box" id="hwf" data-mode="text"><label class="f">Твой ответ<textarea name="comment" style="min-height:160px" placeholder="…"></textarea></label><button class="btn y" type="submit">Отправить ответ</button></form>`;
+  else form=`<form class="box" id="hwf" data-mode="${hwMode}">
       <div class="seg"><button type="button" data-m="upload" aria-pressed="${hwMode==="upload"}">Загрузить сюда</button><button type="button" data-m="ls" aria-pressed="${hwMode==="ls"}">Уже отправила ${esc(S.lsName)} в ЛС</button></div>
       <div id="upl" style="display:${hwMode==="ls"?"none":"flex"};flex-direction:column;gap:12px">
-        <label class="f">Ссылка на работу (Google Диск, Яндекс, YouTube…)<input type="url" name="link" placeholder="https://"></label>
+        <label class="f">Ссылка на работу<input type="url" name="link" placeholder="https://"></label>
         <label class="f">Или файл до 20 МБ<input type="file" name="file"></label>
-        <p class="hint">Работа сразу придёт ${esc(S.lsName)} в Telegram и засчитается как сданная.</p>
       </div>
-      <p class="hint" id="lsh" style="display:${hwMode==="ls"?"block":"none"}">Отметим, что работа сдана: она засчитается в программе и в твоём прогрессе.</p>
-      <label class="f">Комментарий (по желанию)<textarea name="comment" placeholder="Что посмотреть в первую очередь?"></textarea></label>
+      <label class="f">Комментарий<textarea name="comment" placeholder="…"></textarea></label>
       <button class="btn y" type="submit">${hwMode==="ls"?"Отметить как сданное":"Отправить работу"}</button>
     </form>`;
+  return `<div class="crumbs">Урок ${esc(l.id)} · ${esc(l.m.t)}</div><h1 class="h">${esc(l.t)}</h1>${done}${task}${form}`;
 }
 function bindView(h){
   if(!h){const q=document.getElementById("kbq");if(q){q.oninput=()=>kbSearch(q.value);if(S.q)kbSearch(S.q)}}
   if(h==="me")loadAccount();
+  if(h.startsWith("l/"))store("kk_last",h.slice(2));
   const f=document.getElementById("hwf");if(!f)return;
-  const label=()=>hwMode==="ls"?"Отметить как сданное":"Отправить работу";
-  f.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{hwMode=b.dataset.m;f.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",x===b));
-    document.getElementById("upl").style.display=hwMode==="ls"?"none":"flex";document.getElementById("lsh").style.display=hwMode==="ls"?"block":"none";f.querySelector("[type=submit]").textContent=label()});
+  const mode=()=>f.dataset.mode;
+  const label=()=>({ls:"Отметить как сданное",upload:"Отправить работу",text:"Отправить ответ"})[mode()]||f.querySelector("[type=submit]").textContent;
+  f.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{hwMode=f.dataset.mode=b.dataset.m;f.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",x===b));
+    document.getElementById("upl").style.display=hwMode==="ls"?"none":"flex";f.querySelector("[type=submit]").textContent=label()});
   f.onsubmit=async e=>{
     e.preventDefault();
-    const id=h.slice(3),l=findLes(id),btn=f.querySelector("[type=submit]");
-    const link=f.link.value.trim(),file=f.file.files[0],comment=f.comment.value.trim();
-    if(hwMode==="upload"&&!link&&!file)return toast("Добавь ссылку или файл");
-    if(hwMode==="upload"&&file&&file.size>20*1024*1024)return toast("Файл больше 20 МБ — загрузи его на диск и пришли ссылку");
-    btn.disabled=true;btn.textContent=hwMode==="upload"&&file?"Загружаем файл…":"Отправляем…";
+    const id=h.slice(3),l=findLes(id),btn=f.querySelector("[type=submit]"),m=mode(),was=btn.textContent;
+    const link=f.link?f.link.value.trim():"",file=f.file?f.file.files[0]:null,comment=f.comment?f.comment.value.trim():"";
+    if(m==="upload"&&!link&&!file)return toast("Добавь ссылку или файл");
+    if(m==="text"&&!comment)return toast("Напиши ответ");
+    if(m==="upload"&&file&&file.size>20*1024*1024)return toast("Файл больше 20 МБ — загрузи его на диск и пришли ссылку");
+    btn.disabled=true;btn.textContent=m==="upload"&&file?"Загружаем файл…":"Отправляем…";
     try{
       let fd=null;
-      if(hwMode==="upload"&&file)fd={name:file.name,type:file.type,data:await new Promise((ok,bad)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(",")[1]);r.onerror=bad;r.readAsDataURL(file)})};
-      const r=await api({api:"homework",mode:hwMode,lesson:id,lessonTitle:l?l.id+" "+l.t:id,link:hwMode==="upload"?link:"",comment,file:fd});
+      if(m==="upload"&&file)fd={name:file.name,type:file.type,data:await new Promise((ok,bad)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(",")[1]);r.onerror=bad;r.readAsDataURL(file)})};
+      const r=await api({api:"homework",mode:m,lesson:id,lessonTitle:l?l.id+" "+l.t:id,link:m==="upload"?link:"",comment,file:fd});
       if(!r.ok)throw new Error(r.error);
       S.hw=hwMap(r.hw);saveCache();
       if(TG)try{TG.HapticFeedback.notificationOccurred("success")}catch(e){}
-      f.outerHTML=`<div class="box"><b>Готово ✓</b><p class="hint">${hwMode==="ls"?"Отметили: работа сдана в личку.":"Работа отправлена "+esc(S.lsName)+" и засчитана."} Статус проверки появится здесь и в разделе «Сдать ДЗ».</p><a class="btn g" href="#hw">К списку заданий</a></div>`;
-    }catch(err){btn.disabled=false;btn.textContent=label();if(err.message!=="auth")toast("Не отправилось: "+(err.message||"нет связи"))}
+      f.outerHTML=`<div class="box"><b>Готово ✓</b><p class="hint">${{done:"Задание засчитано.",ls:"Отметили: работа сдана в личку.",text:"Ответ отправлен "+esc(S.lsName)+".",upload:"Работа отправлена "+esc(S.lsName)+" и засчитана."}[m]}</p><a class="btn g" href="#hw">К списку заданий</a></div>`;
+    }catch(err){btn.disabled=false;btn.textContent=was;if(err.message!=="auth")toast("Не отправилось: "+(err.message||"нет связи"))}
   };
 }
 
 /* ---------- аккаунт ---------- */
+// статус по прогрессу, как в ГетКурсе: спящий код → … → … (картинки двух следующих статусов пришлёт Буша)
+const LEVELS=[{min:0,img:"img/status1.jpg",t:"Ты креатор со спящим креативным кодом"},{min:34,img:"",t:"Креативный код просыпается"},{min:80,img:"",t:"Креативный код активирован"}];
 function meView(){
-  const a=S.acc,all=allLes(),done=all.filter(l=>S.done.has(l.id)).length,p=pct();
+  const a=S.acc,p=pct(),all=allLes();
   const hwAll=all.filter(hasHw).length,hwSent=all.filter(l=>hasHw(l)&&S.hw[l.id]).length;
+  const lv=[...LEVELS].reverse().find(x=>p>=x.min);
   return `<div class="me-head"><div class="ava">${a&&a.photo?`<img src="${a.photo}" alt="">`:esc((S.user.n||"К").slice(0,1))}</div>
-      <div><b>${esc(a?a.name:S.user.n)}</b><small>@${esc(S.user.u)}</small>${S.user.s?`<small>${esc(S.user.s)}</small>`:""}</div></div>
+      <div><b>${esc(a?a.name:S.user.n)}</b><small>@${esc(S.user.u)}</small></div></div>
     <div class="box" style="gap:0">
       <div class="kv"><span>Telegram</span><b>@${esc(S.user.u)}</b></div>
       <div class="kv"><span>Почта</span><b>${a?esc(a.email||"—"):"…"}</b></div>
-      <div class="kv"><span>Поток</span><b>${esc(S.user.s||"—")}</b></div>
+      <div class="kv"><span>Статус</span><b>${S.user.a?"автор":"ученица"}</b></div>
     </div>
     ${a?streamHtml(a.period):""}
+    <div class="sec-t">Прогресс</div>
+    <div class="box lvl">${lv.img?`<img src="${lv.img}" alt="${esc(lv.t)}">`:`<b>${esc(lv.t)}</b>`}
+      <div style="display:flex;align-items:center;gap:12px"><span class="big">${p}%</span><span class="bar y" style="flex:1;height:8px"><i style="width:${p}%"></i></span></div>
+      <p class="hint">Домашек сдано: ${hwSent} из ${hwAll}</p></div>
     <div class="sec-t">Планерки с Бушей</div>
     ${a?planHtml(a.planerki):`<div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}
-    <div class="sec-t">Прогресс</div>
-    <div class="box"><div style="display:flex;justify-content:space-between;font-weight:700"><span>Пройдено уроков</span><span>${done} из ${all.length}</span></div><span class="bar y"><i style="width:${p}%"></i></span></div>
-    <div class="stats"><div class="stat"><b>${p}%</b><small>программы</small></div><div class="stat"><b>${hwSent}/${hwAll}</b><small>домашек сдано</small></div></div>
     <div class="sec-t">Оплата</div>
     <div id="pay">${a?payHtml(a.pay):`<div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}</div>
     <a class="btn g" href="${HELP}" target="_blank" rel="noopener">Написать в службу заботы</a>
     ${TG?"":`<button class="btn g" style="color:var(--muted)" onclick="logout()">Выйти</button>`}`;
 }
+
 function streamHtml(p){
   if(!p)return "";
   const day=864e5,s=new Date(p.start+"T00:00:00+03:00"),e=new Date(p.end+"T23:59:59+03:00"),now=new Date();
