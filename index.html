@@ -188,10 +188,10 @@ mark{background:color-mix(in srgb,var(--sun) 35%,transparent);color:inherit;bord
 /* сдать ДЗ: плитки */
 .hw-top{display:flex;align-items:center;gap:12px;font-size:13.5px;color:var(--muted)}
 .hw-top .bar{flex:1;height:7px}
-.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
-.tile{position:relative;display:flex;flex-direction:column;gap:4px;align-items:flex-start;text-align:left;background:var(--panel);border:1.5px solid var(--line);border-radius:14px;padding:10px 10px 9px;min-height:78px}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.tile{position:relative;display:flex;flex-direction:column;gap:4px;align-items:flex-start;text-align:left;background:var(--panel);border:1.5px solid var(--line);border-radius:12px;padding:8px 9px 7px;min-height:62px}
 .tile .no{font-family:var(--f-mono);font-size:11px;color:var(--sun)}
-.tile b{font-size:12px;line-height:1.25;font-weight:700;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tile b{font-size:11.5px;line-height:1.22;font-weight:700;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .tile .st{position:absolute;right:9px;top:9px;width:9px;height:9px;border-radius:50%;background:var(--line)}
 .tile.sent{border-color:color-mix(in srgb,var(--sun) 55%,transparent)}.tile.sent .st{background:var(--sun)}
 .tile.ok{border-color:color-mix(in srgb,var(--ok) 55%,transparent)}.tile.ok .st{background:var(--ok)}
@@ -502,7 +502,7 @@ function hwChip(id){const h=S.hw[id];if(!h)return `<span class="chip">не сд�
   if(h.status==="доработать")return `<span class="chip redo">доработать</span>`;
   return `<span class="chip sent">${h.how==="в ЛС"?"отправлено в ЛС":"на проверке"}</span>`}
 let hwFilter="todo";
-const shortT=t=>t.replace(/^База (м|М)онтажа:\s*/,"").replace(/^Энциклопедия [а-я]+:\s*/i,"");
+const shortT=t=>{t=t.replace(/^База (м|М)онтажа:\s*/,"").replace(/^Энциклопедия [а-я]+:\s*/i,"");return t.charAt(0).toUpperCase()+t.slice(1)};
 function hwListView(){
   const list=allLes().filter(hasHw),sent=list.filter(l=>S.hw[l.id]).length,pc=list.length?Math.round(sent/list.length*100):0;
   const next=list.find(l=>!S.hw[l.id])||list.find(l=>S.hw[l.id]&&S.hw[l.id].status==="доработать");
@@ -510,7 +510,7 @@ function hwListView(){
   const cls=l=>{const h=S.hw[l.id];return !h?"":h.status==="принято"?"ok":h.status==="доработать"?"redo":"sent"};
   return `<h1 class="h">Сдать ДЗ</h1>
     <div class="hw-top"><span>Сдано ${sent} из ${list.length}</span><span class="bar y"><i style="width:${pc}%"></i></span></div>
-    ${next?`<button class="cont" onclick="location.hash='hw/${esc(next.id)}'"><span class="k">${S.hw[next.id]?"Нужно доработать":"Следующее задание"} · урок ${esc(next.id)}</span><b>${esc(next.t)}</b><span style="font-weight:800;font-size:13px">Сдать →</span></button>`:`<div class="box"><b>Все задания сданы 🎉</b><p class="hint">Статусы проверки — в плитках ниже.</p></div>`}
+    ${next?`<button class="cont" style="padding:12px 14px" onclick="location.hash='hw/${esc(next.id)}'"><span class="k">${S.hw[next.id]?"Нужно доработать":"Следующее задание"} · урок ${esc(next.id)}</span><b>${esc(next.t)}</b></button>`:`<div class="box"><b>Все задания сданы 🎉</b><p class="hint">Статусы проверки — в плитках ниже.</p></div>`}
     <div class="seg"><button type="button" aria-pressed="${hwFilter==="todo"}" onclick="hwFilter='todo';route()">Не сдано · ${list.length-sent}</button><button type="button" aria-pressed="${hwFilter==="all"}" onclick="hwFilter='all';route()">Все · ${list.length}</button></div>
     ${show.length?`<div class="tiles">${show.map(l=>`<button class="tile ${cls(l)}" onclick="location.hash='hw/${esc(l.id)}'"><span class="st"></span><span class="no">урок ${esc(l.id)}</span><b>${esc(shortT(l.t))}</b></button>`).join("")}</div>`:`<div class="empty">Здесь пусто — всё сдано!</div>`}
     <div class="legend"><span><i style="background:var(--line)"></i>не сдано</span><span><i style="background:var(--sun)"></i>на проверке</span><span><i style="background:var(--ok)"></i>принято</span><span><i style="background:var(--bad)"></i>доработать</span></div>`;
