@@ -185,6 +185,30 @@ mark{background:color-mix(in srgb,var(--sun) 35%,transparent);color:inherit;bord
 .lvl .big{font-size:32px;font-weight:900;line-height:1}
 @media (min-width:600px){.covers{grid-template-columns:repeat(2,minmax(0,1fr))}.mats{grid-template-columns:repeat(3,minmax(0,1fr))}}
 
+/* сдать ДЗ: плитки */
+.hw-top{display:flex;align-items:center;gap:12px;font-size:13.5px;color:var(--muted)}
+.hw-top .bar{flex:1;height:7px}
+.tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.tile{position:relative;display:flex;flex-direction:column;gap:4px;align-items:flex-start;text-align:left;background:var(--panel);border:1.5px solid var(--line);border-radius:14px;padding:10px 10px 9px;min-height:78px}
+.tile .no{font-family:var(--f-mono);font-size:11px;color:var(--sun)}
+.tile b{font-size:12px;line-height:1.25;font-weight:700;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.tile .st{position:absolute;right:9px;top:9px;width:9px;height:9px;border-radius:50%;background:var(--line)}
+.tile.sent{border-color:color-mix(in srgb,var(--sun) 55%,transparent)}.tile.sent .st{background:var(--sun)}
+.tile.ok{border-color:color-mix(in srgb,var(--ok) 55%,transparent)}.tile.ok .st{background:var(--ok)}
+.tile.redo{border-color:color-mix(in srgb,var(--bad) 60%,transparent)}.tile.redo .st{background:var(--bad)}
+.legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px;color:var(--muted)}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:0}
+/* портфолио */
+.pf{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.pf button{display:flex;flex-direction:column;gap:6px;text-align:left}
+.pf .pic{position:relative;aspect-ratio:9/12;border-radius:14px;overflow:hidden;background:var(--panel2)}
+.pf .pic img{width:100%;height:100%;object-fit:cover}
+.pf .pic::after{content:"▶";position:absolute;inset:auto auto 10px 10px;width:34px;height:34px;border-radius:50%;background:var(--sun);color:var(--sun-ink);display:grid;place-items:center;font-size:13px}
+.pf b{font-size:12.5px;font-weight:700;line-height:1.25}
+.player{width:min(520px,100%);background:var(--ink);border-radius:18px;overflow:hidden;margin:auto 12px;align-self:center}
+.player iframe{width:100%;aspect-ratio:9/14;max-height:78vh;border:0;display:block}
+@media (min-width:600px){.tiles{grid-template-columns:repeat(4,minmax(0,1fr))}.pf{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
 /* компьютер: меню слева вместо нижнего */
 @media (min-width:900px){
   .tabs{display:none}
@@ -237,7 +261,7 @@ const IC = {
   hw:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V5M7 10l5-5 5 5"/><path d="M5 19h14"/></svg>',
   me:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>'
 };
-const TABS = [["", "База знаний", "les", "База<br>знаний"], ["hw", "Сдать ДЗ", "hw", "Сдать ДЗ"], ["mat", "Полезные материалы", "mat", "Полезные<br>материалы"], ["me", "Аккаунт", "me", "Аккаунт"]];
+const TABS = [["", "База знаний", "les", "База<br>знаний"], ["hw", "Сдать ДЗ", "hw", "Сдать ДЗ"], ["mat", "Полезные материалы", "mat", "Полезные<br>материалы"], ["me", "Профиль", "me", "Профиль"]];
 
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function store(k,v){try{v===undefined?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
@@ -477,14 +501,19 @@ function hwChip(id){const h=S.hw[id];if(!h)return `<span class="chip">не сд�
   if(h.status==="принято")return `<span class="chip ok">${h.how&&h.how.startsWith("отметка")?"сделано ✓":"принято ✓"}</span>`;
   if(h.status==="доработать")return `<span class="chip redo">доработать</span>`;
   return `<span class="chip sent">${h.how==="в ЛС"?"отправлено в ЛС":"на проверке"}</span>`}
+let hwFilter="todo";
+const shortT=t=>t.replace(/^База (м|М)онтажа:\s*/,"").replace(/^Энциклопедия [а-я]+:\s*/i,"");
 function hwListView(){
-  const list=allLes().filter(hasHw),sent=list.filter(l=>S.hw[l.id]).length;
-  const firstTodo=list.find(l=>!S.hw[l.id]&&!l.locked);
-  return `<h1 class="h">Сдать ДЗ</h1><p class="sub">Сдано ${sent} из ${list.length}. Выбери задание из списка.</p>
-    ${firstTodo?`<button class="cont" onclick="location.hash='hw/${esc(firstTodo.id)}'"><span class="k">Следующее задание · урок ${esc(firstTodo.id)}</span><b>${esc(firstTodo.t)}</b></button>`:""}
-    ${S.mods.filter(m=>m.les.some(hasHw)).map(m=>`<div class="sec-t">${esc(m.n)}. ${esc(m.t)}</div>
-      <div class="lessons">${m.les.filter(hasHw).map(l=>`<button class="les th ${S.hw[l.id]?"done":""}" onclick="location.hash='hw/${esc(l.id)}'">
-        <span class="thumb">${l.cover?`<img src="${esc(l.cover)}" alt="" loading="lazy">`:""}<span class="ck">${S.hw[l.id]?"✓":""}</span></span><span><b>${esc(l.t)}</b><small>Урок ${esc(l.id)} · ${{confirm:"отметка",text:"ответ текстом","text+test":"тест + ответ",file:"работа файлом"}[hwType(l)]}</small></span>${hwChip(l.id)}</button>`).join("")}</div>`).join("")}`;
+  const list=allLes().filter(hasHw),sent=list.filter(l=>S.hw[l.id]).length,pc=list.length?Math.round(sent/list.length*100):0;
+  const next=list.find(l=>!S.hw[l.id])||list.find(l=>S.hw[l.id]&&S.hw[l.id].status==="доработать");
+  const show=hwFilter==="todo"?list.filter(l=>!S.hw[l.id]||S.hw[l.id].status==="доработать"):list;
+  const cls=l=>{const h=S.hw[l.id];return !h?"":h.status==="принято"?"ok":h.status==="доработать"?"redo":"sent"};
+  return `<h1 class="h">Сдать ДЗ</h1>
+    <div class="hw-top"><span>Сдано ${sent} из ${list.length}</span><span class="bar y"><i style="width:${pc}%"></i></span></div>
+    ${next?`<button class="cont" onclick="location.hash='hw/${esc(next.id)}'"><span class="k">${S.hw[next.id]?"Нужно доработать":"Следующее задание"} · урок ${esc(next.id)}</span><b>${esc(next.t)}</b><span style="font-weight:800;font-size:13px">Сдать →</span></button>`:`<div class="box"><b>Все задания сданы 🎉</b><p class="hint">Статусы проверки — в плитках ниже.</p></div>`}
+    <div class="seg"><button type="button" aria-pressed="${hwFilter==="todo"}" onclick="hwFilter='todo';route()">Не сдано · ${list.length-sent}</button><button type="button" aria-pressed="${hwFilter==="all"}" onclick="hwFilter='all';route()">Все · ${list.length}</button></div>
+    ${show.length?`<div class="tiles">${show.map(l=>`<button class="tile ${cls(l)}" onclick="location.hash='hw/${esc(l.id)}'"><span class="st"></span><span class="no">урок ${esc(l.id)}</span><b>${esc(shortT(l.t))}</b></button>`).join("")}</div>`:`<div class="empty">Здесь пусто — всё сдано!</div>`}
+    <div class="legend"><span><i style="background:var(--line)"></i>не сдано</span><span><i style="background:var(--sun)"></i>на проверке</span><span><i style="background:var(--ok)"></i>принято</span><span><i style="background:var(--bad)"></i>доработать</span></div>`;
 }
 let hwMode="upload";
 function hwView(l){
@@ -540,7 +569,6 @@ function bindView(h){
 const LEVELS=[{min:0,img:"img/status1.jpg",t:"Ты креатор со спящим креативным кодом"},{min:34,img:"",t:"Креативный код просыпается"},{min:80,img:"",t:"Креативный код активирован"}];
 function meView(){
   const a=S.acc,p=pct(),all=allLes();
-  const hwAll=all.filter(hasHw).length,hwSent=all.filter(l=>hasHw(l)&&S.hw[l.id]).length;
   const lv=[...LEVELS].reverse().find(x=>p>=x.min);
   return `<div class="me-head"><div class="ava">${a&&a.photo?`<img src="${a.photo}" alt="">`:esc((S.user.n||"К").slice(0,1))}</div>
       <div><b>${esc(a?a.name:S.user.n)}</b><small>@${esc(S.user.u)}</small></div></div>
@@ -553,7 +581,9 @@ function meView(){
     <div class="sec-t">Прогресс</div>
     <div class="box lvl">${lv.img?`<img src="${lv.img}" alt="${esc(lv.t)}">`:`<b>${esc(lv.t)}</b>`}
       <div style="display:flex;align-items:center;gap:12px"><span class="big">${p}%</span><span class="bar y" style="flex:1;height:8px"><i style="width:${p}%"></i></span></div>
-      <p class="hint">Домашек сдано: ${hwSent} из ${hwAll}</p></div>
+      <p class="hint">Пройдено ${p}% программы</p></div>
+    <div class="sec-t">Моё портфолио</div>
+    ${a?pfHtml(a.portfolio):`<div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}
     <div class="sec-t">Планерки с Бушей</div>
     ${a?planHtml(a.planerki):`<div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}
     <div class="sec-t">Оплата</div>
@@ -562,11 +592,22 @@ function meView(){
     ${TG?"":`<button class="btn g" style="color:var(--muted)" onclick="logout()">Выйти</button>`}`;
 }
 
+function pfHtml(list){
+  if(!list||!list.length)return `<div class="box"><p class="hint">Здесь появятся твои работы, которые Буша отметила как кейсы. Сдавай домашки — и портфолио будет расти 💛</p></div>`;
+  return `<div class="pf">${list.map(v=>`<button onclick="playPf('${esc(v.id)}')"><span class="pic"><img src="https://drive.google.com/thumbnail?id=${esc(v.id)}&sz=w400" alt="" loading="lazy" onerror="this.remove()"></span><b>${esc(v.t)}</b></button>`).join("")}</div>`;
+}
+function playPf(id){
+  const v=document.createElement("div");v.className="veil";v.style.alignItems="center";
+  v.innerHTML=`<div class="player"><iframe src="https://drive.google.com/file/d/${encodeURIComponent(id)}/preview" allow="autoplay; fullscreen" allowfullscreen></iframe><button class="btn g" style="border-radius:0" onclick="this.closest('.veil').remove()">Закрыть</button></div>`;
+  v.addEventListener("click",e=>{if(e.target===v)v.remove()});document.body.appendChild(v);
+}
 function streamHtml(p){
   if(!p)return "";
   const day=864e5,s=new Date(p.start+"T00:00:00+03:00"),e=new Date(p.end+"T23:59:59+03:00"),now=new Date();
   const left=Math.ceil((e-now)/day),pc=Math.min(100,Math.max(0,Math.round((now-s)/(e-s)*100)));
-  const txt=now<s?`Поток стартует ${fmtDate(p.start)}`:left>0?`До конца потока <b style="color:var(--sun)">${left} ${plural(left,"день","дня","дней")}</b>`:"Поток завершён — ты молодец!";
+  const total=Math.round((e-s)/day),toStart=Math.ceil((s-now)/day);
+  // предобучение: пока программа не стартовала, отсчёт стоит на полном сроке
+  const txt=now<s?`До старта программы <b style="color:var(--sun)">${toStart} ${plural(toStart,"день","дня","дней")}</b> · дальше ${total} ${plural(total,"день","дня","дней")} программы`:left>0?`До конца программы <b style="color:var(--sun)">${left} ${plural(left,"день","дня","дней")}</b>`:"Программа завершена — ты молодец!";
   return `<div class="box"><div style="display:flex;justify-content:space-between;gap:10px;font-size:14px"><span>${txt}</span><span class="hint">${fmtDate(p.start)} – ${fmtDate(p.end)}</span></div><span class="bar y"><i style="width:${pc}%"></i></span></div>`;
 }
 function planHtml(list){
