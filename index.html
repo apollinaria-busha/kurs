@@ -20,19 +20,18 @@
   --ink:#0d0d0d;--panel:#161512;--panel2:#201e19;--line:#2e2b24;--text:#f3efe6;--muted:#a29b8c;
   --sun:#FFAD05;--sun-ink:#1a1200;--ok:#5fcf8a;--bad:#ff6b5b;
   --f-display:"Montserrat",system-ui,-apple-system,"Segoe UI",sans-serif;--f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  --tabh:64px;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--ink);color:var(--text);height:100%}
+html,body{margin:0;background:var(--ink);color:var(--text);min-height:100%}
 body{font-family:var(--f-display);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
-button:focus-visible,a:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
 a{color:var(--sun)}
-.ok{color:var(--ok)}.bad{color:var(--bad)}
-.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:currentColor;flex:none}
 
-#app{min-height:100%;display:flex;flex-direction:column}
-.center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:32px 20px;text-align:center}
+#app{min-height:100vh;display:flex;flex-direction:column}
+.center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:32px 20px;text-align:center;min-height:100vh}
 .logo{font-weight:900;font-size:28px;letter-spacing:.02em;line-height:1}.logo span{color:var(--sun)}
 .center p{margin:0;color:var(--muted);font-size:14px;max-width:34ch}
 .spinner{width:34px;height:34px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--sun);animation:spin .8s linear infinite}
@@ -40,7 +39,6 @@ a{color:var(--sun)}
 .card{width:min(420px,100%);background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:30px 24px;display:flex;flex-direction:column;gap:18px;align-items:center}
 .tgw{min-height:44px;display:grid;place-items:center}
 
-/* шапка */
 .top{position:sticky;top:0;z-index:4;background:color-mix(in srgb,var(--ink) 92%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
   display:flex;align-items:center;gap:14px;padding:10px 16px;padding-top:max(10px,env(safe-area-inset-top))}
 .top .back{color:var(--sun);font-weight:600;font-size:14px;min-width:64px;text-align:left}
@@ -52,17 +50,21 @@ a{color:var(--sun)}
 
 .wrap{flex:1;min-height:0;display:flex}
 .side{display:none}
-.main{flex:1;min-width:0;padding:16px 16px calc(32px + env(safe-area-inset-bottom))}
+.main{flex:1;min-width:0;padding:16px 16px calc(var(--tabh) + 28px + env(safe-area-inset-bottom))}
 .inner{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
 
-.status{border-radius:14px;padding:11px 13px;display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.4;border:1px solid}
-.status .dot{margin-top:5px}
-.status.up{border-color:color-mix(in srgb,var(--ok) 35%,transparent);background:color-mix(in srgb,var(--ok) 8%,transparent)}
-.status.down{border-color:color-mix(in srgb,var(--bad) 40%,transparent);background:color-mix(in srgb,var(--bad) 9%,transparent)}
-.status.wait{border-color:var(--line);color:var(--muted)}
-.status b{display:block;font-size:13.5px}
-.status a{font-weight:700;text-decoration:none;display:inline-block;margin-top:4px}
+/* нижнее меню */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(5,1fr);background:color-mix(in srgb,var(--panel) 94%,transparent);
+  backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 2px;color:var(--muted);font-size:10.5px;font-weight:600;line-height:1.15;text-align:center}
+.tab svg{width:24px;height:24px}
+.tab.on{color:var(--sun)}
+.tab.hw .ic{background:var(--sun);color:var(--sun-ink);border-radius:12px;width:40px;height:30px;display:grid;place-items:center;margin-top:-3px}
+.tab.hw .ic svg{width:20px;height:20px}
+.tab.hw.on{color:var(--text)}
 
+h1.h{margin:0;font-size:clamp(22px,4vw,30px);font-weight:900;line-height:1.12;letter-spacing:-.01em;text-wrap:balance}
+.sub{margin:-8px 0 0;color:var(--muted);font-size:13.5px}
 .hello h1{font-size:clamp(24px,4vw,32px);font-weight:900;line-height:1.1;margin:0;letter-spacing:-.01em}
 .hello p{margin:4px 0 0;color:var(--muted);font-size:13.5px}
 
@@ -71,70 +73,104 @@ a{color:var(--sun)}
 .cont b{font-size:17px;line-height:1.2;font-weight:800}
 .bar{height:5px;background:rgba(0,0,0,.18);border-radius:3px;overflow:hidden;display:block}
 .bar i{display:block;height:100%;background:var(--sun-ink)}
+.bar.y{background:var(--panel2)}.bar.y i{background:var(--sun)}
 .sec-t{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:6px 0 -4px}
 
 .mods{display:flex;flex-direction:column}
 .mod{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:12px;align-items:center;padding:13px 0;border-top:1px solid var(--line);text-align:left;width:100%}
-.mod:first-child{border-top:0}
+.mods .mod:first-child{border-top:0}
 .num{width:42px;height:42px;border-radius:12px;background:var(--panel2);display:grid;place-items:center;font-weight:900;color:var(--sun);font-size:15px}
 .mod b{font-size:14.5px;display:block;line-height:1.25}
 .mod small,.les small{color:var(--muted);font-size:12px}
 .pr{font-family:var(--f-mono);font-size:12px;color:var(--muted)}.pr.full{color:var(--ok)}
+details>summary::-webkit-details-marker{display:none}
 
 .lessons{display:flex;flex-direction:column;gap:8px}
-.les{display:grid;grid-template-columns:28px minmax(0,1fr);gap:12px;align-items:center;background:var(--panel);border-radius:14px;padding:12px;text-align:left;width:100%}
+.les{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:12px;align-items:center;background:var(--panel);border-radius:14px;padding:12px;text-align:left;width:100%;color:var(--text);text-decoration:none}
 .les b{font-size:14px;line-height:1.25;display:block;font-weight:600}
 .ck{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;font-size:13px;font-weight:900}
 .les.done .ck,.d-les.done .ck{background:var(--ok);border-color:var(--ok);color:#06210f}
 .les.cur .ck{border-color:var(--sun)}
 .les.lock{opacity:.5}
 
+.chip{font-family:var(--f-mono);font-size:10.5px;border-radius:20px;padding:3px 9px;white-space:nowrap;border:1px solid var(--line);color:var(--muted)}
+.chip.sent{color:var(--sun);border-color:color-mix(in srgb,var(--sun) 45%,transparent)}
+.chip.ok{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 45%,transparent)}
+.chip.redo{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,transparent)}
+
 .crumbs{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
-.les-h{margin:0;font-size:clamp(21px,3vw,30px);font-weight:900;line-height:1.12;letter-spacing:-.01em;text-wrap:balance}
 .video{position:relative;aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:var(--panel)}
-.body-text .video{margin:14px 0}
 .video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
-.novideo{display:grid;place-items:center;color:var(--muted);font-size:13px;padding:16px;text-align:center}
+.body-text .video{margin:14px 0}
 .body-text{font-size:15px;line-height:1.6;color:#e4ded1;overflow-wrap:anywhere}
 .body-text>*:first-child{margin-top:0}.body-text>*:last-child{margin-bottom:0}
 .body-text img{max-width:100%;height:auto;border-radius:12px}
-.body-text a{word-break:break-word}
 .files{display:flex;flex-direction:column;gap:8px}
-.file{display:flex;gap:12px;align-items:center;background:var(--panel);border-radius:12px;padding:10px 12px;text-decoration:none;color:var(--text)}
-.file .ext{font-family:var(--f-mono);font-size:10.5px;width:40px;height:40px;border-radius:9px;background:var(--panel2);display:grid;place-items:center;color:var(--sun);flex:none}
-.file b{font-size:13.5px;display:block;font-weight:600}.file small{color:var(--muted);font-size:12px}
-.hw{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px}
-.hw>b{font-size:15px}
-.hw .body-text{font-size:14px}
-.hw label{display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:var(--muted)}
-.hw input[type=url],.hw textarea{font:inherit;font-size:14px;color:var(--text);background:var(--ink);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%}
-.hw textarea{min-height:70px;resize:vertical}
-.hw input[type=file]{font-size:13px;color:var(--muted)}
+.file{display:flex;gap:12px;align-items:center;background:var(--panel);border-radius:12px;padding:10px 12px;text-decoration:none;color:var(--text);text-align:left;width:100%}
+.file .ext{font-family:var(--f-mono);font-size:10px;width:42px;height:40px;border-radius:9px;background:var(--panel2);display:grid;place-items:center;color:var(--sun);flex:none;text-align:center;line-height:1.1}
+.file b{font-size:13.5px;display:block;font-weight:600;line-height:1.3}.file small{color:var(--muted);font-size:12px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.box>b{font-size:15px}
+.box .body-text{font-size:14px}
+.reply{border-left:2px solid var(--sun);padding-left:12px;font-size:14px;color:#e4ded1}
+label.f{display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:var(--muted)}
+input[type=url],input[type=search],textarea{font:inherit;font-size:15px;color:var(--text);background:var(--ink);border:1px solid var(--line);border-radius:12px;padding:11px 13px;width:100%}
+textarea{min-height:70px;resize:vertical}
+input[type=file]{font-size:13px;color:var(--muted)}
 .btn{display:block;border-radius:13px;padding:13px;font-weight:800;font-size:14.5px;text-align:center;width:100%;text-decoration:none}
 .btn.y{background:var(--sun);color:var(--sun-ink)}
 .btn.g{background:var(--panel2);color:var(--text)}
 .btn.done{background:color-mix(in srgb,var(--ok) 18%,transparent);color:var(--ok)}
 .btn[disabled]{opacity:.6;cursor:default}
 .navrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.install{display:flex;gap:12px;align-items:center;background:var(--panel);border:1px dashed var(--line);border-radius:16px;padding:12px 14px;text-align:left;width:100%}
-.install .ic{width:36px;height:36px;border-radius:10px;background:var(--sun);color:var(--sun-ink);display:grid;place-items:center;font-weight:900;flex:none;font-size:11px}
-.install b{font-size:13.5px;display:block}.install small{color:var(--muted);font-size:12px}
-.toast{position:fixed;left:16px;right:16px;bottom:calc(20px + env(safe-area-inset-bottom));max-width:420px;margin:0 auto;background:var(--text);color:var(--ink);font-weight:700;font-size:13.5px;border-radius:12px;padding:11px 14px;z-index:9;text-align:center}
+.seg{display:grid;grid-template-columns:1fr 1fr;background:var(--ink);border-radius:12px;padding:4px;gap:4px}
+.seg button{padding:10px 6px;border-radius:9px;font-weight:700;font-size:13px;color:var(--muted);line-height:1.25}
+.seg button[aria-pressed="true"]{background:var(--panel2);color:var(--text)}
+.hint{font-size:12.5px;color:var(--muted);margin:0}
+
+.me-head{display:flex;gap:16px;align-items:center}
+.ava{width:72px;height:72px;border-radius:50%;background:var(--sun);color:var(--sun-ink);display:grid;place-items:center;font-weight:900;font-size:26px;flex:none;overflow:hidden}
+.ava img{width:100%;height:100%;object-fit:cover}
+.me-head b{font-size:20px;font-weight:900;display:block;line-height:1.15}
+.me-head small{color:var(--muted);font-size:13px;display:block}
+.kv{display:flex;justify-content:space-between;gap:12px;font-size:14px;padding:9px 0;border-top:1px solid var(--line)}
+.kv:first-child{border-top:0}.kv span{color:var(--muted)}.kv b{text-align:right;font-weight:700;overflow-wrap:anywhere}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--panel);border-radius:14px;padding:14px}
+.stat b{font-size:24px;font-weight:900;display:block;line-height:1}.stat small{color:var(--muted);font-size:12px}
+.pay-ok{display:flex;gap:12px;align-items:center;color:var(--ok);font-weight:700}
+.plan{display:flex;flex-direction:column}
+.plan div{display:grid;grid-template-columns:22px 1fr auto;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:14px;align-items:center}
+.plan div:first-child{border-top:0}
+.plan .paid{color:var(--muted)}.plan .paid b{text-decoration:line-through;font-weight:600}
+.plan .nx{color:var(--sun)}
+.next{background:color-mix(in srgb,var(--sun) 12%,transparent);border:1px solid color-mix(in srgb,var(--sun) 40%,transparent);border-radius:14px;padding:12px 14px;font-size:14px}
+.next b{font-size:18px;font-weight:900;display:block}
+
+.toast{position:fixed;left:16px;right:16px;bottom:calc(var(--tabh) + 16px + env(safe-area-inset-bottom));max-width:420px;margin:0 auto;background:var(--text);color:var(--ink);font-weight:700;font-size:13.5px;border-radius:12px;padding:11px 14px;z-index:9;text-align:center}
 .veil{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:8;display:flex;align-items:flex-end;justify-content:center}
 .sheet{width:min(520px,100%);background:var(--panel);border-radius:22px 22px 0 0;padding:14px 20px calc(24px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px}
 .sheet h3{margin:0;font-size:17px;font-weight:800}
 .sheet ol{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px;color:#e4ded1}
+.empty{color:var(--muted);font-size:14px;text-align:center;padding:24px 0}
+mark{background:color-mix(in srgb,var(--sun) 35%,transparent);color:inherit;border-radius:3px}
 
-/* компьютер: меню слева */
+/* компьютер: меню слева вместо нижнего */
 @media (min-width:900px){
+  .tabs{display:none}
   .top .back,.top .sp{display:none}
   .top .t{text-align:left;flex:none}
   .wrap{height:calc(100vh - 57px)}
   .side{display:flex;flex-direction:column;gap:2px;width:310px;flex:none;overflow:auto;border-right:1px solid var(--line);padding:16px 12px}
   .main{overflow:auto;padding:28px clamp(16px,4vw,48px) 40px}
   .inner{margin:0}
-  .d-prog{padding:4px 8px 14px;display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:var(--muted)}
-  .d-prog .bar{background:var(--panel2)}.d-prog .bar i{background:var(--sun)}
+  .toast{bottom:24px}
+  .s-nav{display:flex;align-items:center;gap:12px;padding:9px 10px;border-radius:10px;width:100%;text-align:left;font-weight:700;font-size:14px;color:#d9d2c3}
+  .s-nav svg{width:20px;height:20px;color:var(--muted)}
+  .s-nav:hover{background:var(--panel)}
+  .s-nav.on{background:var(--panel2);color:var(--text)}.s-nav.on svg{color:var(--sun)}
+  .s-sep{height:1px;background:var(--line);margin:10px 4px}
+  .d-prog{padding:4px 10px 12px;display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:var(--muted)}
   .d-mod{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 8px;border-radius:10px;text-align:left;width:100%}
   .d-mod:hover,.d-les:hover{background:var(--panel)}
   .d-mod .n{font-weight:900;color:var(--sun);font-size:14px;text-align:center}
@@ -158,27 +194,40 @@ a{color:var(--sun)}
 <script>
 const API = "https://script.google.com/macros/s/AKfycbw2LmiS_HoOdrIQko16UGsLNQj6T1Br2BymAb2bh8_iHPxOB8QyVgbiZ0vuPcwhHCPwyQ/exec";
 const BOT = "oebybusha_bot";
+const HELP = "https://t.me/bushas_help_bot";
 const TG = window.Telegram && Telegram.WebApp && Telegram.WebApp.initData ? Telegram.WebApp : null;
 const app = document.getElementById("app");
-const S = { session: null, user: null, mods: [], done: new Set(), gk: "auto", gkUrl: "", gkUp: null, open: new Set() };
+const S = { session:null, user:null, mods:[], mats:[], done:new Set(), hw:{}, lsName:"Полине", open:new Set(), acc:null, q:"" };
+const wide = () => matchMedia("(min-width:900px)").matches;
 
-function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]))}
+const IC = {
+  les:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor"/></svg>',
+  kb:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/><path d="M9 8h7M9 11.5h5"/></svg>',
+  mat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 11v5M9.5 13.5h5"/></svg>',
+  hw:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V5M7 10l5-5 5 5"/><path d="M5 19h14"/></svg>',
+  me:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>'
+};
+const TABS = [["", "Уроки", "les"], ["kb", "База знаний", "kb"], ["hw", "Сдать ДЗ", "hw"], ["mat", "Материалы", "mat"], ["me", "Аккаунт", "me"]];
+
+function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function store(k,v){try{v===undefined?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
 function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
 function toast(t){const el=document.createElement("div");el.className="toast";el.textContent=t;document.body.appendChild(el);setTimeout(()=>el.remove(),2600)}
+function rub(n){return Math.round(n).toLocaleString("ru-RU")+" ₽"}
+function fmtDate(s){const m=String(s).match(/(\d{4})-(\d\d)-(\d\d)/);if(!m)return s;const mon=["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];return `${+m[3]} ${mon[+m[2]-1]}`}
+function plural(n,a,b,c){n=Math.abs(n)%100;const n1=n%10;return n>10&&n<20?c:n1>1&&n1<5?b:n1===1?a:c}
 
 async function call(body, tries=3){
   for(let i=0;i<tries;i++){
     try{
       const r=await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(body)});
-      const t=await r.text();
-      return JSON.parse(t);
+      return JSON.parse(await r.text());
     }catch(e){ if(i===tries-1) throw e; await new Promise(r=>setTimeout(r,800*(i+1))); }
   }
 }
 async function api(body){
   const res=await call({...body,session:S.session});
-  if(res&&res.error==="auth"){store("kk_session");S.session=null;start();throw new Error("auth")}
+  if(res&&res.error==="auth"){store("kk_session");store("kk_course");S.session=null;start();throw new Error("auth")}
   return res;
 }
 
@@ -189,23 +238,23 @@ function logo(){return `<div class="logo">КОД<br><span>КРЕАТОРА</span
 async function start(){
   if(TG){TG.ready();TG.expand();try{TG.setHeaderColor("#0d0d0d");TG.setBackgroundColor("#0d0d0d")}catch(e){}}
   S.session=load("kk_session");
-  if(TG && !S.session){ screen(`${logo()}<div class="spinner"></div><p>Проверяем, есть ли тебя в списке учениц…</p>`); return doLogin({initData:TG.initData}); }
+  if(TG && !S.session){ screen(`${logo()}<div class="spinner"></div><p>Проверяем доступ к программе…</p>`); return doLogin({initData:TG.initData}); }
   if(S.session) return loadCourse();
   showLogin();
 }
 
 function showLogin(msg){
   screen(`<div class="card">${logo()}
-    <p>${msg||"Запасной вход в программу. Входи через свой Telegram, пароль не нужен."}</p>
+    <p>${msg||"Приложение программы. Входи через свой Telegram — пароль не нужен."}</p>
     <div class="tgw" id="tgw"></div>
-    <p style="font-size:12.5px">Пускаем только учениц программы. Удобнее всего открыть курс в Telegram: <a href="https://t.me/${BOT}">@${BOT}</a> → кнопка «Курс».</p></div>`);
+    <p style="font-size:12.5px">Доступ открыт ученицам программы. В Telegram приложение открывается кнопкой «Курс» в боте <a href="https://t.me/${BOT}">@${BOT}</a>.</p></div>`);
   const s=document.createElement("script");
   s.async=true;s.src="https://telegram.org/js/telegram-widget.js?22";
   s.setAttribute("data-telegram-login",BOT);s.setAttribute("data-size","large");s.setAttribute("data-radius","12");
   s.setAttribute("data-onauth","onTgAuth(user)");s.setAttribute("data-request-access","write");
   document.getElementById("tgw").appendChild(s);
 }
-window.onTgAuth=u=>{screen(`${logo()}<div class="spinner"></div><p>Проверяем, есть ли тебя в списке учениц…</p>`);doLogin({widget:u})};
+window.onTgAuth=u=>{screen(`${logo()}<div class="spinner"></div><p>Проверяем доступ к программе…</p>`);doLogin({widget:u})};
 
 async function doLogin(data){
   let res;
@@ -213,7 +262,7 @@ async function doLogin(data){
   if(res.ok){S.session=res.session;store("kk_session",res.session);return loadCourse()}
   if(res.error==="not_student"){
     const nick=res.username?"@"+esc(res.username):"без ника";
-    return screen(`${logo()}<p>Не нашли твой Telegram (${nick}) в списке учениц программы.</p><p>Если ты ученица, напиши Аполлинарии: проверим ник в списке. ${res.username?"":"А ещё задай себе ник в настройках Telegram, по нему мы тебя узнаём."}</p>`);
+    return screen(`${logo()}<p>Не нашли твой Telegram (${nick}) в списке учениц программы.</p><p>Если ты ученица, напиши в <a href="${HELP}">службу заботы</a> — проверим ник. ${res.username?"":"И задай себе ник в настройках Telegram: по нему мы тебя узнаём."}</p>`);
   }
   TG?screen(`${logo()}<p>Не получилось войти: ${esc(res.error)}</p><button class="btn y" style="max-width:260px" onclick="location.reload()">Попробовать ещё раз</button>`):showLogin("Не получилось войти: "+esc(res.error)+". Попробуй ещё раз.");
 }
@@ -221,32 +270,16 @@ async function doLogin(data){
 async function loadCourse(){
   const cached=load("kk_course");
   if(cached){try{apply(JSON.parse(cached));route()}catch(e){}}
-  else screen(`${logo()}<div class="spinner"></div><p>Загружаем уроки…</p>`);
+  else screen(`${logo()}<div class="spinner"></div><p>Загружаем программу…</p>`);
   let res;
   try{res=await api({api:"course"})}catch(e){if(e.message==="auth")return;if(!cached)screen(`${logo()}<p>Нет связи с сервером. Обнови страницу чуть позже.</p>`);return}
   if(!res.ok){if(!cached)screen(`${logo()}<p>Ошибка: ${esc(res.error)}</p>`);return}
-  store("kk_course",JSON.stringify(res));apply(res);route();checkGk();
+  store("kk_course",JSON.stringify(res));apply(res);
+  if(!document.querySelector("#hwf"))route(); // не сбрасываем форму ДЗ, если ученица её заполняет
 }
-function apply(res){S.user=res.user;S.mods=res.mods;S.done=new Set(res.done);S.gk=res.gk;S.gkUrl=res.gkUrl}
-
-/* ---------- ГетКурс ---------- */
-async function checkGk(){
-  if(S.gk==="up"||S.gk==="down"){S.gkUp=S.gk==="up";return paintGk()}
-  // «недоступен» показываем только после трёх неудачных попыток подряд
-  for(let i=0;i<3;i++){
-    const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),10000);
-    try{await fetch(S.gkUrl+"/favicon.ico?"+Date.now(),{mode:"no-cors",cache:"no-store",signal:ctl.signal});clearTimeout(t);S.gkUp=true;return paintGk()}catch(e){clearTimeout(t)}
-    await new Promise(r=>setTimeout(r,1500));
-  }
-  S.gkUp=false;paintGk();
-}
-function gkHtml(){
-  if(S.gkUp===null)return `<div class="status wait"><span class="dot"></span><div>Проверяем, работает ли ГетКурс…</div></div>`;
-  return S.gkUp
-    ?`<div class="status up"><span class="dot ok"></span><div><b>ГетКурс работает</b>Прогресс и домашки лучше вести там. Здесь всё то же самое, на всякий случай.<br><a href="${esc(S.gkUrl)}" target="_blank" rel="noopener">Перейти в ГетКурс ↗</a></div></div>`
-    :`<div class="status down"><span class="dot bad"></span><div><b>ГетКурс сейчас недоступен</b>Ничего не потеряно: все уроки здесь. Отмечай пройденное и сдавай домашки прямо тут.</div></div>`;
-}
-function paintGk(){const el=document.getElementById("gk");if(el)el.innerHTML=gkHtml()}
+function apply(res){S.user=res.user;S.mods=res.mods;S.mats=res.mats||[];S.done=new Set(res.done);S.hw=hwMap(res.hw||[]);S.lsName=res.lsName||"Полине"}
+function hwMap(list){const m={};list.forEach(h=>m[h.lesson]=h);return m}
+function saveCache(){try{const c=JSON.parse(load("kk_course")||"{}");c.done=[...S.done];c.hw=Object.values(S.hw);store("kk_course",JSON.stringify(c))}catch(e){}}
 
 /* ---------- данные ---------- */
 const allLes=()=>S.mods.flatMap(m=>m.les.map(l=>({...l,m})));
@@ -255,91 +288,106 @@ function modDone(m){return m.les.filter(l=>S.done.has(l.id)).length}
 function pct(){const a=allLes();return a.length?Math.round(a.filter(l=>S.done.has(l.id)).length/a.length*100):0}
 function nextLes(){return allLes().find(l=>!l.locked&&!S.done.has(l.id))||allLes()[0]}
 function nextAfter(id){const a=allLes(),i=a.findIndex(l=>l.id===id);return a.slice(i+1).find(l=>!l.locked)}
-function isHw(l){return !!l.task||/^дз|домашн/i.test(l.t)}
 function isTest(l){return /^<p>Задание к этому уроку — тест/.test(l.task||"")}
+function hasHw(l){return !!l.task&&!isTest(l)}
+function hwChip(id){const h=S.hw[id];if(!h)return `<span class="chip">не сдано</span>`;
+  if(h.status==="принято")return `<span class="chip ok">принято ✓</span>`;
+  if(h.status==="доработать")return `<span class="chip redo">доработать</span>`;
+  return `<span class="chip sent">${h.how==="в ЛС"?"отправлено в ЛС":"на проверке"}</span>`}
 
-/* ---------- экраны ---------- */
+/* ---------- каркас ---------- */
+function section(){const h=location.hash.slice(1);for(const k of ["kb","mat","hw","me"])if(h.startsWith(k))return k;return ""}
 function route(){
   if(!S.user)return;
-  const h=location.hash.slice(1);
-  let view, title="Код Креатора", back=false;
-  if(h.startsWith("l/")){const l=findLes(decodeURIComponent(h.slice(2)));if(l){view=lessonView(l);title="Урок "+l.m.n+"."+l.n;back=true;S.open.add(l.m.n);S.cur=l.id}}
-  else if(h.startsWith("m/")){const m=S.mods.find(m=>m.n===decodeURIComponent(h.slice(2)));if(m){view=moduleView(m);title="Модуль "+m.n;back=true;S.open.add(m.n);S.cur=null}}
-  if(!view){view=homeView();S.cur=null}
-  const wide=matchMedia("(min-width:900px)").matches;
+  const h=decodeURIComponent(location.hash.slice(1));
+  let view,title="",back=false;
+  S.cur=null;
+  if(h.startsWith("l/")){const l=findLes(h.slice(2));if(l){view=lessonView(l);title="Урок "+l.id;back=true;S.open.add(l.m.n);S.cur=l.id}}
+  else if(h.startsWith("m/")){const m=S.mods.find(m=>m.n===h.slice(2));if(m){view=moduleView(m);title="Модуль "+m.n;back=true;S.open.add(m.n)}}
+  else if(h.startsWith("hw/")){const l=findLes(h.slice(3));if(l){view=hwView(l);title="Сдать ДЗ";back=true}}
+  else if(h==="kb")view=kbView();
+  else if(h==="mat")view=matView();
+  else if(h==="hw")view=hwListView();
+  else if(h==="me")view=meView();
+  if(!view)view=homeView();
+  const sec=section();
   app.innerHTML=`<header class="top ${back?"":"home"}">
       ${back?`<button class="back" onclick="goBack()">‹ Назад</button>`:""}
-      <span class="t">${wide||!back?`<span class="logo-s">КОД <span>КРЕАТОРА</span></span>`:esc(title)}</span>
-      ${wide?`<span class="user"><b>${esc(S.user.n)}</b> · @${esc(S.user.u)}</span>`:back?`<span class="sp"></span>`:""}
+      <span class="t">${wide()||!back?`<span class="logo-s">КОД <span>КРЕАТОРА</span></span>`:esc(title)}</span>
+      ${wide()?`<span class="user"><b>${esc(S.user.n)}</b> · @${esc(S.user.u)}</span>`:back?`<span class="sp"></span>`:""}
     </header>
-    <div class="wrap"><aside class="side">${sideView()}</aside><main class="main" id="main"><div class="inner">${view}</div></main></div>`;
-  const main=document.getElementById("main");main.scrollTop=0;window.scrollTo(0,0);
+    <div class="wrap"><aside class="side">${sideView(sec)}</aside><main class="main" id="main"><div class="inner">${view}</div></main></div>
+    <nav class="tabs">${TABS.map(([k,t,ic])=>`<button class="tab ${k==="hw"?"hw":""} ${sec===k?"on":""}" onclick="location.hash='${k}'">${k==="hw"?`<span class="ic">${IC[ic]}</span>`:IC[ic]}<span>${t}</span></button>`).join("")}</nav>`;
+  document.getElementById("main").scrollTop=0;window.scrollTo(0,0);
   if(TG){back?TG.BackButton.show():TG.BackButton.hide()}
-  paintGk();bindLesson();
+  bindView(h);
 }
-function goBack(){const h=location.hash.slice(1);if(h.startsWith("l/")){const l=findLes(decodeURIComponent(h.slice(2)));location.hash=l&&!matchMedia("(min-width:900px)").matches?"m/"+l.m.n:""}else location.hash=""}
+function goBack(){const h=decodeURIComponent(location.hash.slice(1));
+  if(h.startsWith("l/")){const l=findLes(h.slice(2));location.hash=l&&!wide()?"m/"+l.m.n:""}
+  else if(h.startsWith("hw/"))location.hash="hw";
+  else location.hash=""}
 if(TG)TG.BackButton.onClick(goBack);
 window.addEventListener("hashchange",route);
 matchMedia("(min-width:900px)").addEventListener("change",route);
 
-function sideView(){
+function sideView(sec){
   const p=pct();
-  return `<button class="d-mod" onclick="location.hash=''" style="grid-template-columns:28px 1fr"><span class="n">⌂</span><b>Главная</b></button>
-    <div class="d-prog">Пройдено ${p}%<span class="bar"><i style="width:${p}%"></i></span></div>
+  return `${TABS.map(([k,t,ic])=>`<button class="s-nav ${sec===k?"on":""}" onclick="location.hash='${k}'">${IC[ic]}${t}</button>`).join("")}
+    <div class="s-sep"></div>
+    <div class="d-prog">Пройдено ${p}%<span class="bar y"><i style="width:${p}%"></i></span></div>
     ${S.mods.map(m=>`<button class="d-mod" onclick="tog('${esc(m.n)}')"><span class="n">${esc(m.n)}</span><b>${esc(m.t)}</b><small>${modDone(m)}/${m.les.length}</small></button>
       ${S.open.has(m.n)?m.les.map(l=>`<button class="d-les ${S.done.has(l.id)?"done":""} ${S.cur===l.id?"on":""} ${l.locked?"lock":""}" onclick="openLes('${esc(l.id)}')"><span class="ck">${S.done.has(l.id)?"✓":""}</span><span>${esc(l.t)}</span></button>`).join(""):""}`).join("")}`;
 }
-function tog(n){S.open.has(n)?S.open.delete(n):S.open.add(n);document.querySelector(".side").innerHTML=sideView()}
+function tog(n){S.open.has(n)?S.open.delete(n):S.open.add(n);document.querySelector(".side").innerHTML=sideView(section())}
 function openLes(id){const l=findLes(id);if(l&&l.locked)return toast("Урок откроется "+fmtDate(l.open));location.hash="l/"+encodeURIComponent(id)}
-function fmtDate(s){const m=String(s).match(/(\d{4})-(\d\d)-(\d\d)/);return m?`${+m[3]}.${m[2]}`:s}
 
+/* ---------- уроки ---------- */
 function homeView(){
-  const n=nextLes(),p=pct(),wide=matchMedia("(min-width:900px)").matches;
-  const standalone=matchMedia("(display-mode: standalone)").matches||navigator.standalone;
-  return `<div id="gk">${gkHtml()}</div>
-    <div class="hello"><h1>Привет, ${esc(S.user.n||"креатор")}</h1><p>${S.user.s?esc(S.user.s)+" · ":""}пройдено ${p}% программы</p></div>
+  const n=nextLes(),p=pct();
+  return `<div class="hello"><h1>Привет, ${esc(S.user.n||"креатор")}</h1><p>${S.user.s?esc(S.user.s)+" · ":""}пройдено ${p}% программы</p></div>
     ${n?`<button class="cont" onclick="openLes('${esc(n.id)}')"><span class="k">${S.done.size?"Продолжить":"Начать"} · модуль ${esc(n.m.n)}</span><b>${esc(n.t)}</b><span class="bar"><i style="width:${p}%"></i></span></button>`:""}
     <div class="sec-t">Модули</div>
-    <div class="${wide?"grid-mods":"mods"}">${S.mods.map(m=>{const d=modDone(m),t=m.les.length;return `
+    <div class="${wide()?"grid-mods":"mods"}">${S.mods.map(m=>{const d=modDone(m),t=m.les.length;return `
       <button class="mod" onclick="location.hash='m/${esc(m.n)}'"><span class="num">${esc(m.n)}</span>
         <span><b>${esc(m.t)}</b><small>${t} ${plural(t,"урок","урока","уроков")}</small></span>
         <span class="pr ${d===t?"full":""}">${d}/${t}</span></button>`}).join("")}</div>
-    ${standalone||TG?"":`<button class="install" onclick="installSheet()"><span class="ic">КК</span><span><b>Поставить иконку на ${wide?"компьютер или телефон":"телефон"}</b><small>Открывать курс как приложение, без Telegram</small></span></button>`}`;
+    ${matchMedia("(display-mode: standalone)").matches||navigator.standalone||TG?"":`<button class="file" onclick="installSheet()"><span class="ext">КК</span><span><b>Поставить иконку на ${wide()?"компьютер или телефон":"телефон"}</b><small>Открывать программу как приложение</small></span></button>`}`;
 }
-function plural(n,a,b,c){n=Math.abs(n)%100;const n1=n%10;return n>10&&n<20?c:n1>1&&n1<5?b:n1===1?a:c}
 
 function moduleView(m){
   const n=nextLes();
-  return `<div class="crumbs">Модуль ${esc(m.n)}</div><h1 class="les-h">${esc(m.t)}</h1>
-    <p style="margin:-6px 0 0;color:var(--muted);font-size:13.5px">${modDone(m)} из ${m.les.length} пройдено</p>
-    <div class="lessons">${m.les.map(l=>`<button class="les ${l.locked?"lock":S.done.has(l.id)?"done":n&&n.id===l.id?"cur":""}" onclick="openLes('${esc(l.id)}')">
-      <span class="ck">${l.locked?"🔒":S.done.has(l.id)?"✓":""}</span>
-      <span><b>${esc(l.t)}</b><small>Урок ${esc(m.n)}.${esc(l.n)}${isTest(l)?" · тест":isHw(l)?" · задание":""}${l.locked?" · откроется "+fmtDate(l.open):""}</small></span></button>`).join("")}</div>`;
+  return `<div class="crumbs">Модуль ${esc(m.n)}</div><h1 class="h">${esc(m.t)}</h1>
+    <p class="sub">${modDone(m)} из ${m.les.length} пройдено</p>
+    <div class="lessons">${m.les.map(l=>lesRow(l,n)).join("")}</div>`;
+}
+function lesRow(l,n){
+  return `<button class="les ${l.locked?"lock":S.done.has(l.id)?"done":n&&n.id===l.id?"cur":""}" onclick="openLes('${esc(l.id)}')">
+    <span class="ck">${l.locked?"🔒":S.done.has(l.id)?"✓":""}</span>
+    <span><b>${esc(l.t)}</b><small>Урок ${esc(l.id)}${isTest(l)?" · тест":hasHw(l)?" · задание":""}${l.locked?" · откроется "+fmtDate(l.open):""}</small></span>
+    ${hasHw(l)&&S.hw[l.id]?hwChip(l.id):"<span></span>"}</button>`;
 }
 
 function videoHtml(v){
   if(!v)return "";
-  v=String(v).trim();
-  const id=(v.match(/kinescope\.io\/(?:embed\/)?([A-Za-z0-9]+)/)||[])[1]||(/^[A-Za-z0-9]+$/.test(v)?v:"");
-  const src=id?"https://kinescope.io/embed/"+id:v;
-  return `<div class="video"><iframe src="${esc(src)}" allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer; clipboard-write" allowfullscreen loading="lazy"></iframe></div>`;
+  const id=(String(v).match(/kinescope\.io\/(?:embed\/)?([A-Za-z0-9]+)/)||[])[1]||(/^[A-Za-z0-9]+$/.test(v)?v:"");
+  return id?`<div class="video"><iframe src="https://kinescope.io/embed/${id}" allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer; clipboard-write" allowfullscreen loading="lazy"></iframe></div>`:"";
 }
-function ext(u,t){const m=(t+" "+u).match(/\.(pdf|zip|rar|png|jpe?g|mp4|mov|docx?|xlsx?|cube|prproj|psd|aep|mogrt|ttf|otf)\b/i);if(m)return m[1].toUpperCase();if(/drive\.google|docs\.google/.test(u))return "ДИСК";if(/disk\.yandex|yadi\.sk/.test(u))return "Я.ДИСК";return "↗"}
+function ext(u,t){const m=(t+" "+u).match(/\.(pdf|zip|rar|png|jpe?g|mp4|mov|docx?|xlsx?|cube|prproj|psd|aep|mogrt|ttf|otf)\b/i);if(m)return m[1].toUpperCase();if(/drive\.google|docs\.google/.test(u))return "ДИСК";if(/disk\.yandex|yadi\.sk/.test(u))return "Я.ДИСК";if(/t\.me/.test(u))return "TG";return "↗"}
+function fileRow(f){return `<a class="file" href="${esc(f.u)}" target="_blank" rel="noopener"><span class="ext">${ext(f.u,f.t)}</span><span><b>${esc(f.t)}</b><small>${esc(f.d||f.u.replace(/^https?:\/\//,"").split("/")[0])}</small></span></a>`}
 
 function lessonView(l){
-  const d=S.done.has(l.id),nx=nextAfter(l.id),hw=isHw(l);
-  if(l.locked)return `<div class="crumbs">Модуль ${esc(l.m.n)} · ${esc(l.m.t)}</div><h1 class="les-h">${esc(l.t)}</h1><div class="status wait"><span class="dot"></span><div>Урок откроется ${esc(fmtDate(l.open))}</div></div>`;
-  return `<div class="crumbs">Модуль ${esc(l.m.n)} · ${esc(l.m.t)} · урок ${esc(l.m.n)}.${esc(l.n)}</div>
-    <h1 class="les-h">${esc(l.t)}</h1>
+  const d=S.done.has(l.id),nx=nextAfter(l.id);
+  if(l.locked)return `<div class="crumbs">Модуль ${esc(l.m.n)} · ${esc(l.m.t)}</div><h1 class="h">${esc(l.t)}</h1><div class="box"><b>Урок откроется ${esc(fmtDate(l.open))}</b></div>`;
+  const h=S.hw[l.id];
+  return `<div class="crumbs">Модуль ${esc(l.m.n)} · ${esc(l.m.t)} · урок ${esc(l.id)}</div>
+    <h1 class="h">${esc(l.t)}</h1>
     ${/data-kv=/.test(l.html)?"":videoHtml(l.video)}
     ${l.html?`<div class="body-text">${l.html.replace(/<div data-kv="([A-Za-z0-9]+)"><\/div>/g,(_,id)=>videoHtml(id))}</div>`:""}
-    ${l.files.length?`<div class="sec-t">Материалы</div><div class="files">${l.files.map(f=>`<a class="file" href="${esc(f.u)}" target="_blank" rel="noopener"><span class="ext">${ext(f.u,f.t)}</span><span><b>${esc(f.t)}</b><small>${esc(f.u.replace(/^https?:\/\//,"").split("/")[0])}</small></span></a>`).join("")}</div>`:""}
-    ${isTest(l)?`<div class="hw"><b>Тест к уроку</b><div class="body-text">${l.task}</div><a class="btn y" href="${esc(l.gk)}" target="_blank" rel="noopener">Пройти тест в ГетКурсе ↗</a></div>`:""}
-    ${hw&&!isTest(l)?`<form class="hw" id="hwf"><b>Домашнее задание</b>${l.task?`<div class="body-text">${l.task}</div>`:""}
-      <label>Ссылка на работу (Google Диск, Яндекс, YouTube…)<input type="url" name="link" placeholder="https://"></label>
-      <label>Или файл до 20 МБ<input type="file" name="file"></label>
-      <label>Комментарий<textarea name="comment" placeholder="Что хочешь, чтобы я посмотрела в первую очередь?"></textarea></label>
-      <button class="btn y" type="submit">Сдать ДЗ</button></form>`:""}
+    ${l.files.length?`<div class="sec-t">Материалы</div><div class="files">${l.files.map(fileRow).join("")}</div>`:""}
+    ${isTest(l)?`<div class="box"><b>Тест к уроку</b><div class="body-text">${l.task}</div><a class="btn y" href="${esc(l.gk)}" target="_blank" rel="noopener">Пройти тест ↗</a></div>`:""}
+    ${hasHw(l)?`<div class="box"><b>Домашнее задание</b><div class="body-text">${l.task}</div>
+      ${h?`<div style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted)">Статус: ${hwChip(l.id)}</div>${h.reply?`<div class="reply">${esc(h.reply)}</div>`:""}`:""}
+      <a class="btn ${h&&h.status!=="доработать"?"g":"y"}" href="#hw/${encodeURIComponent(l.id)}">${h?(h.status==="доработать"?"Сдать заново":"Отправить ещё раз"):"Сдать ДЗ"}</a></div>`:""}
     <button class="btn ${d?"done":"g"}" id="doneBtn" onclick="toggleDone('${esc(l.id)}')">${d?"✓ Урок пройден":"Отметить пройденным"}</button>
     <div class="navrow"><button class="btn g" onclick="location.hash='m/${esc(l.m.n)}'">К модулю</button>
       ${nx?`<button class="btn y" onclick="openLes('${esc(nx.id)}')">Следующий →</button>`:`<button class="btn g" onclick="location.hash=''">На главную</button>`}</div>`;
@@ -348,31 +396,139 @@ function lessonView(l){
 async function toggleDone(id){
   const was=S.done.has(id);was?S.done.delete(id):S.done.add(id);
   const b=document.getElementById("doneBtn");if(b){b.className="btn "+(was?"g":"done");b.textContent=was?"Отметить пройденным":"✓ Урок пройден"}
-  document.querySelector(".side").innerHTML=sideView();
+  document.querySelector(".side").innerHTML=sideView(section());
   if(TG)try{TG.HapticFeedback.notificationOccurred("success")}catch(e){}
   try{const r=await api({api:"done",lesson:id,value:!was});if(r.ok){S.done=new Set(r.done);saveCache()}else throw 0}
   catch(e){was?S.done.add(id):S.done.delete(id);toast("Не сохранилось, проверь интернет");route()}
 }
-function saveCache(){try{const c=JSON.parse(load("kk_course")||"{}");c.done=[...S.done];store("kk_course",JSON.stringify(c))}catch(e){}}
 
-function bindLesson(){
+/* ---------- база знаний: поиск и быстрый переход ---------- */
+function plain(h){return String(h||"").replace(/<div data-kv[^>]*><\/div>/g," ").replace(/<[^>]+>/g," ").replace(/&nbsp;/g," ").replace(/&amp;/g,"&").replace(/\s+/g," ")}
+function kbView(){
+  const kb=S.mats.filter(x=>/база/i.test(x.s));
+  return `<h1 class="h">База знаний</h1>
+    <input type="search" id="kbq" placeholder="Найти урок: шрифты, цвет, портфолио…" value="${esc(S.q)}" autocomplete="off">
+    <div id="kbres"></div>
+    ${kb.length?`<div class="sec-t">Папки программы</div><div class="files">${kb.map(fileRow).join("")}</div>`:""}
+    <div class="sec-t">Быстрый переход к урокам</div>
+    <div class="mods">${S.mods.map(m=>`<details><summary class="mod" style="cursor:pointer"><span class="num">${esc(m.n)}</span><span><b>${esc(m.t)}</b><small>${m.les.length} ${plural(m.les.length,"урок","урока","уроков")}</small></span><span class="pr">${modDone(m)}/${m.les.length}</span></summary>
+      <div class="lessons" style="margin:4px 0 12px">${m.les.map(l=>lesRow(l)).join("")}</div></details>`).join("")}</div>`;
+}
+function kbSearch(q){
+  S.q=q;const box=document.getElementById("kbres");if(!box)return;
+  q=q.trim().toLowerCase();if(q.length<2){box.innerHTML="";return}
+  const hits=allLes().map(l=>{const t=l.t.toLowerCase(),full=plain(l.html+" "+l.task),body=full.toLowerCase();const score=(t.includes(q)?10:0)+(body.split(q).length-1);
+    let snip="";const i=body.indexOf(q);if(i>=0&&!t.includes(q))snip=full.slice(Math.max(0,i-50),i+90);return {l,score,snip}}).filter(x=>x.score>0).sort((a,b)=>b.score-a.score).slice(0,20);
+  const rx=new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"gi"),mk=s=>esc(s).replace(rx,m=>`<mark>${m}</mark>`);
+  box.innerHTML=hits.length?`<div class="lessons">${hits.map(({l,snip})=>`<button class="les" onclick="openLes('${esc(l.id)}')"><span class="ck" style="border:0;color:var(--sun)">${esc(l.m.n)}</span><span><b>${mk(l.t)}</b><small>${snip?"…"+mk(snip)+"…":"Урок "+esc(l.id)+" · "+esc(l.m.t)}</small></span><span></span></button>`).join("")}</div>`:`<div class="empty">Ничего не нашли. Попробуй другое слово.</div>`;
+}
+
+/* ---------- полезные материалы ---------- */
+function lessonLinks(){
+  const out={};
+  allLes().forEach(l=>{
+    (l.html+" "+l.task).replace(/href="([^"]+)"/g,(_,u)=>{u=u.replace(/&amp;/g,"&");
+      if(/drive\.google|docs\.google\.com\/(document|spreadsheets|presentation)/.test(u)){(out[l.id]=out[l.id]||{l,u:[]});if(!out[l.id].u.includes(u))out[l.id].u.push(u)}});
+  });
+  return Object.values(out);
+}
+function matView(){
+  const mats=S.mats.filter(x=>!/база/i.test(x.s)),groups=[...new Set(mats.map(x=>x.g))],ll=lessonLinks();
+  return `<h1 class="h">Полезные материалы</h1><p class="sub">Гайды и подборки программы, а ниже — исходники ко всем урокам в одном месте.</p>
+    ${groups.map(g=>`<div class="sec-t">${esc(g||"Гайды")}</div><div class="files">${mats.filter(x=>x.g===g).map(fileRow).join("")}</div>`).join("")}
+    ${ll.length?`<div class="sec-t">Исходники к урокам</div><div class="files">${ll.map(({l,u})=>u.map((x,i)=>`<a class="file" href="${esc(x)}" target="_blank" rel="noopener"><span class="ext">${ext(x,"")}</span><span><b>${esc(l.t)}${u.length>1?" · "+(i+1):""}</b><small>Урок ${esc(l.id)} · Google Диск</small></span></a>`).join("")).join("")}</div>`:""}`;
+}
+
+/* ---------- сдать ДЗ ---------- */
+function hwListView(){
+  const list=allLes().filter(hasHw),sent=list.filter(l=>S.hw[l.id]).length;
+  const firstTodo=list.find(l=>!S.hw[l.id]&&!l.locked);
+  return `<h1 class="h">Сдать ДЗ</h1><p class="sub">Сдано ${sent} из ${list.length}. Выбери задание — загрузи работу сюда или отметь, что уже отправила ${esc(S.lsName)} в личку.</p>
+    ${firstTodo?`<button class="cont" onclick="location.hash='hw/${esc(firstTodo.id)}'"><span class="k">Следующее задание · урок ${esc(firstTodo.id)}</span><b>${esc(firstTodo.t)}</b></button>`:""}
+    ${S.mods.filter(m=>m.les.some(hasHw)).map(m=>`<div class="sec-t">${esc(m.n)}. ${esc(m.t)}</div>
+      <div class="lessons">${m.les.filter(hasHw).map(l=>`<button class="les ${S.hw[l.id]?"done":""} ${l.locked?"lock":""}" onclick="${l.locked?`toast('Урок откроется ${esc(fmtDate(l.open))}')`:`location.hash='hw/${esc(l.id)}'`}">
+        <span class="ck">${S.hw[l.id]?"✓":""}</span><span><b>${esc(l.t)}</b><small>Урок ${esc(l.id)}</small></span>${hwChip(l.id)}</button>`).join("")}</div>`).join("")}`;
+}
+let hwMode="upload";
+function hwView(l){
+  const h=S.hw[l.id];
+  return `<div class="crumbs">Урок ${esc(l.id)} · ${esc(l.m.t)}</div><h1 class="h">${esc(l.t)}</h1>
+    ${h?`<div class="box"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>Уже сдано</b>${hwChip(l.id)}</div>
+      <p class="hint">${esc(h.when)} · ${h.how==="в ЛС"?"отправлено в личку":"загружено в приложение"}</p>${h.reply?`<div class="reply">${esc(h.reply)}</div>`:""}</div>`:""}
+    <details class="box"><summary style="cursor:pointer;font-weight:700">Задание ▾</summary><div class="body-text" style="margin-top:10px">${l.task}</div></details>
+    <form class="box" id="hwf">
+      <div class="seg"><button type="button" data-m="upload" aria-pressed="${hwMode==="upload"}">Загрузить сюда</button><button type="button" data-m="ls" aria-pressed="${hwMode==="ls"}">Уже отправила ${esc(S.lsName)} в ЛС</button></div>
+      <div id="upl" style="display:${hwMode==="ls"?"none":"flex"};flex-direction:column;gap:12px">
+        <label class="f">Ссылка на работу (Google Диск, Яндекс, YouTube…)<input type="url" name="link" placeholder="https://"></label>
+        <label class="f">Или файл до 20 МБ<input type="file" name="file"></label>
+        <p class="hint">Работа сразу придёт ${esc(S.lsName)} в Telegram и засчитается как сданная.</p>
+      </div>
+      <p class="hint" id="lsh" style="display:${hwMode==="ls"?"block":"none"}">Отметим, что работа сдана: она засчитается в программе и в твоём прогрессе.</p>
+      <label class="f">Комментарий (по желанию)<textarea name="comment" placeholder="Что посмотреть в первую очередь?"></textarea></label>
+      <button class="btn y" type="submit">${hwMode==="ls"?"Отметить как сданное":"Отправить работу"}</button>
+    </form>`;
+}
+function bindView(h){
+  if(h==="kb"){const q=document.getElementById("kbq");q.oninput=()=>kbSearch(q.value);if(S.q)kbSearch(S.q)}
+  if(h==="me")loadAccount();
   const f=document.getElementById("hwf");if(!f)return;
+  const label=()=>hwMode==="ls"?"Отметить как сданное":"Отправить работу";
+  f.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{hwMode=b.dataset.m;f.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",x===b));
+    document.getElementById("upl").style.display=hwMode==="ls"?"none":"flex";document.getElementById("lsh").style.display=hwMode==="ls"?"block":"none";f.querySelector("[type=submit]").textContent=label()});
   f.onsubmit=async e=>{
     e.preventDefault();
-    const id=decodeURIComponent(location.hash.slice(3)),l=findLes(id),btn=f.querySelector("button");
+    const id=h.slice(3),l=findLes(id),btn=f.querySelector("[type=submit]");
     const link=f.link.value.trim(),file=f.file.files[0],comment=f.comment.value.trim();
-    if(!link&&!file)return toast("Добавь ссылку или файл");
-    if(file&&file.size>20*1024*1024)return toast("Файл больше 20 МБ — загрузи его на диск и пришли ссылку");
-    btn.disabled=true;btn.textContent=file?"Загружаем файл…":"Отправляем…";
+    if(hwMode==="upload"&&!link&&!file)return toast("Добавь ссылку или файл");
+    if(hwMode==="upload"&&file&&file.size>20*1024*1024)return toast("Файл больше 20 МБ — загрузи его на диск и пришли ссылку");
+    btn.disabled=true;btn.textContent=hwMode==="upload"&&file?"Загружаем файл…":"Отправляем…";
     try{
       let fd=null;
-      if(file)fd={name:file.name,type:file.type,data:await new Promise((ok,bad)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(",")[1]);r.onerror=bad;r.readAsDataURL(file)})};
-      const r=await api({api:"homework",lesson:id,lessonTitle:l?l.m.n+"."+l.n+" "+l.t:id,link,comment,file:fd});
+      if(hwMode==="upload"&&file)fd={name:file.name,type:file.type,data:await new Promise((ok,bad)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(",")[1]);r.onerror=bad;r.readAsDataURL(file)})};
+      const r=await api({api:"homework",mode:hwMode,lesson:id,lessonTitle:l?l.id+" "+l.t:id,link:hwMode==="upload"?link:"",comment,file:fd});
       if(!r.ok)throw new Error(r.error);
-      f.innerHTML=`<b>Домашка отправлена ✓</b><p style="margin:0;color:var(--muted);font-size:13.5px">Аполлинария получила её вместе с твоим ником и названием урока.</p>`;
-    }catch(err){btn.disabled=false;btn.textContent="Сдать ДЗ";if(err.message!=="auth")toast("Не отправилось: "+(err.message||"нет связи"))}
+      S.hw=hwMap(r.hw);saveCache();
+      if(TG)try{TG.HapticFeedback.notificationOccurred("success")}catch(e){}
+      f.outerHTML=`<div class="box"><b>Готово ✓</b><p class="hint">${hwMode==="ls"?"Отметили: работа сдана в личку.":"Работа отправлена "+esc(S.lsName)+" и засчитана."} Статус проверки появится здесь и в разделе «Сдать ДЗ».</p><a class="btn g" href="#hw">К списку заданий</a></div>`;
+    }catch(err){btn.disabled=false;btn.textContent=label();if(err.message!=="auth")toast("Не отправилось: "+(err.message||"нет связи"))}
   };
 }
+
+/* ---------- аккаунт ---------- */
+function meView(){
+  const a=S.acc,all=allLes(),done=all.filter(l=>S.done.has(l.id)).length,p=pct();
+  const hwAll=all.filter(hasHw).length,hwSent=all.filter(l=>hasHw(l)&&S.hw[l.id]).length;
+  return `<div class="me-head"><div class="ava">${a&&a.photo?`<img src="${a.photo}" alt="">`:esc((S.user.n||"К").slice(0,1))}</div>
+      <div><b>${esc(a?a.name:S.user.n)}</b><small>@${esc(S.user.u)}</small>${S.user.s?`<small>${esc(S.user.s)}</small>`:""}</div></div>
+    <div class="box" style="gap:0">
+      <div class="kv"><span>Telegram</span><b>@${esc(S.user.u)}</b></div>
+      <div class="kv"><span>Почта</span><b>${a?esc(a.email||"—"):"…"}</b></div>
+      <div class="kv"><span>Поток</span><b>${esc(S.user.s||"—")}</b></div>
+    </div>
+    <div class="sec-t">Прогресс</div>
+    <div class="box"><div style="display:flex;justify-content:space-between;font-weight:700"><span>Пройдено уроков</span><span>${done} из ${all.length}</span></div><span class="bar y"><i style="width:${p}%"></i></span></div>
+    <div class="stats"><div class="stat"><b>${p}%</b><small>программы</small></div><div class="stat"><b>${hwSent}/${hwAll}</b><small>домашек сдано</small></div></div>
+    <div class="sec-t">Оплата</div>
+    <div id="pay">${a?payHtml(a.pay):`<div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}</div>
+    <a class="btn g" href="${HELP}" target="_blank" rel="noopener">Написать в службу заботы</a>
+    ${TG?"":`<button class="btn g" style="color:var(--muted)" onclick="logout()">Выйти</button>`}`;
+}
+function payHtml(p){
+  if(!p||p.full)return `<div class="box"><div class="pay-ok"><span style="font-size:22px">✓</span>Программа полностью оплачена. Всё хорошо!</div></div>`;
+  const pc=p.total?Math.round(p.paid/p.total*100):100;
+  return `<div class="box">
+    ${p.next?`<div class="next">Ближайший платёж<b>${rub(p.next.amount)} · ${esc(fmtDate(p.next.date))}</b></div>`:""}
+    <div style="display:flex;justify-content:space-between;font-weight:700"><span>Оплачено</span><span>${rub(p.paid)}${p.debt?" из "+rub(p.total):""}</span></div>
+    <span class="bar y"><i style="width:${pc}%"></i></span>
+    ${p.debt?`<p class="hint">Осталось оплатить ${rub(p.debt)}</p>`:""}
+    ${p.plan&&p.plan.length?`<div class="plan">${p.plan.map(x=>`<div class="${x.paid?"paid":p.next&&x.n===p.next.n?"nx":""}"><span>${x.paid?"✓":"•"}</span><span>${x.n} платёж · ${esc(fmtDate(x.date))}</span><b>${rub(x.amount)}</b></div>`).join("")}</div>`
+      :p.raw&&p.raw!=="-"?`<p class="hint" style="white-space:pre-line">${esc(p.raw)}</p>`:""}
+    <p class="hint">Бот напомнит о платеже заранее. Вопросы по оплате — в службу заботы.</p></div>`;
+}
+async function loadAccount(){
+  try{const r=await api({api:"account"});if(!r.ok)return;S.acc=r;if(location.hash.slice(1)==="me")document.querySelector(".inner").innerHTML=meView()}catch(e){}
+}
+function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
 /* ---------- иконка на телефон ---------- */
 let deferredInstall=null;
@@ -381,7 +537,7 @@ function installSheet(){
   if(deferredInstall){deferredInstall.prompt();deferredInstall=null;return}
   const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
   const v=document.createElement("div");v.className="veil";
-  v.innerHTML=`<div class="sheet" role="dialog" aria-label="Иконка на телефон"><h3>Курс как приложение</h3>
+  v.innerHTML=`<div class="sheet" role="dialog" aria-label="Иконка на телефон"><h3>Программа как приложение</h3>
     <ol>${ios?`<li>Открой эту страницу в Safari</li><li>Нажми «Поделиться» (квадрат со стрелкой)</li><li>Выбери «На экран Домой»</li>`
       :`<li>Открой эту страницу в Chrome</li><li>Нажми ⋮ в правом верхнем углу</li><li>Выбери «Установить приложение» или «Добавить на гл. экран»</li>`}
     <li>Входить второй раз не придётся</li></ol>
