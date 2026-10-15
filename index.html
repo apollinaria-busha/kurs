@@ -54,9 +54,9 @@ a{color:var(--sun)}
 .inner{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
 
 /* нижнее меню */
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(5,1fr);background:color-mix(in srgb,var(--panel) 94%,transparent);
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(4,1fr);background:color-mix(in srgb,var(--panel) 94%,transparent);
   backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
-.tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;color:var(--muted);font-size:10px;white-space:nowrap;letter-spacing:-.01em;font-weight:600;line-height:1.15;text-align:center}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;color:var(--muted);font-size:10px;letter-spacing:-.01em;font-weight:600;line-height:1.15;text-align:center}
 .tab svg{width:24px;height:24px}
 .tab.on{color:var(--sun)}
 .tab.hw .ic{background:var(--sun);color:var(--sun-ink);border-radius:12px;width:40px;height:30px;display:grid;place-items:center;margin-top:-3px}
@@ -207,7 +207,7 @@ const IC = {
   hw:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V5M7 10l5-5 5 5"/><path d="M5 19h14"/></svg>',
   me:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>'
 };
-const TABS = [["", "Уроки", "les", "Уроки"], ["kb", "База знаний", "kb", "Знания"], ["hw", "Сдать ДЗ", "hw", "Сдать ДЗ"], ["mat", "Полезные материалы", "mat", "Материалы"], ["me", "Аккаунт", "me", "Аккаунт"]];
+const TABS = [["", "Уроки", "les", "Уроки"], ["hw", "Сдать ДЗ", "hw", "Сдать ДЗ"], ["mat", "Полезные материалы", "mat", "Полезные<br>материалы"], ["me", "Аккаунт", "me", "Аккаунт"]];
 
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function store(k,v){try{v===undefined?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
@@ -296,7 +296,7 @@ function hwChip(id){const h=S.hw[id];if(!h)return `<span class="chip">не сд�
   return `<span class="chip sent">${h.how==="в ЛС"?"отправлено в ЛС":"на проверке"}</span>`}
 
 /* ---------- каркас ---------- */
-function section(){const h=location.hash.slice(1);for(const k of ["kb","mat","hw","me"])if(h.startsWith(k))return k;return ""}
+function section(){const h=location.hash.slice(1);for(const k of ["mat","hw","me"])if(h.startsWith(k))return k;return ""}
 function route(){
   if(!S.user)return;
   const h=decodeURIComponent(location.hash.slice(1));
@@ -305,7 +305,6 @@ function route(){
   if(h.startsWith("l/")){const l=findLes(h.slice(2));if(l){view=lessonView(l);title="Урок "+l.id;back=true;S.open.add(l.m.n);S.cur=l.id}}
   else if(h.startsWith("m/")){const m=S.mods.find(m=>m.n===h.slice(2));if(m){view=moduleView(m);title="Модуль "+m.n;back=true;S.open.add(m.n)}}
   else if(h.startsWith("hw/")){const l=findLes(h.slice(3));if(l){view=hwView(l);title="Сдать ДЗ";back=true}}
-  else if(h==="kb")view=kbView();
   else if(h==="mat")view=matView();
   else if(h==="hw")view=hwListView();
   else if(h==="me")view=meView();
@@ -346,6 +345,8 @@ function homeView(){
   const n=nextLes(),p=pct();
   return `<div class="hello"><h1>Привет, ${esc(S.user.n||"креатор")}</h1><p>${S.user.s?esc(S.user.s)+" · ":""}пройдено ${p}% программы</p></div>
     ${n?`<button class="cont" onclick="openLes('${esc(n.id)}')"><span class="k">${S.done.size?"Продолжить":"Начать"} · модуль ${esc(n.m.n)}</span><b>${esc(n.t)}</b><span class="bar"><i style="width:${p}%"></i></span></button>`:""}
+    <input type="search" id="kbq" placeholder="Найти урок: шрифты, цвет, портфолио…" value="${esc(S.q)}" autocomplete="off">
+    <div id="kbres"></div>
     <div class="sec-t">Модули</div>
     <div class="${wide()?"grid-mods":"mods"}">${S.mods.map(m=>{const d=modDone(m),t=m.les.length;return `
       <button class="mod" onclick="location.hash='m/${esc(m.n)}'"><span class="num">${esc(m.n)}</span>
@@ -404,16 +405,6 @@ async function toggleDone(id){
 
 /* ---------- база знаний: поиск и быстрый переход ---------- */
 function plain(h){return String(h||"").replace(/<div data-kv[^>]*><\/div>/g," ").replace(/<[^>]+>/g," ").replace(/&nbsp;/g," ").replace(/&amp;/g,"&").replace(/\s+/g," ")}
-function kbView(){
-  const kb=S.mats.filter(x=>/база/i.test(x.s));
-  return `<h1 class="h">База знаний</h1>
-    <input type="search" id="kbq" placeholder="Найти урок: шрифты, цвет, портфолио…" value="${esc(S.q)}" autocomplete="off">
-    <div id="kbres"></div>
-    ${kb.length?`<div class="sec-t">Папки программы</div><div class="files">${kb.map(fileRow).join("")}</div>`:""}
-    <div class="sec-t">Быстрый переход к урокам</div>
-    <div class="mods">${S.mods.map(m=>`<details><summary class="mod" style="cursor:pointer"><span class="num">${esc(m.n)}</span><span><b>${esc(m.t)}</b><small>${m.les.length} ${plural(m.les.length,"урок","урока","уроков")}</small></span><span class="pr">${modDone(m)}/${m.les.length}</span></summary>
-      <div class="lessons" style="margin:4px 0 12px">${m.les.map(l=>lesRow(l)).join("")}</div></details>`).join("")}</div>`;
-}
 function kbSearch(q){
   S.q=q;const box=document.getElementById("kbres");if(!box)return;
   q=q.trim().toLowerCase();if(q.length<2){box.innerHTML="";return}
@@ -433,8 +424,9 @@ function lessonLinks(){
   return Object.values(out);
 }
 function matView(){
-  const mats=S.mats.filter(x=>!/база/i.test(x.s)),groups=[...new Set(mats.map(x=>x.g))],ll=lessonLinks();
-  return `<h1 class="h">Полезные материалы</h1><p class="sub">Гайды и подборки программы, а ниже — исходники ко всем урокам в одном месте.</p>
+  const mats=S.mats.filter(x=>!/база/i.test(x.s)),groups=[...new Set(mats.map(x=>x.g))],ll=lessonLinks(),kb=S.mats.filter(x=>/база/i.test(x.s));
+  return `<h1 class="h">Полезные материалы</h1><p class="sub">Гайды и подборки по модулям, папки программы на Google Диске и исходники ко всем урокам.</p>
+    ${kb.length?`<div class="sec-t">Папки программы</div><div class="files">${kb.map(fileRow).join("")}</div>`:""}
     ${groups.map(g=>`<div class="sec-t">${esc(g||"Гайды")}</div><div class="files">${mats.filter(x=>x.g===g).map(fileRow).join("")}</div>`).join("")}
     ${ll.length?`<div class="sec-t">Исходники к урокам</div><div class="files">${ll.map(({l,u})=>u.map((x,i)=>`<a class="file" href="${esc(x)}" target="_blank" rel="noopener"><span class="ext">${ext(x,"")}</span><span><b>${esc(l.t)}${u.length>1?" · "+(i+1):""}</b><small>Урок ${esc(l.id)} · Google Диск</small></span></a>`).join("")).join("")}</div>`:""}`;
 }
@@ -469,7 +461,7 @@ function hwView(l){
     </form>`;
 }
 function bindView(h){
-  if(h==="kb"){const q=document.getElementById("kbq");q.oninput=()=>kbSearch(q.value);if(S.q)kbSearch(S.q)}
+  if(!h){const q=document.getElementById("kbq");if(q){q.oninput=()=>kbSearch(q.value);if(S.q)kbSearch(S.q)}}
   if(h==="me")loadAccount();
   const f=document.getElementById("hwf");if(!f)return;
   const label=()=>hwMode==="ls"?"Отметить как сданное":"Отправить работу";
@@ -505,6 +497,9 @@ function meView(){
       <div class="kv"><span>Почта</span><b>${a?esc(a.email||"—"):"…"}</b></div>
       <div class="kv"><span>Поток</span><b>${esc(S.user.s||"—")}</b></div>
     </div>
+    ${a?streamHtml(a.period):""}
+    <div class="sec-t">Планерки с Бушей</div>
+    ${a?planHtml(a.planerki):`<div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}
     <div class="sec-t">Прогресс</div>
     <div class="box"><div style="display:flex;justify-content:space-between;font-weight:700"><span>Пройдено уроков</span><span>${done} из ${all.length}</span></div><span class="bar y"><i style="width:${p}%"></i></span></div>
     <div class="stats"><div class="stat"><b>${p}%</b><small>программы</small></div><div class="stat"><b>${hwSent}/${hwAll}</b><small>домашек сдано</small></div></div>
@@ -512,6 +507,24 @@ function meView(){
     <div id="pay">${a?payHtml(a.pay):`<div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}</div>
     <a class="btn g" href="${HELP}" target="_blank" rel="noopener">Написать в службу заботы</a>
     ${TG?"":`<button class="btn g" style="color:var(--muted)" onclick="logout()">Выйти</button>`}`;
+}
+function streamHtml(p){
+  if(!p)return "";
+  const day=864e5,s=new Date(p.start+"T00:00:00+03:00"),e=new Date(p.end+"T23:59:59+03:00"),now=new Date();
+  const left=Math.ceil((e-now)/day),pc=Math.min(100,Math.max(0,Math.round((now-s)/(e-s)*100)));
+  const txt=now<s?`Поток стартует ${fmtDate(p.start)}`:left>0?`До конца потока <b style="color:var(--sun)">${left} ${plural(left,"день","дня","дней")}</b>`:"Поток завершён — ты молодец!";
+  return `<div class="box"><div style="display:flex;justify-content:space-between;gap:10px;font-size:14px"><span>${txt}</span><span class="hint">${fmtDate(p.start)} – ${fmtDate(p.end)}</span></div><span class="bar y"><i style="width:${pc}%"></i></span></div>`;
+}
+function planHtml(list){
+  if(!list||!list.length)return `<div class="box"><p class="hint">Ты ещё не записана на планерку. Запишись на удобное время — и здесь появится дата встречи.</p><a class="btn y" href="https://apollinaria-busha.github.io/planerka/" target="_blank" rel="noopener">Записаться на планерку</a></div>`;
+  const next=list.find(p=>p.next);
+  const loc=iso=>new Date(iso).toLocaleString("ru-RU",{weekday:"long",day:"numeric",month:"long",hour:"2-digit",minute:"2-digit"});
+  const tz=Intl.DateTimeFormat().resolvedOptions().timeZone,msk=tz==="Europe/Moscow";
+  return `<div class="box">
+    ${next?`<div class="next">Следующая планерка<b>${esc(loc(next.next))}</b>${msk?"":`<span class="hint">по твоему времени · ${esc(next.day.toLowerCase())} ${esc(next.time)} МСК</span>`}</div>`:`<p class="hint">Встреч в этом потоке больше нет.</p>`}
+    ${list.map(p=>`<div class="kv"><span>${esc(p.day)}${p.dates&&p.dates.length?" · раз в 2 недели":""}</span><b>${esc(p.time)} МСК</b></div>`).join("")}
+    ${next&&next.zoom?`<a class="btn y" href="${esc(next.zoom)}" target="_blank" rel="noopener">Войти в Zoom</a>`:""}
+  </div>`;
 }
 function payHtml(p){
   if(!p||p.full)return `<div class="box"><div class="pay-ok"><span style="font-size:22px">✓</span>Программа полностью оплачена. Всё хорошо!</div></div>`;
