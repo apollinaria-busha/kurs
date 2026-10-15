@@ -46,6 +46,7 @@ a{color:var(--sun)}
 .top .back{color:var(--sun);font-weight:600;font-size:14px;min-width:64px;text-align:left}
 .top .t{flex:1;min-width:0;font-weight:800;font-size:14px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .top .sp{min-width:64px}
+.top.home .t{text-align:left}
 .logo-s{font-weight:900;letter-spacing:.03em;font-size:15px}.logo-s span{color:var(--sun)}
 .user{margin-left:auto;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.user b{color:var(--text)}
 
@@ -231,9 +232,13 @@ function apply(res){S.user=res.user;S.mods=res.mods;S.done=new Set(res.done);S.g
 /* ---------- ГетКурс ---------- */
 async function checkGk(){
   if(S.gk==="up"||S.gk==="down"){S.gkUp=S.gk==="up";return paintGk()}
-  const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),7000);
-  try{await fetch(S.gkUrl+"/favicon.ico?"+Date.now(),{mode:"no-cors",signal:ctl.signal});S.gkUp=true}catch(e){S.gkUp=false}
-  clearTimeout(t);paintGk();
+  // «недоступен» показываем только после трёх неудачных попыток подряд
+  for(let i=0;i<3;i++){
+    const ctl=new AbortController();const t=setTimeout(()=>ctl.abort(),10000);
+    try{await fetch(S.gkUrl+"/favicon.ico?"+Date.now(),{mode:"no-cors",cache:"no-store",signal:ctl.signal});clearTimeout(t);S.gkUp=true;return paintGk()}catch(e){clearTimeout(t)}
+    await new Promise(r=>setTimeout(r,1500));
+  }
+  S.gkUp=false;paintGk();
 }
 function gkHtml(){
   if(S.gkUp===null)return `<div class="status wait"><span class="dot"></span><div>Проверяем, работает ли ГетКурс…</div></div>`;
@@ -262,10 +267,10 @@ function route(){
   else if(h.startsWith("m/")){const m=S.mods.find(m=>m.n===decodeURIComponent(h.slice(2)));if(m){view=moduleView(m);title="Модуль "+m.n;back=true;S.open.add(m.n);S.cur=null}}
   if(!view){view=homeView();S.cur=null}
   const wide=matchMedia("(min-width:900px)").matches;
-  app.innerHTML=`<header class="top">
-      ${back?`<button class="back" onclick="goBack()">‹ Назад</button>`:`<span class="sp"></span>`}
+  app.innerHTML=`<header class="top ${back?"":"home"}">
+      ${back?`<button class="back" onclick="goBack()">‹ Назад</button>`:""}
       <span class="t">${wide||!back?`<span class="logo-s">КОД <span>КРЕАТОРА</span></span>`:esc(title)}</span>
-      ${wide?`<span class="user"><b>${esc(S.user.n)}</b> · @${esc(S.user.u)}</span>`:`<span class="sp"></span>`}
+      ${wide?`<span class="user"><b>${esc(S.user.n)}</b> · @${esc(S.user.u)}</span>`:back?`<span class="sp"></span>`:""}
     </header>
     <div class="wrap"><aside class="side">${sideView()}</aside><main class="main" id="main"><div class="inner">${view}</div></main></div>`;
   const main=document.getElementById("main");main.scrollTop=0;window.scrollTo(0,0);
