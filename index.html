@@ -517,7 +517,7 @@ function payHtml(p){
   if(!p||p.full)return `<div class="box"><div class="pay-ok"><span style="font-size:22px">✓</span>Программа полностью оплачена. Всё хорошо!</div></div>`;
   const pc=p.total?Math.round(p.paid/p.total*100):100;
   return `<div class="box">
-    ${p.next?`<div class="next">Ближайший платёж<b>${rub(p.next.amount)} · ${esc(fmtDate(p.next.date))}</b></div>`:""}
+    ${p.next?`<div class="next">${p.next.date<new Date().toISOString().slice(0,10)?"Платёж ожидался":"Ближайший платёж"}<b>${rub(p.next.amount)} · ${esc(fmtDate(p.next.date))}</b>${p.next.date<new Date().toISOString().slice(0,10)?`<span class="hint">Если уже оплатила — всё хорошо, статус скоро обновится.</span>`:""}</div>`:""}
     <div style="display:flex;justify-content:space-between;font-weight:700"><span>Оплачено</span><span>${rub(p.paid)}${p.debt?" из "+rub(p.total):""}</span></div>
     <span class="bar y"><i style="width:${pc}%"></i></span>
     ${p.debt?`<p class="hint">Осталось оплатить ${rub(p.debt)}</p>`:""}
