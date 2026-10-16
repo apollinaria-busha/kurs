@@ -175,14 +175,17 @@ mark{background:color-mix(in srgb,var(--sun) 35%,transparent);color:inherit;bord
 .pill i{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:10px;font-weight:900}
 .pill.ya i{background:#fc3f1d;color:#fff}.pill.gd i{background:#1fa463;color:#fff}.pill.tg i{background:#2aabee;color:#fff}
 .pill.ig i{background:#d62976;color:#fff}.pill.yt i{background:#ff0000;color:#fff}.pill.gf i{background:#7248b9;color:#fff}.pill.ln i{background:var(--sun);color:var(--sun-ink)}
-.mats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.mats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 12px;align-items:start}
 .mat{display:flex;flex-direction:column;gap:8px;text-decoration:none;color:var(--text)}
-.mat .pic{aspect-ratio:3/4;border-radius:14px;overflow:hidden;background:var(--panel2);display:grid;place-items:center;color:var(--sun);font-family:var(--f-mono);font-size:12px}
-.mat .pic img{width:100%;height:100%;object-fit:cover;object-position:top}
+.mat .pic{border-radius:14px;overflow:hidden;background:var(--panel2);display:block;min-height:80px}
+.mat .pic img{width:100%;height:auto;display:block}
 .mat b{font-size:13px;line-height:1.3;font-weight:700}.mat small{color:var(--muted);font-size:11.5px;margin-top:-4px}
-.lvl{display:flex;flex-direction:column;gap:10px}
-.lvl img{width:100%;max-width:420px;border-radius:16px;display:block}
-.lvl .big{font-size:32px;font-weight:900;line-height:1}
+.lvl{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;align-items:center}
+.lvl img{width:100%;border-radius:14px;display:block}
+.lvl .ring{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center}
+.lvl .ring svg{width:min(150px,100%);height:auto}
+.lvl .ring b{font-size:13.5px;line-height:1.3}
+@media (min-width:600px){.lvl{grid-template-columns:240px 1fr;max-width:560px}}
 @media (min-width:600px){.covers{grid-template-columns:repeat(2,minmax(0,1fr))}.mats{grid-template-columns:repeat(3,minmax(0,1fr))}}
 
 /* сдать ДЗ: плитки */
@@ -198,6 +201,13 @@ mark{background:color-mix(in srgb,var(--sun) 35%,transparent);color:inherit;bord
 .tile.redo{border-color:color-mix(in srgb,var(--bad) 60%,transparent)}.tile.redo .st{background:var(--bad)}
 .legend{display:flex;flex-wrap:wrap;gap:12px;font-size:11.5px;color:var(--muted)}
 .legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:0}
+/* мастер ДЗ */
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chipbtn{border:1.5px solid var(--line);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:700;white-space:nowrap;background:var(--panel);color:var(--text)}
+.chipbtn.on{background:var(--sun);color:var(--sun-ink);border-color:var(--sun)}
+.chipbtn.has{border-color:color-mix(in srgb,var(--ok) 55%,transparent)}
+.chipbtn.redo{border-color:color-mix(in srgb,var(--bad) 60%,transparent)}
+.les.pick{outline:2px solid var(--sun)}
 /* портфолио */
 .pf{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .pf button{display:flex;flex-direction:column;gap:6px;text-align:left}
@@ -251,7 +261,7 @@ const BOT = "oebybusha_bot";
 const HELP = "https://t.me/bushas_help_bot";
 const TG = window.Telegram && Telegram.WebApp && Telegram.WebApp.initData ? Telegram.WebApp : null;
 const app = document.getElementById("app");
-const S = { session:null, user:null, mods:[], mats:[], done:new Set(), hw:{}, lsName:"Полине", open:new Set(), acc:null, q:"" };
+const S = { session:null, user:null, mods:[], mats:[], done:new Set(), subs:[], lsName:"Полине", open:new Set(), acc:null, q:"" };
 const wide = () => matchMedia("(min-width:900px)").matches;
 
 const IC = {
@@ -331,9 +341,8 @@ async function loadCourse(){
   store("kk_course",JSON.stringify(res));apply(res);
   if(!document.querySelector("#hwf"))route(); // не сбрасываем форму ДЗ, если ученица её заполняет
 }
-function apply(res){S.user=res.user;S.mods=res.mods;S.mats=res.mats||[];S.done=new Set(res.done);S.hw=hwMap(res.hw||[]);S.lsName=res.lsName||"Полине"}
-function hwMap(list){const m={};list.forEach(h=>m[h.lesson]=h);return m}
-function saveCache(){try{const c=JSON.parse(load("kk_course")||"{}");c.done=[...S.done];c.hw=Object.values(S.hw);store("kk_course",JSON.stringify(c))}catch(e){}}
+function apply(res){S.user=res.user;S.mods=res.mods;S.mats=res.mats||[];S.done=new Set(res.done);S.subs=res.hw||[];S.lsName=res.lsName||"Полине"}
+function saveCache(){try{const c=JSON.parse(load("kk_course")||"{}");c.done=[...S.done];c.hw=S.subs;store("kk_course",JSON.stringify(c))}catch(e){}}
 
 /* ---------- данные ---------- */
 const allLes=()=>S.mods.flatMap(m=>m.les.map(l=>({...l,m})));
@@ -352,7 +361,7 @@ function route(){
   S.cur=null;
   if(h.startsWith("l/")){const l=findLes(h.slice(2));if(l){view=lessonView(l);title="Урок "+l.id;back=true;S.open.add(l.m.n);S.cur=l.id}}
   else if(h.startsWith("m/")){const m=S.mods.find(m=>m.n===h.slice(2));if(m){view=moduleView(m);title="Модуль "+m.n;back=true;S.open.add(m.n)}}
-  else if(h.startsWith("hw/")){const l=findLes(h.slice(3));if(l){view=hwView(l);title="Сдать ДЗ";back=true}}
+  else if(h.startsWith("hw/new")){view=wizardView(h.slice(7));title="Сдать работу";back=true}
   else if(h==="mat")view=matView();
   else if(h==="hw")view=hwListView();
   else if(h==="me")view=meView();
@@ -414,7 +423,7 @@ function lesRow(l){
   return `<button class="les th ${d?"done":""} ${l.locked?"lock":""}" onclick="openLes('${esc(l.id)}')">
     <span class="thumb">${l.cover?`<img src="${esc(l.cover)}" alt="" loading="lazy">`:""}<span class="ck">${l.locked?"🔒":d?"✓":""}</span></span>
     <span><b>${esc(l.t)}</b><small>Урок ${esc(l.id)}${isTest(l)&&!hasHw(l)?" · тест":hasHw(l)?" · задание":""}</small></span>
-    ${hasHw(l)&&S.hw[l.id]?hwChip(l.id):"<span></span>"}</button>`;
+    ${hasHw(l)&&partsDone(l)?hwChip(l.id):"<span></span>"}</button>`;
 }
 
 function videoHtml(v){
@@ -447,7 +456,6 @@ function btnBlock(files){
 
 function lessonView(l){
   const d=S.done.has(l.id),nx=nextAfter(l.id);
-  const h=S.hw[l.id];
   return `<div class="crumbs">Модуль ${esc(l.m.n)} · ${esc(l.m.t)} · урок ${esc(l.id)}</div>
     <h1 class="h">${esc(l.t)}</h1>
     ${/data-kv=/.test(l.html)?"":videoHtml(l.video)}
@@ -455,8 +463,8 @@ function lessonView(l){
     ${l.files.length?`<div class="sec-t">Материалы к уроку</div>${btnBlock(l.files)}`:""}
     ${isTest(l)?`<div class="box"><b>Тест к уроку</b>${hasHw(l)?"":`<div class="body-text">${prettyLinks(l.task)}</div>`}<a class="btn y" href="${esc(l.gk)}" target="_blank" rel="noopener">Пройти тест ↗</a></div>`:""}
     ${hasHw(l)?`<div class="box"><b>Домашнее задание</b><div class="body-text">${prettyLinks(l.task)}</div>
-      ${h?`<div style="display:flex;gap:8px;align-items:center;font-size:13px;color:var(--muted)">Статус: ${hwChip(l.id)}</div>${h.reply?`<div class="reply">${esc(h.reply)}</div>`:""}`:""}
-      <a class="btn ${h&&h.status!=="доработать"?"g":"y"}" href="#hw/${encodeURIComponent(l.id)}">${hwBtnLabel(l)}</a></div>`:""}
+      ${parts(l).length>1||partsDone(l)?`<div class="chips">${parts(l).map(p=>{const x=lastSub(l.id,p);return `<span class="chipbtn ${x?(x.status==="доработать"?"redo":"has"):""}" style="cursor:default">${x&&x.status!=="доработать"?"✓ ":""}${esc(p)}</span>`}).join("")}</div>`:""}
+      <a class="btn y" href="#hw/new/${encodeURIComponent(l.id)}">${hwKind(l)==="confirm"?esc(String(l.hw).split(":")[1]||"Готово"):"Сдать работу"}</a></div>`:""}
     <button class="btn ${d?"done":"g"}" id="doneBtn" onclick="toggleDone('${esc(l.id)}')">${d?"✓ Урок пройден":"Отметить пройденным"}</button>
     <div class="navrow"><button class="btn g" onclick="location.hash='m/${esc(l.m.n)}'">К модулю</button>
       ${nx?`<button class="btn y" onclick="openLes('${esc(nx.id)}')">Следующий →</button>`:`<button class="btn g" onclick="location.hash=''">На главную</button>`}</div>`;
@@ -491,75 +499,98 @@ function matView(){
 }
 
 /* ---------- сдать ДЗ ---------- */
-// тип задания (столбец «тип ДЗ»): confirm:<надпись> | text | text+test | file | test
-function hwType(l){return String(l.hw||"").split(":")[0]}
-function isTest(l){return /test/.test(l.hw||"")}
-function hasHw(l){return ["confirm","text","text+test","file"].includes(hwType(l))}
-function hwBtnLabel(l){const h=S.hw[l.id],t=hwType(l);if(h)return h.status==="доработать"?"Сдать заново":"Отправить ещё раз";
-  return t==="confirm"?(l.hw.split(":")[1]||"Готово"):t.startsWith("text")?"Написать ответ":"Сдать ДЗ"}
-function hwChip(id){const h=S.hw[id];if(!h)return `<span class="chip">не сдано</span>`;
-  if(h.status==="принято")return `<span class="chip ok">${h.how&&h.how.startsWith("отметка")?"сделано ✓":"принято ✓"}</span>`;
-  if(h.status==="доработать")return `<span class="chip redo">доработать</span>`;
-  return `<span class="chip sent">${h.how==="в ЛС"?"отправлено в ЛС":"на проверке"}</span>`}
-let hwFilter="todo";
-const shortT=t=>{t=t.replace(/^База (м|М)онтажа:\s*/,"").replace(/^Энциклопедия [а-я]+:\s*/i,"");return t.charAt(0).toUpperCase()+t.slice(1)};
+// «тип ДЗ»: confirm:<надпись> | file|часть;часть | text|часть;… | text+test|… | test
+function hwKind(l){return String(l.hw||"").split(/[|:]/)[0]}
+function isTest(l){return /test/.test(hwKind(l))}
+function hasHw(l){return ["confirm","text","text+test","file"].includes(hwKind(l))}
+function parts(l){const p=String(l.hw||"").split("|")[1];return p?p.split(";"):[hwKind(l)==="confirm"?"Задание":"Всё задание"]}
+function subsOf(id,part){return S.subs.filter(x=>x.lesson===id&&(part==null||x.part===part||(!x.part&&parts(findLes(id)).length===1)))}
+function lastSub(id,part){const a=subsOf(id,part);return a[a.length-1]}
+function partsDone(l){return parts(l).filter(p=>lastSub(l.id,p)).length}
+const ST={"принято":["ok","принято ✓"],"доработать":["redo","доработать"]};
+function stChip(s){if(!s)return `<span class="chip">не сдано</span>`;const x=ST[s.status];
+  if(x)return `<span class="chip ${x[0]}">${s.how&&s.how.startsWith("отметка")?"сделано ✓":x[1]}</span>`;
+  return `<span class="chip sent">${s.how==="в ЛС"?"в ЛС":"на проверке"}</span>`}
+function hwChip(id){const l=findLes(id),n=parts(l).length,d=partsDone(l);
+  if(!d)return `<span class="chip">не сдано</span>`;if(n===1)return stChip(lastSub(id,parts(l)[0]));
+  return `<span class="chip ${d===n?"ok":"sent"}">${d}/${n}</span>`}
+
+let hwAll=false;
 function hwListView(){
-  const list=allLes().filter(hasHw),sent=list.filter(l=>S.hw[l.id]).length,pc=list.length?Math.round(sent/list.length*100):0;
-  const next=list.find(l=>!S.hw[l.id])||list.find(l=>S.hw[l.id]&&S.hw[l.id].status==="доработать");
-  const show=hwFilter==="todo"?list.filter(l=>!S.hw[l.id]||S.hw[l.id].status==="доработать"):list;
-  const cls=l=>{const h=S.hw[l.id];return !h?"":h.status==="принято"?"ok":h.status==="доработать"?"redo":"sent"};
+  const subs=[...S.subs].reverse(),cnt=s=>S.subs.filter(x=>x.status===s).length;
+  const shown=hwAll?subs:subs.slice(0,6);
   return `<h1 class="h">Сдать ДЗ</h1>
-    <div class="hw-top"><span>Сдано ${sent} из ${list.length}</span><span class="bar y"><i style="width:${pc}%"></i></span></div>
-    ${next?`<button class="cont" style="padding:12px 14px" onclick="location.hash='hw/${esc(next.id)}'"><span class="k">${S.hw[next.id]?"Нужно доработать":"Следующее задание"} · урок ${esc(next.id)}</span><b>${esc(next.t)}</b></button>`:`<div class="box"><b>Все задания сданы 🎉</b><p class="hint">Статусы проверки — в плитках ниже.</p></div>`}
-    <div class="seg"><button type="button" aria-pressed="${hwFilter==="todo"}" onclick="hwFilter='todo';route()">Не сдано · ${list.length-sent}</button><button type="button" aria-pressed="${hwFilter==="all"}" onclick="hwFilter='all';route()">Все · ${list.length}</button></div>
-    ${show.length?`<div class="tiles">${show.map(l=>`<button class="tile ${cls(l)}" onclick="location.hash='hw/${esc(l.id)}'"><span class="st"></span><span class="no">урок ${esc(l.id)}</span><b>${esc(shortT(l.t))}</b></button>`).join("")}</div>`:`<div class="empty">Здесь пусто — всё сдано!</div>`}
-    <div class="legend"><span><i style="background:var(--line)"></i>не сдано</span><span><i style="background:var(--sun)"></i>на проверке</span><span><i style="background:var(--ok)"></i>принято</span><span><i style="background:var(--bad)"></i>доработать</span></div>`;
+    <button class="cont" onclick="location.hash='hw/new'"><span class="k">Домашнее задание</span><b>＋ Сдать работу</b><span style="font-size:12.5px;font-weight:600;opacity:.75">Выбери модуль → задание → какой ролик или пункт</span></button>
+    <div class="stats" style="grid-template-columns:repeat(3,1fr)">
+      <div class="stat"><b>${S.subs.length}</b><small>сдано работ</small></div>
+      <div class="stat"><b style="color:var(--ok)">${cnt("принято")}</b><small>принято</small></div>
+      <div class="stat"><b style="color:${cnt("доработать")?"var(--bad)":"var(--text)"}">${cnt("доработать")}</b><small>доработать</small></div></div>
+    <div class="sec-t">Мои работы</div>
+    ${subs.length?`<div class="lessons">${shown.map(s=>{const l=findLes(s.lesson);return l?`<button class="les th" onclick="location.hash='hw/new/${esc(l.id)}'">
+      <span class="thumb">${l.cover?`<img src="${esc(l.cover)}" alt="" loading="lazy">`:""}</span>
+      <span><b>${esc(shortT(l.t))}${s.part&&parts(l).length>1?" · "+esc(s.part):""}</b><small>${esc(s.when)}${s.reply?" · есть ответ Буши":""}</small></span>${stChip(s)}</button>`:""}).join("")}</div>
+      ${subs.length>6?`<button class="btn g" onclick="hwAll=!hwAll;route()">${hwAll?"Свернуть":"Показать все ("+subs.length+")"}</button>`:""}`
+      :`<div class="box"><p class="hint">Пока ничего не сдано. Нажми «Сдать работу»: выбери модуль, задание и конкретный ролик или пункт — так каждая работа засчитается отдельно.</p></div>`}`;
 }
-let hwMode="upload";
-function hwView(l){
-  const h=S.hw[l.id],t=hwType(l);
-  const done=h?`<div class="box"><div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><b>Уже сдано</b>${hwChip(l.id)}</div>
-      <p class="hint">${esc(h.when)} · ${esc(h.how)}</p>${h.reply?`<div class="reply">${esc(h.reply)}</div>`:""}</div>`:"";
-  const task=`<div class="box"><b>Задание</b><div class="body-text">${prettyLinks(l.task)}</div>${t==="text+test"?`<a class="btn g" href="${esc(l.gk)}" target="_blank" rel="noopener">Пройти тест ↗</a>`:""}</div>`;
-  let form;
-  if(t==="confirm")form=`<form class="box" id="hwf" data-mode="done"><p class="hint">Когда всё сделаешь — нажми кнопку, и задание засчитается.</p><button class="btn y" type="submit">${esc(l.hw.split(":")[1]||"Готово")} ✓</button></form>`;
-  else if(t.startsWith("text"))form=`<form class="box" id="hwf" data-mode="text"><label class="f">Твой ответ<textarea name="comment" style="min-height:160px" placeholder="…"></textarea></label><button class="btn y" type="submit">Отправить ответ</button></form>`;
-  else form=`<form class="box" id="hwf" data-mode="${hwMode}">
-      <div class="seg"><button type="button" data-m="upload" aria-pressed="${hwMode==="upload"}">Загрузить сюда</button><button type="button" data-m="ls" aria-pressed="${hwMode==="ls"}">Уже отправила ${esc(S.lsName)} в ЛС</button></div>
-      <div id="upl" style="display:${hwMode==="ls"?"none":"flex"};flex-direction:column;gap:12px">
-        <label class="f">Ссылка на работу<input type="url" name="link" placeholder="https://"></label>
-        <label class="f">Или файл до 20 МБ<input type="file" name="file"></label>
-      </div>
-      <label class="f">Комментарий<textarea name="comment" placeholder="…"></textarea></label>
-      <button class="btn y" type="submit">${hwMode==="ls"?"Отметить как сданное":"Отправить работу"}</button>
-    </form>`;
-  return `<div class="crumbs">Урок ${esc(l.id)} · ${esc(l.m.t)}</div><h1 class="h">${esc(l.t)}</h1>${done}${task}${form}`;
+const shortT=t=>{t=t.replace(/^База (м|М)онтажа:\s*/,"").replace(/^Энциклопедия [а-я]+:\s*/i,"");return t.charAt(0).toUpperCase()+t.slice(1)};
+
+// мастер сдачи: модуль → задание → часть → способ
+const WZ={mod:null,les:null,part:null,how:null};
+function wizardView(pre){
+  const mods=S.mods.filter(m=>m.les.some(hasHw));
+  if(pre){const l=findLes(pre);if(l&&hasHw(l)&&WZ.les!==l.id){WZ.mod=l.m.n;WZ.les=l.id;WZ.part=null;WZ.how=null}}
+  if(!WZ.mod)WZ.mod=mods[0].n;
+  const m=mods.find(x=>x.n===WZ.mod)||mods[0],tasks=m.les.filter(hasHw);
+  if(WZ.les&&!tasks.some(x=>x.id===WZ.les))WZ.les=null;
+  if(!WZ.les&&tasks.length===1)WZ.les=tasks[0].id;
+  const l=WZ.les&&findLes(WZ.les),ps=l?parts(l):[];
+  if(l&&ps.length===1)WZ.part=ps[0];
+  const kind=l?hwKind(l):"";
+  if(l&&!WZ.how)WZ.how=kind.startsWith("text")?"text":kind==="confirm"?"done":"upload";
+  const step=(n,t)=>`<div class="sec-t">${n} · ${t}</div>`;
+  return `<h1 class="h">Сдать работу</h1>
+    ${step(1,"Модуль")}<div class="chips">${mods.map(x=>`<button class="chipbtn ${x.n===m.n?"on":""}" onclick="WZ.mod='${esc(x.n)}';WZ.les=null;WZ.part=null;WZ.how=null;route()">${esc(x.t.replace(/-модуль$/,""))}</button>`).join("")}</div>
+    ${step(2,"Задание")}<div class="lessons">${tasks.map(x=>`<button class="les th ${x.id===WZ.les?"pick":""}" onclick="WZ.les='${esc(x.id)}';WZ.part=null;WZ.how=null;route()">
+      <span class="thumb">${x.cover?`<img src="${esc(x.cover)}" alt="">`:""}</span><span><b>${esc(shortT(x.t))}</b><small>Урок ${esc(x.id)}${parts(x).length>1?" · "+parts(x).length+" "+plural(parts(x).length,"часть","части","частей"):""}</small></span>${hwChip(x.id)}</button>`).join("")}</div>
+    ${l?`<details class="box"><summary style="cursor:pointer;font-weight:700;display:flex;justify-content:space-between">Текст задания <span style="color:var(--sun)">показать ▾</span></summary><div class="body-text" style="margin-top:10px">${prettyLinks(l.task)}</div>${kind==="text+test"?`<a class="btn g" href="${esc(l.gk)}" target="_blank" rel="noopener">Пройти тест ↗</a>`:""}</details>`:""}
+    ${l&&ps.length>1?`${step(3,"Что сдаёшь")}<div class="chips">${ps.map(p=>{const s=lastSub(l.id,p);return `<button class="chipbtn ${p===WZ.part?"on":""} ${s?(s.status==="доработать"?"redo":"has"):""}" onclick="WZ.part=${esc(JSON.stringify(p))};route()">${s&&s.status!=="доработать"?"✓ ":""}${esc(p)}</button>`}).join("")}</div>`:""}
+    ${l&&WZ.part?hwForm(l,kind):""}`;
+}
+function hwForm(l,kind){
+  const s=lastSub(l.id,WZ.part);
+  const prev=s?`<div class="box" style="gap:6px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="font-size:14px">Уже сдано · ${esc(s.when)}</b>${stChip(s)}</div>${s.reply?`<div class="reply">${esc(s.reply)}</div>`:""}</div>`:"";
+  if(kind==="confirm")return prev+`<form class="box" id="hwf" data-mode="done"><button class="btn y" type="submit">${esc(String(l.hw).split(":")[1]||"Готово")} ✓</button></form>`;
+  const how=WZ.how;
+  return prev+`<form class="box" id="hwf" data-mode="${how}">
+    <div class="seg" style="grid-template-columns:repeat(3,1fr)">${[["upload","Файл / ссылка"],["text","Текстом"],["ls",`Уже в ЛС ${esc(S.lsName)}`]].map(([k,t])=>`<button type="button" data-m="${k}" aria-pressed="${how===k}">${t}</button>`).join("")}</div>
+    ${how==="upload"?`<label class="f">Ссылка на работу<input type="url" name="link" placeholder="https://"></label><label class="f">Или файл до 20 МБ<input type="file" name="file"></label>`:""}
+    ${how!=="ls"?`<label class="f">${how==="text"?"Твой ответ":"Комментарий"}<textarea name="comment" placeholder="…" ${how==="text"?'style="min-height:150px"':""}></textarea></label>`:`<p class="hint">Отметим, что эта работа сдана в личку — она засчитается в программе.</p>`}
+    <button class="btn y" type="submit">${{upload:"Отправить работу",text:"Отправить ответ",ls:"Отметить как сданное"}[how]}</button></form>`;
 }
 function bindView(h){
   if(!h){const q=document.getElementById("kbq");if(q){q.oninput=()=>kbSearch(q.value);if(S.q)kbSearch(S.q)}}
   if(h==="me")loadAccount();
   if(h.startsWith("l/"))store("kk_last",h.slice(2));
   const f=document.getElementById("hwf");if(!f)return;
-  const mode=()=>f.dataset.mode;
-  const label=()=>({ls:"Отметить как сданное",upload:"Отправить работу",text:"Отправить ответ"})[mode()]||f.querySelector("[type=submit]").textContent;
-  f.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{hwMode=f.dataset.mode=b.dataset.m;f.querySelectorAll(".seg button").forEach(x=>x.setAttribute("aria-pressed",x===b));
-    document.getElementById("upl").style.display=hwMode==="ls"?"none":"flex";f.querySelector("[type=submit]").textContent=label()});
+  f.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{WZ.how=b.dataset.m;route()});
   f.onsubmit=async e=>{
     e.preventDefault();
-    const id=h.slice(3),l=findLes(id),btn=f.querySelector("[type=submit]"),m=mode(),was=btn.textContent;
+    const l=findLes(WZ.les),btn=f.querySelector("[type=submit]"),m=f.dataset.mode,was=btn.textContent;
     const link=f.link?f.link.value.trim():"",file=f.file?f.file.files[0]:null,comment=f.comment?f.comment.value.trim():"";
     if(m==="upload"&&!link&&!file)return toast("Добавь ссылку или файл");
     if(m==="text"&&!comment)return toast("Напиши ответ");
-    if(m==="upload"&&file&&file.size>20*1024*1024)return toast("Файл больше 20 МБ — загрузи его на диск и пришли ссылку");
-    btn.disabled=true;btn.textContent=m==="upload"&&file?"Загружаем файл…":"Отправляем…";
+    if(file&&file.size>20*1024*1024)return toast("Файл больше 20 МБ — загрузи его на диск и пришли ссылку");
+    btn.disabled=true;btn.textContent=file?"Загружаем файл…":"Отправляем…";
     try{
       let fd=null;
       if(m==="upload"&&file)fd={name:file.name,type:file.type,data:await new Promise((ok,bad)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(",")[1]);r.onerror=bad;r.readAsDataURL(file)})};
-      const r=await api({api:"homework",mode:m,lesson:id,lessonTitle:l?l.id+" "+l.t:id,link:m==="upload"?link:"",comment,file:fd});
+      const r=await api({api:"homework",mode:m,lesson:l.id,part:WZ.part,lessonTitle:l.id+" "+l.t,link:m==="upload"?link:"",comment,file:fd});
       if(!r.ok)throw new Error(r.error);
-      S.hw=hwMap(r.hw);saveCache();
+      S.subs=r.hw;saveCache();
       if(TG)try{TG.HapticFeedback.notificationOccurred("success")}catch(e){}
-      f.outerHTML=`<div class="box"><b>Готово ✓</b><p class="hint">${{done:"Задание засчитано.",ls:"Отметили: работа сдана в личку.",text:"Ответ отправлен "+esc(S.lsName)+".",upload:"Работа отправлена "+esc(S.lsName)+" и засчитана."}[m]}</p><a class="btn g" href="#hw">К списку заданий</a></div>`;
+      const left=parts(l).filter(p=>!lastSub(l.id,p));
+      toast(m==="done"?"Задание засчитано ✓":"Сдано: "+WZ.part+" ✓");
+      if(left.length){WZ.part=left[0];WZ.how=null;route()}else{WZ.les=null;WZ.part=null;WZ.how=null;location.hash="hw"}
     }catch(err){btn.disabled=false;btn.textContent=was;if(err.message!=="auth")toast("Не отправилось: "+(err.message||"нет связи"))}
   };
 }
@@ -579,9 +610,8 @@ function meView(){
     </div>
     ${a?streamHtml(a.period):""}
     <div class="sec-t">Прогресс</div>
-    <div class="box lvl">${lv.img?`<img src="${lv.img}" alt="${esc(lv.t)}">`:`<b>${esc(lv.t)}</b>`}
-      <div style="display:flex;align-items:center;gap:12px"><span class="big">${p}%</span><span class="bar y" style="flex:1;height:8px"><i style="width:${p}%"></i></span></div>
-      <p class="hint">Пройдено ${p}% программы</p></div>
+    <div class="box lvl">${lv.img?`<img src="${lv.img}" alt="${esc(lv.t)}">`:`<div class="next" style="height:100%;display:grid;place-items:center;text-align:center"><b style="font-size:16px">${esc(lv.t)}</b></div>`}
+      <div class="ring">${ringSvg(p)}<b>пройдено<br>программы</b></div></div>
     <div class="sec-t">Моё портфолио</div>
     ${a?pfHtml(a.portfolio):`<div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}
     <div class="sec-t">Планерки с Бушей</div>
@@ -592,6 +622,10 @@ function meView(){
     ${TG?"":`<button class="btn g" style="color:var(--muted)" onclick="logout()">Выйти</button>`}`;
 }
 
+function ringSvg(p){const r=52,c=2*Math.PI*r;
+  return `<svg viewBox="0 0 130 130" role="img" aria-label="Пройдено ${p}%"><circle cx="65" cy="65" r="${r}" fill="none" stroke="var(--panel2)" stroke-width="12"/>
+    <circle cx="65" cy="65" r="${r}" fill="none" stroke="var(--sun)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${(c*p/100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 65 65)"/>
+    <text x="65" y="74" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="28" fill="var(--text)">${p}%</text></svg>`}
 function pfHtml(list){
   if(!list||!list.length)return `<div class="box"><p class="hint">Здесь появятся твои работы, которые Буша отметила как кейсы. Сдавай домашки — и портфолио будет расти 💛</p></div>`;
   return `<div class="pf">${list.map(v=>`<button onclick="playPf('${esc(v.id)}')"><span class="pic"><img src="https://drive.google.com/thumbnail?id=${esc(v.id)}&sz=w400" alt="" loading="lazy" onerror="this.remove()"></span><b>${esc(v.t)}</b></button>`).join("")}</div>`;
