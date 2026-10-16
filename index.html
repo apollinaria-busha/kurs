@@ -504,6 +504,8 @@ function hwKind(l){return String(l.hw||"").split(/[|:]/)[0]}
 function isTest(l){return /test/.test(hwKind(l))}
 function hasHw(l){return ["confirm","text","text+test","file"].includes(hwKind(l))}
 function parts(l){const p=String(l.hw||"").split("|")[1];return p?p.split(";"):[hwKind(l)==="confirm"?"Задание":"Всё задание"]}
+// название задания: если обложка ГК делилась на несколько уроков — её общее название
+function hwTitle(l){return shortT(String(l.hw||"").split("|")[2]||l.t)}
 function subsOf(id,part){return S.subs.filter(x=>x.lesson===id&&(part==null||x.part===part||(!x.part&&parts(findLes(id)).length===1)))}
 function lastSub(id,part){const a=subsOf(id,part);return a[a.length-1]}
 function partsDone(l){return parts(l).filter(p=>lastSub(l.id,p)).length}
@@ -528,7 +530,7 @@ function hwListView(){
     <div class="sec-t">Мои работы</div>
     ${subs.length?`<div class="lessons">${shown.map(s=>{const l=findLes(s.lesson);return l?`<button class="les th" onclick="location.hash='hw/new/${esc(l.id)}'">
       <span class="thumb">${l.cover?`<img src="${esc(l.cover)}" alt="" loading="lazy">`:""}</span>
-      <span><b>${esc(shortT(l.t))}${s.part&&parts(l).length>1?" · "+esc(s.part):""}</b><small>${esc(s.when)}${s.reply?" · есть ответ Буши":""}</small></span>${stChip(s)}</button>`:""}).join("")}</div>
+      <span><b>${esc(hwTitle(l))}${s.part&&parts(l).length>1?" · "+esc(s.part):""}</b><small>${esc(s.when)}${s.reply?" · есть ответ Буши":""}</small></span>${stChip(s)}</button>`:""}).join("")}</div>
       ${subs.length>6?`<button class="btn g" onclick="hwAll=!hwAll;route()">${hwAll?"Свернуть":"Показать все ("+subs.length+")"}</button>`:""}`
       :`<div class="box"><p class="hint">Пока ничего не сдано. Нажми «Сдать работу»: выбери модуль, задание и конкретный ролик или пункт — так каждая работа засчитается отдельно.</p></div>`}`;
 }
@@ -550,10 +552,10 @@ function wizardView(pre){
   const step=(n,t)=>`<div class="sec-t">${n} · ${t}</div>`;
   return `<h1 class="h">Сдать работу</h1>
     ${step(1,"Модуль")}<div class="chips">${mods.map(x=>`<button class="chipbtn ${x.n===m.n?"on":""}" onclick="WZ.mod='${esc(x.n)}';WZ.les=null;WZ.part=null;WZ.how=null;route()">${esc(x.t.replace(/-модуль$/,""))}</button>`).join("")}</div>
-    ${step(2,"Задание")}<div class="lessons">${tasks.map(x=>`<button class="les th ${x.id===WZ.les?"pick":""}" onclick="WZ.les='${esc(x.id)}';WZ.part=null;WZ.how=null;route()">
-      <span class="thumb">${x.cover?`<img src="${esc(x.cover)}" alt="">`:""}</span><span><b>${esc(shortT(x.t))}</b><small>Урок ${esc(x.id)}${parts(x).length>1?" · "+parts(x).length+" "+plural(parts(x).length,"часть","части","частей"):""}</small></span>${hwChip(x.id)}</button>`).join("")}</div>
-    ${l?`<details class="box"><summary style="cursor:pointer;font-weight:700;display:flex;justify-content:space-between">Текст задания <span style="color:var(--sun)">показать ▾</span></summary><div class="body-text" style="margin-top:10px">${prettyLinks(l.task)}</div>${kind==="text+test"?`<a class="btn g" href="${esc(l.gk)}" target="_blank" rel="noopener">Пройти тест ↗</a>`:""}</details>`:""}
-    ${l&&ps.length>1?`${step(3,"Что сдаёшь")}<div class="chips">${ps.map(p=>{const s=lastSub(l.id,p);return `<button class="chipbtn ${p===WZ.part?"on":""} ${s?(s.status==="доработать"?"redo":"has"):""}" onclick="WZ.part=${esc(JSON.stringify(p))};route()">${s&&s.status!=="доработать"?"✓ ":""}${esc(p)}</button>`}).join("")}</div>`:""}
+    ${step(2,"Задание")}<div class="lessons">${tasks.map(x=>`<button class="les th ${x.id===WZ.les?"pick":""}" onclick="WZ.les='${esc(x.id)}';WZ.part=null;WZ.how=null;route();setTimeout(()=>document.getElementById('wzp')?.scrollIntoView({behavior:'smooth',block:'start'}),50)">
+      <span class="thumb">${x.cover?`<img src="${esc(x.cover)}" alt="">`:""}</span><span><b>${esc(hwTitle(x))}</b><small>Урок ${esc(x.id)}${parts(x).length>1?" · "+parts(x).length+" "+plural(parts(x).length,"часть","части","частей"):""}</small></span>${hwChip(x.id)}</button>`).join("")}</div>
+    <span id="wzp"></span>${l?`<details class="box"><summary style="cursor:pointer;font-weight:700;display:flex;justify-content:space-between">Текст задания <span style="color:var(--sun)">показать ▾</span></summary><div class="body-text" style="margin-top:10px">${prettyLinks(l.task)}</div>${kind==="text+test"?`<a class="btn g" href="${esc(l.gk)}" target="_blank" rel="noopener">Пройти тест ↗</a>`:""}</details>`:""}
+    ${l&&ps.length>1?`${step(3,"Что сдаёшь")}<div class="chips">${ps.map(p=>{const s=lastSub(l.id,p);return `<button class="chipbtn ${p===WZ.part?"on":""} ${s?(s.status==="доработать"?"redo":"has"):""}" onclick="WZ.part=${esc(JSON.stringify(p))};route();setTimeout(()=>document.getElementById('hwf')?.scrollIntoView({behavior:'smooth',block:'center'}),50)">${s&&s.status!=="доработать"?"✓ ":""}${esc(p)}</button>`}).join("")}</div>`:""}
     ${l&&WZ.part?hwForm(l,kind):""}`;
 }
 function hwForm(l,kind){
