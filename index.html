@@ -329,6 +329,7 @@ async function doLogin(data){
   let res;
   try{res=await call({api:"login",...data})}catch(e){return screen(`${logo()}<p>Не получилось связаться с сервером. Проверь интернет и обнови страницу.</p><button class="btn y" style="max-width:260px" onclick="location.reload()">Обновить</button>`)}
   if(res.ok){S.session=res.session;store("kk_session",res.session);return loadCourse()}
+  if(res.error==="expired")return screen(`${logo()}<p>Твой доступ к программе закрылся ${esc(fmtDate(res.until))}. Спасибо, что была с нами 💛</p><p>Если нужно продлить доступ — напиши в <a href="${HELP}">службу заботы</a>.</p>`);
   if(res.error==="not_student"){
     const nick=res.username?"@"+esc(res.username):"без ника";
     return screen(`${logo()}<p>Не нашли твой Telegram (${nick}) в списке учениц программы.</p><p>Если ты ученица, напиши в <a href="${HELP}">службу заботы</a> — проверим ник. ${res.username?"":"И задай себе ник в настройках Telegram: по нему мы тебя узнаём."}</p>`);
@@ -668,6 +669,7 @@ function meView(){
       <div class="kv"><span>Статус</span><b>${S.user.a?(S.user.s||"автор"):"ученица"}</b></div>
     </div>
     ${a?streamHtml(a.period):""}
+    ${a&&a.until?`<p class="hint" style="margin-top:-6px">Доступ ко всем урокам и материалам открыт до ${esc(fmtDate(a.until))} — это программа + ещё месяц после неё.</p>`:""}
     <div class="sec-t">Прогресс</div>
     <div class="box lvl">${lv.img?`<img src="${lv.img}" alt="${esc(lv.t)}">`:`<div class="next" style="height:100%;display:grid;place-items:center;text-align:center"><b style="font-size:16px">${esc(lv.t)}</b></div>`}
       <div class="ring">${ringSvg(p)}<b>пройдено<br>программы</b></div></div>
