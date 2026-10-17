@@ -14,7 +14,6 @@
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap">
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
 :root{
   --ink:#0d0d0d;--panel:#161512;--panel2:#201e19;--line:#2e2b24;--text:#f3efe6;--muted:#a29b8c;
@@ -259,7 +258,11 @@ mark{background:color-mix(in srgb,var(--sun) 35%,transparent);color:inherit;bord
 const API = "https://script.google.com/macros/s/AKfycbw2LmiS_HoOdrIQko16UGsLNQj6T1Br2BymAb2bh8_iHPxOB8QyVgbiZ0vuPcwhHCPwyQ/exec";
 const BOT = "oebybusha_bot";
 const HELP = "https://t.me/bushas_help_bot";
-const TG = window.Telegram && Telegram.WebApp && Telegram.WebApp.initData ? Telegram.WebApp : null;
+// скрипт Telegram грузим только внутри Telegram: на сайте и в иконке на телефоне он не нужен (а в России без VPN telegram.org не открывается)
+let TG = null;
+const IN_TG = /tgWebApp/.test(location.hash + location.search) || !!window.TelegramWebviewProxy;
+function loadTG(){return new Promise(ok=>{if(!IN_TG)return ok();const s=document.createElement("script");s.src="https://telegram.org/js/telegram-web-app.js";
+  const t=setTimeout(ok,6000);s.onload=()=>{clearTimeout(t);const w=window.Telegram&&Telegram.WebApp;if(w&&w.initData)TG=w;ok()};s.onerror=()=>{clearTimeout(t);ok()};document.head.appendChild(s)})}
 const app = document.getElementById("app");
 const S = { session:null, user:null, mods:[], mats:[], done:new Set(), subs:[], lsName:"Полине", open:new Set(), acc:null, q:"" };
 const wide = () => matchMedia("(min-width:900px)").matches;
@@ -273,6 +276,7 @@ const IC = {
 };
 const TABS = [["", "База знаний", "les", "База<br>знаний"], ["hw", "Сдать ДЗ", "hw", "Сдать ДЗ"], ["mat", "Полезные материалы", "mat", "Полезные<br>материалы"], ["me", "Профиль", "me", "Профиль"]];
 
+function tabs(){return S.user&&S.user.a?TABS.map(t=>t[0]==="hw"?["hw","Проверка ДЗ","hw","Проверка"]:t):TABS}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function store(k,v){try{v===undefined?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
 function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
@@ -300,7 +304,8 @@ function screen(html){app.innerHTML=`<div class="center">${html}</div>`}
 function logo(){return `<div class="logo">КОД<br><span>КРЕАТОРА</span></div>`}
 
 async function start(){
-  if(TG){TG.ready();TG.expand();try{TG.setHeaderColor("#0d0d0d");TG.setBackgroundColor("#0d0d0d")}catch(e){}}
+  await loadTG();
+  if(TG){TG.BackButton.onClick(goBack);TG.ready();TG.expand();try{TG.setHeaderColor("#0d0d0d");TG.setBackgroundColor("#0d0d0d")}catch(e){}}
   S.session=load("kk_session");
   if(TG && !S.session){ screen(`${logo()}<div class="spinner"></div><p>Проверяем доступ к программе…</p>`); return doLogin({initData:TG.initData}); }
   if(S.session) return loadCourse();
@@ -363,7 +368,8 @@ function route(){
   else if(h.startsWith("m/")){const m=S.mods.find(m=>m.n===h.slice(2));if(m){view=moduleView(m);title="Модуль "+m.n;back=true;S.open.add(m.n)}}
   else if(h.startsWith("hw/new")){view=wizardView(h.slice(7));title="Сдать работу";back=true}
   else if(h==="mat")view=matView();
-  else if(h==="hw")view=hwListView();
+  else if(h==="hw")view=S.user.a?reviewView():hwListView();
+  else if(h.startsWith("hw/rv/")){view=reviewItem(h.slice(6));title="Проверка";back=true}
   else if(h==="me")view=meView();
   if(!view)view=homeView();
   const sec=section();
@@ -373,7 +379,7 @@ function route(){
       ${wide()?`<span class="user"><b>${esc(S.user.n)}</b> · @${esc(S.user.u)}</span>`:back?`<span class="sp"></span>`:""}
     </header>
     <div class="wrap"><aside class="side">${sideView(sec)}</aside><main class="main" id="main"><div class="inner">${view}</div></main></div>
-    <nav class="tabs">${TABS.map(([k,_,ic,t])=>`<button class="tab ${k==="hw"?"hw":""} ${sec===k?"on":""}" onclick="location.hash='${k}'">${k==="hw"?`<span class="ic">${IC[ic]}</span>`:IC[ic]}<span>${t}</span></button>`).join("")}</nav>`;
+    <nav class="tabs">${tabs().map(([k,_,ic,t])=>`<button class="tab ${k==="hw"?"hw":""} ${sec===k?"on":""}" onclick="location.hash='${k}'">${k==="hw"?`<span class="ic">${IC[ic]}</span>`:IC[ic]}<span>${t}</span></button>`).join("")}</nav>`;
   document.getElementById("main").scrollTop=0;window.scrollTo(0,0);
   if(TG){back?TG.BackButton.show():TG.BackButton.hide()}
   bindView(h);
@@ -382,13 +388,12 @@ function goBack(){const h=decodeURIComponent(location.hash.slice(1));
   if(h.startsWith("l/")){const l=findLes(h.slice(2));location.hash=l&&!wide()?"m/"+l.m.n:""}
   else if(h.startsWith("hw/"))location.hash="hw";
   else location.hash=""}
-if(TG)TG.BackButton.onClick(goBack);
 window.addEventListener("hashchange",route);
 matchMedia("(min-width:900px)").addEventListener("change",route);
 
 function sideView(sec){
   const p=pct();
-  return `${TABS.map(([k,t,ic])=>`<button class="s-nav ${sec===k?"on":""}" onclick="location.hash='${k}'">${IC[ic]}${t}</button>`).join("")}
+  return `${tabs().map(([k,t,ic])=>`<button class="s-nav ${sec===k?"on":""}" onclick="location.hash='${k}'">${IC[ic]}${t}</button>`).join("")}
     <div class="s-sep"></div>
     <div class="d-prog">Пройдено ${p}%<span class="bar y"><i style="width:${p}%"></i></span></div>
     ${S.mods.map(m=>`<button class="d-mod" onclick="tog('${esc(m.n)}')"><span class="n">${esc(m.n)}</span><b>${esc(m.t)}</b><small>${modDone(m)}/${m.les.length}</small></button>
@@ -403,7 +408,7 @@ function homeView(){
   const p=pct(),last=findLes(load("kk_last"));
   const n=last?(S.done.has(last.id)?(nextAfter(last.id)||last):last):allLes()[0];
   return `<img class="banner" src="img/banner.jpg" alt="КОД КРЕАТОРА — программа обучения профессии режиссёра монтажа">
-    <div class="hello"><h1>Привет, ${esc(S.user.n||"креатор")}</h1><p>${S.user.a?"автор":"ученица"} · пройдено ${p}% программы</p></div>
+    <div class="hello"><h1>Привет, ${esc(S.user.n||"креатор")}</h1><p>${S.user.a?(S.user.s||"автор"):"ученица"} · пройдено ${p}% программы</p></div>
     ${n?`<button class="cont" onclick="openLes('${esc(n.id)}')"><span class="k">${last?"Продолжить":"Начать"} · урок ${esc(n.id)}</span><b>${esc(n.t)}</b><span class="bar"><i style="width:${p}%"></i></span></button>`:""}
     <input type="search" id="kbq" placeholder="Найти урок: шрифты, цвет, портфолио…" value="${esc(S.q)}" autocomplete="off">
     <div id="kbres"></div>
@@ -572,6 +577,7 @@ function hwForm(l,kind){
 function bindView(h){
   if(!h){const q=document.getElementById("kbq");if(q){q.oninput=()=>kbSearch(q.value);if(S.q)kbSearch(S.q)}}
   if(h==="me")loadAccount();
+  if(S.user.a&&h.startsWith("hw"))bindReview(h);
   if(h.startsWith("l/"))store("kk_last",h.slice(2));
   const f=document.getElementById("hwf");if(!f)return;
   f.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{WZ.how=b.dataset.m;route()});
@@ -597,6 +603,57 @@ function bindView(h){
   };
 }
 
+/* ---------- проверка ДЗ (автор и команда) ---------- */
+const RV={items:null,filter:"wait",q:""};
+async function loadReview(force){
+  if(RV.items&&!force)return;
+  try{const r=await api({api:"review"});if(r.ok){RV.items=r.items;if(location.hash.slice(1).startsWith("hw"))route()}}catch(e){}
+}
+function rvChip(s){return stChip({status:s.status,how:s.how})}
+function reviewView(){
+  if(!RV.items){loadReview();return `<h1 class="h">Проверка ДЗ</h1><div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}
+  const wait=RV.items.filter(x=>x.status==="на проверке"&&!/^отметка/.test(x.how));
+  const q=RV.q.trim().toLowerCase();
+  let list=RV.filter==="wait"?wait:RV.items;
+  if(q)list=list.filter(x=>(x.name+" "+x.nick+" "+x.title+" "+x.part).toLowerCase().includes(q));
+  return `<h1 class="h">Проверка ДЗ</h1>
+    <div class="seg"><button type="button" aria-pressed="${RV.filter==="wait"}" onclick="RV.filter='wait';route()">Ждут ответа · ${wait.length}</button><button type="button" aria-pressed="${RV.filter==="all"}" onclick="RV.filter='all';route()">Все работы · ${RV.items.length}</button></div>
+    <input type="search" id="rvq" placeholder="Ученица или задание…" value="${esc(RV.q)}">
+    ${list.length?`<div class="lessons">${list.map(x=>`<button class="les" style="grid-template-columns:40px minmax(0,1fr) auto" onclick="location.hash='hw/rv/${x.row}'">
+      <span class="ava" style="width:40px;height:40px;font-size:15px">${esc((x.name||"?").slice(0,1))}</span>
+      <span><b>${esc(x.name)} <span style="color:var(--muted);font-weight:500">${esc(x.nick)}</span></b><small>${esc(x.lesson)} ${esc(hwTitle(findLes(x.lesson)||{t:x.title}))}${x.part?" · "+esc(x.part):""} · ${esc(x.when.slice(0,16))}</small></span>${rvChip(x)}</button>`).join("")}</div>`
+      :`<div class="empty">${RV.filter==="wait"?"Все работы проверены 🎉":"Пока никто ничего не сдал."}</div>`}
+    <button class="btn g" onclick="RV.items=null;loadReview(true);route()">Обновить</button>`;
+}
+function driveId(u){const m=String(u||"").match(/\/d\/([\w-]{20,})|[?&]id=([\w-]{20,})/);return m?(m[1]||m[2]):""}
+function reviewItem(row){
+  const x=(RV.items||[]).find(i=>String(i.row)===String(row));
+  if(!x){loadReview();return `<div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}
+  const l=findLes(x.lesson),fid=driveId(x.file)||driveId(x.link);
+  return `<div class="crumbs">${esc(x.when)} · ${esc(x.how)}</div>
+    <h1 class="h" style="font-size:22px">${esc(x.name)} <span style="color:var(--muted)">${esc(x.nick)}</span></h1>
+    <div class="box" style="gap:6px"><b>${esc(l?hwTitle(l):x.title)}${x.part?" · "+esc(x.part):""}</b><small class="hint">Урок ${esc(x.lesson)}</small>${l?`<a class="hint" href="#l/${encodeURIComponent(l.id)}">Открыть урок и текст задания →</a>`:""}</div>
+    ${fid?`<div class="video" style="aspect-ratio:9/12;max-height:70vh"><iframe src="https://drive.google.com/file/d/${esc(fid)}/preview" allow="autoplay; fullscreen" allowfullscreen></iframe></div>`:""}
+    ${x.link&&!driveId(x.link)?`<div>${pill(x.link,"Открыть работу")}</div>`:""}
+    ${x.file?`<div>${pill(x.file,"Файл на Диске")}</div>`:""}
+    ${x.comment?`<div class="box"><b>${x.how==="ответ текстом"?"Ответ ученицы":"Комментарий ученицы"}</b><div class="body-text" style="white-space:pre-line">${esc(x.comment)}</div></div>`:""}
+    ${x.how==="в ЛС"?`<p class="hint">Работа отправлена тебе в личные сообщения — посмотри её там.</p>`:""}
+    <form class="box" id="rvf"><div style="display:flex;justify-content:space-between;align-items:center"><b>Твой ответ</b>${rvChip(x)}</div>
+      <textarea name="reply" placeholder="…" style="min-height:110px">${esc(x.reply||"")}</textarea>
+      <div class="navrow"><button class="btn done" type="submit" data-st="принято">Принято ✓</button><button class="btn g" type="submit" data-st="доработать" style="color:var(--bad)">Доработать</button></div>
+      <p class="hint">Ученице сразу придёт сообщение от бота со статусом и твоим ответом.</p></form>`;
+}
+function bindReview(h){
+  const q=document.getElementById("rvq");if(q)q.oninput=()=>{RV.q=q.value;const pos=q.selectionStart;route();const n=document.getElementById("rvq");n.focus();n.setSelectionRange(pos,pos)};
+  const f=document.getElementById("rvf");if(!f)return;
+  let st="принято";f.querySelectorAll("[data-st]").forEach(b=>b.onclick=()=>st=b.dataset.st);
+  f.onsubmit=async e=>{e.preventDefault();const row=h.split("/")[2],btns=f.querySelectorAll("button");btns.forEach(b=>b.disabled=true);
+    try{const r=await api({api:"answer",row,status:st,reply:f.reply.value.trim()});if(!r.ok)throw new Error(r.error);
+      const x=RV.items.find(i=>String(i.row)===String(row));if(x){x.status=st;x.reply=f.reply.value.trim()}
+      toast(r.notified?"Ответ отправлен ученице ✓":"Сохранено. Бот не смог написать ученице — она ещё не открывала бота");location.hash="hw"}
+    catch(err){btns.forEach(b=>b.disabled=false);if(err.message!=="auth")toast("Не сохранилось: "+err.message)}};
+}
+
 /* ---------- аккаунт ---------- */
 // статус по прогрессу, как в ГетКурсе: спящий код → … → … (картинки двух следующих статусов пришлёт Буша)
 const LEVELS=[{min:0,img:"img/status1.jpg",t:"Ты креатор со спящим креативным кодом"},{min:34,img:"",t:"Креативный код просыпается"},{min:80,img:"",t:"Креативный код активирован"}];
@@ -608,7 +665,7 @@ function meView(){
     <div class="box" style="gap:0">
       <div class="kv"><span>Telegram</span><b>@${esc(S.user.u)}</b></div>
       <div class="kv"><span>Почта</span><b>${a?esc(a.email||"—"):"…"}</b></div>
-      <div class="kv"><span>Статус</span><b>${S.user.a?"автор":"ученица"}</b></div>
+      <div class="kv"><span>Статус</span><b>${S.user.a?(S.user.s||"автор"):"ученица"}</b></div>
     </div>
     ${a?streamHtml(a.period):""}
     <div class="sec-t">Прогресс</div>
