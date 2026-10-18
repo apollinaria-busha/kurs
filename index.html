@@ -214,7 +214,8 @@ mark{background:color-mix(in srgb,var(--sun) 35%,transparent);color:inherit;bord
 .les.pick{outline:2px solid var(--sun)}
 /* портфолио */
 .pf{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.pf button{display:flex;flex-direction:column;gap:6px;text-align:left}
+.pf button,.pf a{display:flex;flex-direction:column;gap:6px;text-align:left;color:inherit;text-decoration:none}
+.pf-host{position:absolute;top:8px;left:8px;right:8px;font-size:11px;font-weight:700;background:rgba(0,0,0,.6);color:#fff;border-radius:8px;padding:4px 7px;width:max-content;max-width:calc(100% - 16px)}
 .pf .pic{position:relative;aspect-ratio:9/12;border-radius:14px;overflow:hidden;background:var(--panel2)}
 .pf .pic img{width:100%;height:100%;object-fit:cover}
 .pf .pic::after{content:"▶";position:absolute;inset:auto auto 10px 10px;width:34px;height:34px;border-radius:50%;background:var(--sun);color:var(--sun-ink);display:grid;place-items:center;font-size:13px}
@@ -897,8 +898,13 @@ function ringSvg(p){const r=52,c=2*Math.PI*r;
 function pfHtml(list,staff){
   if(staff&&(!list||!list.length))return `<div class="box"><p class="hint">Работ в «КЕЙСЫ УЧЕНИКИ | КК» пока нет.</p></div>`;
   if(!list||!list.length)return `<div class="box"><p class="hint">Здесь появятся твои работы, которые Буша отметила как кейсы. Сдавай домашки — и портфолио будет расти 💛</p></div>`;
-  return `<div class="pf">${list.map(v=>`<button onclick="playPf('${esc(v.id)}')"><span class="pic"><img src="https://drive.google.com/thumbnail?id=${esc(v.id)}&sz=w400" alt="" loading="lazy" onerror="this.remove()"></span><b>${esc(v.t)}</b></button>`).join("")}</div>`;
+  return `<div class="pf">${list.map(v=>{
+    const pic=v.pv||v.id;
+    const img=pic?`<img src="https://drive.google.com/thumbnail?id=${esc(pic)}&sz=w400" alt="" loading="lazy" onerror="this.remove()">`:"";
+    if(v.url)return `<a href="${esc(v.url)}" target="_blank" rel="noopener" onclick="if(TG){TG.openLink('${esc(v.url)}');return false}"><span class="pic">${img}<span class="pf-host">▶ ${esc(hostName(v.url))}</span></span><b>${esc(v.t)}</b></a>`;
+    return `<button onclick="playPf('${esc(v.id)}')"><span class="pic">${img}</span><b>${esc(v.t)}</b></button>`}).join("")}</div>`;
 }
+function hostName(u){const h=(u.match(/^https?:\/\/([^/]+)/)||[])[1]||"";return /yandex|yadi/.test(h)?"Яндекс Диск":/drive\.google/.test(h)?"Google Диск":/youtu/.test(h)?"YouTube":/instagram/.test(h)?"Instagram":/tiktok/.test(h)?"TikTok":/vk\.com|vkvideo/.test(h)?"VK":/rutube/.test(h)?"Rutube":/mail\.ru/.test(h)?"Облако Mail":"Ссылка"}
 function playPf(id){
   const v=document.createElement("div");v.className="veil";v.style.alignItems="center";
   v.innerHTML=`<div class="player"><iframe src="https://drive.google.com/file/d/${encodeURIComponent(id)}/preview" allow="autoplay; fullscreen" allowfullscreen></iframe><button class="btn g" style="border-radius:0" onclick="this.closest('.veil').remove()">Закрыть</button></div>`;
