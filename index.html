@@ -322,15 +322,44 @@ async function start(){
 }
 
 function showLogin(msg){
+  const mail=load("kk_mail")||"";
   screen(`<div class="card">${logo()}
-    <p>${msg||"Приложение программы. Входи через свой Telegram — пароль не нужен."}</p>
-    <div class="tgw" id="tgw"></div>
-    <p style="font-size:12.5px">Доступ открыт ученицам программы. В Telegram приложение открывается кнопкой «Курс» в боте <a href="https://t.me/${BOT}">@${BOT}</a>.</p></div>`);
-  const s=document.createElement("script");
-  s.async=true;s.src="https://telegram.org/js/telegram-widget.js?22";
-  s.setAttribute("data-telegram-login",BOT);s.setAttribute("data-size","large");s.setAttribute("data-radius","12");
-  s.setAttribute("data-onauth","onTgAuth(user)");s.setAttribute("data-request-access","write");
-  document.getElementById("tgw").appendChild(s);
+    <p>${msg||"Приложение программы КОД КРЕАТОРА. Введи почту, которую ты указывала при оплате, — пришлём код для входа."}</p>
+    <form id="mf" style="display:grid;gap:10px;width:100%">
+      <input name="email" type="email" inputmode="email" autocomplete="email" placeholder="твоя@почта.ru" value="${esc(mail)}" required>
+      <button class="btn y" type="submit">Получить код</button>
+    </form>
+    <details style="width:100%;margin-top:6px"><summary style="font-size:13px;cursor:pointer;opacity:.75">Войти через Telegram</summary><div class="tgw" id="tgw" style="margin-top:10px"></div></details>
+    <p style="font-size:12.5px">Не приходит письмо или почта не подходит — напиши в <a href="${HELP}">службу заботы</a>.</p></div>`);
+  document.getElementById("mf").onsubmit=async e=>{e.preventDefault();const em=e.target.email.value.trim().toLowerCase();if(!em)return;
+    const btn=e.target.querySelector("button");btn.disabled=true;btn.textContent="Отправляем…";
+    let res;try{res=await call({api:"mailcode",email:em})}catch(x){btn.disabled=false;btn.textContent="Получить код";return toast("Нет связи с сервером")}
+    if(res.ok){store("kk_mail",em);return showCode(em)}
+    btn.disabled=false;btn.textContent="Получить код";
+    if(res.error==="expired")return doLoginResult(res);
+    if(res.error==="not_student_mail")return showLogin(`Не нашли почту <b>${esc(em)}</b> в списке учениц. Проверь, та ли это почта, что ты давала при оплате, или напиши в <a href="${HELP}">службу заботы</a>.`);
+    toast(res.error)};
+  document.querySelector("details").ontoggle=function(){if(!this.open||document.querySelector("#tgw script"))return;
+    const s=document.createElement("script");s.async=true;s.src="https://telegram.org/js/telegram-widget.js?22";
+    s.setAttribute("data-telegram-login",BOT);s.setAttribute("data-size","large");s.setAttribute("data-radius","12");
+    s.setAttribute("data-onauth","onTgAuth(user)");s.setAttribute("data-request-access","write");document.getElementById("tgw").appendChild(s)};
+}
+function showCode(em,msg){
+  screen(`<div class="card">${logo()}
+    <p>${msg||`Отправили код на <b>${esc(em)}</b>. Введи 6 цифр из письма (проверь «Спам», если не видно).`}</p>
+    <form id="cf" style="display:grid;gap:10px;width:100%">
+      <input name="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••" style="text-align:center;font-size:26px;letter-spacing:8px" required>
+      <button class="btn y" type="submit">Войти</button>
+    </form>
+    <p style="font-size:13px"><a href="#" id="again">Другая почта / прислать ещё раз</a></p></div>`);
+  const f=document.getElementById("cf");f.code.focus();
+  f.code.oninput=()=>{if(f.code.value.replace(/\D/g,"").length===6)f.requestSubmit()};
+  document.getElementById("again").onclick=e=>{e.preventDefault();showLogin()};
+  f.onsubmit=async e=>{e.preventDefault();const btn=f.querySelector("button");btn.disabled=true;btn.textContent="Проверяем…";
+    let res;try{res=await call({api:"mailin",email:em,code:f.code.value})}catch(x){btn.disabled=false;btn.textContent="Войти";return toast("Нет связи с сервером")}
+    if(res.ok){S.session=res.session;store("kk_session",res.session);return loadCourse()}
+    if(res.error==="not_student_mail")return showLogin();
+    showCode(em,esc(res.error))};
 }
 window.onTgAuth=u=>{screen(`${logo()}<div class="spinner"></div><p>Проверяем доступ к программе…</p>`);doLogin({widget:u})};
 
@@ -338,10 +367,13 @@ async function doLogin(data){
   let res;
   try{res=await call({api:"login",...data})}catch(e){return screen(`${logo()}<p>Не получилось связаться с сервером. Проверь интернет и обнови страницу.</p><button class="btn y" style="max-width:260px" onclick="location.reload()">Обновить</button>`)}
   if(res.ok){S.session=res.session;store("kk_session",res.session);return loadCourse()}
+  return doLoginResult(res);
+}
+function doLoginResult(res){
   if(res.error==="expired")return screen(`${logo()}<p>Твой доступ к программе закрылся ${esc(fmtDate(res.until))}. Спасибо, что была с нами 💛</p><p>Если нужно продлить доступ — напиши в <a href="${HELP}">службу заботы</a>.</p>`);
   if(res.error==="not_student"){
     const nick=res.username?"@"+esc(res.username):"без ника";
-    return screen(`${logo()}<p>Не нашли твой Telegram (${nick}) в списке учениц программы.</p><p>Если ты ученица, напиши в <a href="${HELP}">службу заботы @bushas_team</a> — проверим ник. ${res.username?"":"И задай себе ник в настройках Telegram: по нему мы тебя узнаём."}</p>`);
+    return screen(`${logo()}<p>Не нашли твой Telegram (${nick}) в списке учениц программы.</p><p>Если ты ученица, напиши в <a href="${HELP}">службу заботы @bushas_team</a> — проверим ник. ${res.username?"":"И задай себе ник в настройках Telegram: по нему мы тебя узнаём."}</p><button class="btn y" style="max-width:260px" onclick="showLogin()">Войти по почте</button>`);
   }
   TG?screen(`${logo()}<p>Не получилось войти: ${esc(res.error)}</p><button class="btn y" style="max-width:260px" onclick="location.reload()">Попробовать ещё раз</button>`):showLogin("Не получилось войти: "+esc(res.error)+". Попробуй ещё раз.");
 }
