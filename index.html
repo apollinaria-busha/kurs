@@ -356,7 +356,7 @@ async function loadCourse(){
   store("kk_course",JSON.stringify(res));apply(res);
   if(!document.querySelector("#hwf"))route(); // не сбрасываем форму ДЗ, если ученица её заполняет
 }
-function apply(res){S.user=res.user;S.mods=res.mods;S.mats=res.mats||[];S.done=new Set(res.done);S.subs=res.hw||[];S.lsName=res.lsName||"Полине"}
+function apply(res){S.user=res.user;S.mods=res.mods;S.mats=res.mats||[];S.done=new Set(res.done);S.subs=res.hw||[];S.tests=res.tests||{};S.testRes=res.testRes||{};S.lsName=res.lsName||"Полине"}
 function saveCache(){try{const c=JSON.parse(load("kk_course")||"{}");c.done=[...S.done];c.hw=S.subs;store("kk_course",JSON.stringify(c))}catch(e){}}
 
 /* ---------- данные ---------- */
@@ -376,6 +376,7 @@ function route(){
   S.cur=null;
   if(h.startsWith("l/")){const l=findLes(h.slice(2));if(l){view=lessonView(l);title="Урок "+l.id;back=true;S.open.add(l.m.n);S.cur=l.id}}
   else if(h.startsWith("m/")){const m=S.mods.find(m=>m.n===h.slice(2));if(m){view=moduleView(m);title="Модуль "+m.n;back=true;S.open.add(m.n)}}
+  else if(h.startsWith("test/")){const l=findLes(h.slice(5));if(l){view=testView(l);title="Тест";back=true}}
   else if(h.startsWith("hw/new")){view=wizardView(h.slice(7));title="Сдать работу";back=true}
   else if(h==="mat")view=matView();
   else if(h==="hw")view=S.user.a?studentsView():hwListView();
@@ -488,7 +489,7 @@ function lessonView(l){
     ${/data-kv=/.test(l.html)?"":videoHtml(l.video)}
     ${l.html?`<div class="body-text">${prettyLinks(l.html).replace(/<div data-kv="([A-Za-z0-9]+)"><\/div>/g,(_,id)=>videoHtml(id))}</div>`:""}
     ${l.files.length?`<div class="sec-t">Материалы к уроку</div>${btnBlock(l.files)}`:""}
-    ${isTest(l)?`<div class="box"><b>Тест к уроку</b>${hasHw(l)?"":`<div class="body-text">${prettyLinks(l.task)}</div>`}<a class="btn y" href="${esc(l.gk)}" target="_blank" rel="noopener">Пройти тест ↗</a></div>`:""}
+    ${isTest(l)?`<div class="box"><b>Тест к уроку</b>${testOf(l)?`<p class="hint">${testOf(l).q.length} ${plural(testOf(l).q.length,"вопрос","вопроса","вопросов")}</p>${testResHtml(l)}<a class="btn ${S.testRes&&S.testRes[l.id]?"g":"y"}" href="#test/${encodeURIComponent(l.id)}">${S.testRes&&S.testRes[l.id]?"Пройти ещё раз":"Пройти тест"}</a>`:`<a class="btn y" href="${esc(l.gk)}" target="_blank" rel="noopener">Пройти тест ↗</a>`}</div>`:""}
     ${hasHw(l)?`<div class="box"><b>Домашнее задание</b><div class="body-text">${prettyLinks(l.task)}</div>
       ${parts(l).length>1||partsDone(l)?`<div class="chips">${parts(l).map(p=>{const x=lastSub(l.id,p);return `<span class="chipbtn ${x?(x.status==="доработать"?"redo":"has"):""}" style="cursor:default">${x&&x.status!=="доработать"?"✓ ":""}${esc(p)}</span>`}).join("")}</div>`:""}
       <a class="btn y" href="#hw/new/${encodeURIComponent(l.id)}">${hwKind(l)==="confirm"?esc(String(l.hw).split(":")[1]||"Готово"):"Сдать работу"}</a></div>`:""}
@@ -533,7 +534,7 @@ function hasHw(l){return ["confirm","text","text+test","file"].includes(hwKind(l
 function parts(l){const p=String(l.hw||"").split("|")[1];return p?p.split(";"):[hwKind(l)==="confirm"?"Задание":"Всё задание"]}
 // название задания: если обложка ГК делилась на несколько уроков — её общее название
 function hwTitle(l){return shortT(String(l.hw||"").split("|")[2]||l.t)}
-function subsOf(id,part){return S.subs.filter(x=>x.lesson===id&&(part==null||x.part===part||(!x.part&&parts(findLes(id)).length===1)))}
+function subsOf(id,part){return S.subs.filter(x=>x.lesson===id&&(part==null||x.part===part||(!x.part&&(parts(findLes(id)).length===1||x.how==='из ГетКурса'))))}
 function lastSub(id,part){const a=subsOf(id,part);return a[a.length-1]}
 function partsDone(l){return parts(l).filter(p=>lastSub(l.id,p)).length}
 const ST={"принято":["ok","принято ✓"],"доработать":["redo","доработать"]};
@@ -557,7 +558,7 @@ function hwListView(){
     <div class="sec-t">Мои работы</div>
     ${subs.length?`<div class="lessons">${shown.map(s=>{const l=findLes(s.lesson);return l?`<button class="les th" onclick="location.hash='hw/new/${esc(l.id)}'">
       <span class="thumb">${l.cover?`<img src="${esc(l.cover)}" alt="" loading="lazy">`:""}</span>
-      <span><b>${esc(hwTitle(l))}${s.part&&parts(l).length>1?" · "+esc(s.part):""}</b><small>${esc(s.when)}${s.reply?" · есть ответ Буши":""}</small></span>${stChip(s)}</button>`:""}).join("")}</div>
+      <span><b>${esc(hwTitle(l))}${s.part&&parts(l).length>1?" · "+esc(s.part):""}</b><small>${esc(s.when)}${s.how==="из ГетКурса"?" · из ГетКурса":""}${s.reply?" · есть ответ Буши":""}</small></span>${stChip(s)}</button>`:""}).join("")}</div>
       ${subs.length>6?`<button class="btn g" onclick="hwAll=!hwAll;route()">${hwAll?"Свернуть":"Показать все ("+subs.length+")"}</button>`:""}`
       :`<div class="box"><p class="hint">Пока ничего не сдано. Нажми «Сдать работу»: выбери модуль, задание и конкретный ролик или пункт — так каждая работа засчитается отдельно.</p></div>`}`;
 }
@@ -602,6 +603,7 @@ function bindView(h){
   if(q){q.oninput=()=>kbSearch(q.value);q.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();q.blur()}};if(S.q)kbSearch(S.q)}
   if(h==="me")loadAccount();
   if(S.user.a&&h.startsWith("hw"))bindReview(h);
+  if(h.startsWith("test/")){const l=findLes(h.slice(5));if(l)bindTest(l)}
   const sq=document.getElementById("svq");if(sq){sq.oninput=()=>{SV.q=sq.value;const p=sq.selectionStart;route();const n=document.getElementById("svq");n.focus();n.setSelectionRange(p,p)};sq.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();sq.blur()}}}
   if(h.startsWith("l/"))store("kk_last",h.slice(2));
   const f=document.getElementById("hwf");if(!f)return;
@@ -784,6 +786,45 @@ function ssbHtml(list){
           ${me&&me.result?`<div class="kv"><span>Результат</span><b>${esc(me.result)}</b></div>`:""}
           ${me&&me.work?pfHtml([{t:"Моя работа для бренда",id:me.work}]):""}`:""}`:""}
     </div>`;
+}
+
+/* ---------- тесты (перенесены из ГК) ---------- */
+const TQ={lesson:null,i:0,ans:[],done:false};
+function testOf(l){return S.tests&&S.tests[l.id]}
+function testResHtml(l){const r=S.testRes&&S.testRes[l.id];return r?`<p class="hint">Пройден: ${esc(r.score)}${r.of?" из "+esc(r.of):""}${r.from==="ГетКурс"?" · в ГетКурсе":""}</p>`:""}
+function testView(l){
+  const t=testOf(l);if(!t)return `<div class="empty">Тест не найден</div>`;
+  if(TQ.lesson!==l.id){TQ.lesson=l.id;TQ.i=0;TQ.ans=[];TQ.done=false}
+  const q=t.q;
+  if(TQ.done){
+    let score=0,max=0;q.forEach((x,i)=>{const right=x.v.filter(v=>v[1]).map(v=>v[0]);if(!right.length)return;max++;const a=TQ.ans[i]||[];if(a.length===right.length&&a.every(v=>right.includes(v)))score++});
+    return `<div class="crumbs">Тест · урок ${esc(l.id)}</div><h1 class="h">${esc(t.t)}</h1>
+      <div class="box lvl" style="grid-template-columns:120px 1fr"><div class="ring">${ringSvg(max?Math.round(score/max*100):100)}</div><div><b style="font-size:18px">${max?`${score} из ${max} верно`:"Тест пройден ✓"}</b><p class="hint">Результат сохранён. Ниже — разбор ответов.</p></div></div>
+      ${q.map((x,i)=>{const right=x.v.filter(v=>v[1]).map(v=>v[0]),a=TQ.ans[i]||[],ok=right.length&&a.length===right.length&&a.every(v=>right.includes(v));
+        return `<div class="box" style="gap:6px"><b style="font-size:14px">${i+1}. ${esc(x.t)}</b>${right.length?`<p class="hint" style="color:${ok?"var(--ok)":"var(--bad)"}">${ok?"✓ верно":"✗ твой ответ: "+esc(a.join(", ")||"—")}</p>${ok?"":`<p class="hint">Правильно: ${esc(right.join(", "))}</p>`}`:`<p class="hint">${esc(a.join(" "))}</p>`}</div>`}).join("")}
+      <a class="btn y" href="#l/${encodeURIComponent(l.id)}">К уроку</a>`;
+  }
+  const x=q[TQ.i],multi=x.v.filter(v=>v[1]).length>1,free=!x.v.length,a=TQ.ans[TQ.i]||[];
+  return `<div class="crumbs">Тест · урок ${esc(l.id)} · вопрос ${TQ.i+1} из ${q.length}</div>
+    <span class="bar y" style="height:6px"><i style="width:${Math.round(TQ.i/q.length*100)}%"></i></span>
+    <h1 class="h" style="font-size:20px">${esc(x.t)}</h1>${x.d?`<p class="hint">${esc(x.d)}</p>`:""}
+    <form class="box" id="tqf">
+      ${free?`<textarea name="free" placeholder="…" style="min-height:120px">${esc(a[0]||"")}</textarea>`
+        :`${multi?`<p class="hint">Можно выбрать несколько вариантов</p>`:""}<div class="lessons">${x.v.map((v,k)=>`<label class="les" style="grid-template-columns:28px 1fr;cursor:pointer"><input type="${multi?"checkbox":"radio"}" name="v" value="${k}" ${a.includes(v[0])?"checked":""} style="width:20px;height:20px;accent-color:var(--sun)"><span><b style="font-weight:600">${esc(v[0])}</b></span></label>`).join("")}</div>`}
+      <div class="navrow">${TQ.i?`<button type="button" class="btn g" onclick="TQ.i--;route()">← Назад</button>`:`<span></span>`}<button class="btn y" type="submit">${TQ.i===q.length-1?"Завершить тест":"Дальше →"}</button></div>
+    </form>`;
+}
+function bindTest(l){
+  const f=document.getElementById("tqf");if(!f)return;
+  f.onsubmit=async e=>{e.preventDefault();const t=testOf(l),x=t.q[TQ.i];
+    let a=[];if(!x.v.length)a=[f.free.value.trim()];else a=[...f.querySelectorAll('input[name="v"]:checked')].map(i=>x.v[+i.value][0]);
+    if(!a.length||(!x.v.length&&!a[0]))return toast("Выбери ответ");
+    TQ.ans[TQ.i]=a;
+    if(TQ.i<t.q.length-1){TQ.i++;route();return}
+    TQ.done=true;let score=0,max=0;t.q.forEach((x,i)=>{const right=x.v.filter(v=>v[1]).map(v=>v[0]);if(!right.length)return;max++;const aa=TQ.ans[i]||[];if(aa.length===right.length&&aa.every(v=>right.includes(v)))score++});
+    S.testRes=S.testRes||{};S.testRes[l.id]={score,of:max,from:"приложение"};S.done.add(l.id);saveCache();route();
+    try{await api({api:"test",qid:t.id,lesson:l.id,score,of:max,answers:t.q.map((x,i)=>({q:x.t,a:(TQ.ans[i]||[]).join("; ")}))})}catch(e){toast("Результат не сохранился — проверь интернет")}
+  };
 }
 
 /* ---------- аккаунт ---------- */
