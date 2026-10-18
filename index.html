@@ -277,11 +277,12 @@ const IC = {
   kb:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/><path d="M9 8h7M9 11.5h5"/></svg>',
   mat:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M12 11v5M9.5 13.5h5"/></svg>',
   hw:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V5M7 10l5-5 5 5"/><path d="M5 19h14"/></svg>',
+  st:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8.5" r="3.5"/><path d="M2.5 20c1-3.3 3.6-5 6.5-5s5.5 1.7 6.5 5"/><circle cx="17" cy="9.5" r="2.7"/><path d="M16.5 14.6c2.6.2 4.3 1.9 5 4.4"/></svg>',
   me:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>'
 };
 const TABS = [["", "База знаний", "les", "База<br>знаний"], ["hw", "Сдать ДЗ", "hw", "Сдать ДЗ"], ["mat", "Полезные материалы", "mat", "Полезные<br>материалы"], ["me", "Профиль", "me", "Профиль"]];
 
-function tabs(){return S.user&&S.user.a?TABS.map(t=>t[0]==="hw"?["hw","Ученики","me","Ученики"]:t):TABS}
+function tabs(){return S.user&&S.user.a?TABS.map(t=>t[0]==="hw"?["hw","Ученики","st","Ученики"]:t):TABS}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function store(k,v){try{v===undefined?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
 function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
@@ -389,7 +390,7 @@ function route(){
       ${wide()?`<span class="user"><b>${esc(S.user.n)}</b> · @${esc(S.user.u)}</span>`:back&&!TG?`<span class="sp"></span>`:""}
     </header>
     <div class="wrap"><aside class="side">${sideView(sec)}</aside><main class="main" id="main"><div class="inner">${view}</div></main></div>
-    <nav class="tabs">${tabs().map(([k,_,ic,t])=>`<button class="tab ${k==="hw"?"hw":""} ${sec===k?"on":""}" onclick="location.hash='${k}'">${k==="hw"?`<span class="ic">${IC[ic]}</span>`:IC[ic]}<span>${t}</span></button>`).join("")}</nav>`;
+    <nav class="tabs">${tabs().map(([k,_,ic,t])=>`<button class="tab ${k==="hw"?"hw":""} ${sec===k?"on":""}" onclick="location.hash='${k}'">${k==="hw"&&!S.user.a?`<span class="ic">${IC[ic]}</span>`:IC[ic]}<span>${t}</span></button>`).join("")}</nav>`;
   document.getElementById("main").scrollTop=0;window.scrollTo(0,0);
   if(TG){back?TG.BackButton.show():TG.BackButton.hide()}
   bindView(h);
