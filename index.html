@@ -457,7 +457,7 @@ function homeView(){
   return `<img class="banner" src="img/banner.jpg" alt="КОД КРЕАТОРА — программа обучения профессии режиссёра монтажа">
     <div class="hello"><h1>Привет, ${esc(S.user.n||"креатор")}</h1><p>${S.user.a?(S.user.s||"автор"):"ученица"} · пройдено ${p}% программы</p></div>
     ${n?`<button class="cont" onclick="openLes('${esc(n.id)}')"><span class="k">${last?"Продолжить":"Начать"} · урок ${esc(n.id)}</span><b>${esc(n.t)}</b><span class="bar"><i style="width:${p}%"></i></span></button>`:""}
-    <div id="notif"></div>
+    <div class="notif"></div>
     <input type="search" id="kbq" enterkeyhint="search" placeholder="Найти урок: шрифты, цвет, портфолио…" value="${esc(S.q)}" autocomplete="off">
     <div id="kbres"></div>
     <div class="sec-t">Модули</div>
@@ -630,7 +630,7 @@ function hwForm(l,kind){
     <button class="btn y" type="submit">${{upload:"Отправить работу",text:"Отправить ответ",ls:"Отметить как сданное"}[how]}</button></form>`;
 }
 function bindView(h){
-  if(document.getElementById("notif"))checkNotify();
+  if(document.querySelector(".notif"))checkNotify();
   const q=document.getElementById("kbq");
   if(q){q.oninput=()=>kbSearch(q.value);q.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();q.blur()}};if(S.q)kbSearch(S.q)}
   if(h==="me")loadAccount();
@@ -796,7 +796,7 @@ async function applyJob(id,url){
 /* ---------- ССБ: сотрудничество с брендами ---------- */
 let ssbOpen=false,ssbPick=0;
 // перерисовать профиль, не прыгая наверх
-function rerenderMe(){const m=document.getElementById("main"),y=window.scrollY,t=m?m.scrollTop:0;document.querySelector(".inner").innerHTML=meView();if(m)m.scrollTop=t;window.scrollTo(0,y)}
+function rerenderMe(){const m=document.getElementById("main"),y=window.scrollY,t=m?m.scrollTop:0;document.querySelector(".inner").innerHTML=meView();checkNotify();if(m)m.scrollTop=t;window.scrollTo(0,y)}
 function ssbHtml(list){
   if(!list||!list.length)return "";
   const b=list[Math.min(ssbPick,list.length-1)];
@@ -884,6 +884,7 @@ function meView(){
     ${a?planHtml(a.planerki):`<div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}
     <div class="sec-t">Оплата</div>
     <div id="pay">${a?payHtml(a.pay):`<div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}</div>
+    <div class="notif" data-full="1"></div>
     <button class="btn g" onclick="openTg('${HELP}')">Написать в службу заботы</button>
     <button class="file" onclick="installSheet()"><span class="ext"><img src="icon-192.png" alt="" style="width:100%;border-radius:9px"></span><span><b>Установить приложение</b><small>Иконка на телефоне или компьютере — открывается без Telegram</small></span></button>
     ${TG?"":`<button class="btn g" style="color:var(--muted)" onclick="logout()">Выйти</button>`}`;
@@ -938,16 +939,41 @@ function payHtml(p){
 async function loadAccount(){
   try{const r=await api({api:"account"});if(!r.ok)return;S.acc=r;if(location.hash.slice(1)==="me")document.querySelector(".inner").innerHTML=meView()}catch(e){}
 }
-// уведомления приходят от @oebybusha_bot — бот может писать только тем, кто его запустил
-let NTF=null;
-async function checkNotify(force){
-  const box=document.getElementById("notif");if(!box||S.user.a)return;
-  if(NTF===null||force){try{const r=await api({api:"notify"});NTF=!!(r&&r.on)}catch(e){return}}
-  const b=document.getElementById("notif");if(!b)return;
-  b.innerHTML=NTF?"":`<div class="box" style="flex-direction:row;align-items:center;gap:12px"><span style="font-size:26px">🔔</span><span style="flex:1"><b style="font-size:14px">Включи уведомления</b><small class="hint" style="display:block">Старт, ответы на ДЗ, заказы, ССБ — приходят в Telegram</small></span><button class="btn y" style="width:auto;padding:10px 14px" onclick="enableNotify()">Включить</button></div>`;
+// уведомления от самого приложения (web push через Firebase): всплывают с иконкой КК, тап открывает нужный экран.
+// На iPhone — только у приложения, установленного на экран «Домой»; внутри Telegram пушей нет (тогда письмо на почту).
+const FB={apiKey:"AIzaSyBO92TSMbt-35GTsED-p04ebdqLJr-4bLE",authDomain:"kk-app-c0b2e.firebaseapp.com",projectId:"kk-app-c0b2e",storageBucket:"kk-app-c0b2e.firebasestorage.app",messagingSenderId:"44739035165",appId:"1:44739035165:web:dba7a4d20d7dcdf6ccc6f4"};
+const VAPID="BNXPEYRQMQWV2PZ__mOzLefv4oBfyXjU7FYsJnFsnY9XxuO9t2Wy5D_-2eyFHAQEW6-KgthnyVY68S8AO9kAZJY";
+function pushState(){
+  if(TG)return "tg";
+  if(!("serviceWorker" in navigator)||!("PushManager" in window)||!("Notification" in window))return /iphone|ipad|ipod/i.test(navigator.userAgent)?"ios-install":"no";
+  return Notification.permission; // default | granted | denied
 }
-function enableNotify(){openTg("https://t.me/oebybusha_bot?start=app");toast("Нажми «Запустить» в боте и возвращайся");setTimeout(()=>checkNotify(true),8000);setTimeout(()=>checkNotify(true),20000)}
-document.addEventListener("visibilitychange",()=>{if(!document.hidden&&NTF===false)checkNotify(true)});
+let fbP=null;
+function loadFb(){return fbP||(fbP=new Promise((ok,no)=>{const add=(u,cb)=>{const x=document.createElement("script");x.src=u;x.onload=cb;x.onerror=()=>{fbP=null;no(new Error("нет связи"))};document.head.appendChild(x)};
+  add("https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js",()=>add("https://www.gstatic.com/firebasejs/10.12.2/firebase-messaging-compat.js",ok))}))}
+async function enablePush(silent){
+  try{
+    if(!silent){const p=await Notification.requestPermission();if(p!=="granted"){checkNotify();return toast("Уведомления не разрешены — можно включить в настройках телефона")}}
+    await loadFb();if(!firebase.apps.length)firebase.initializeApp(FB);
+    const reg=await navigator.serviceWorker.register("sw.js");await navigator.serviceWorker.ready;
+    const token=await firebase.messaging().getToken({vapidKey:VAPID,serviceWorkerRegistration:reg});
+    if(!token)throw new Error("телефон не выдал адрес для уведомлений");
+    if(load("kk_push")!==token||!silent){await api({api:"pushsub",token,ua:navigator.userAgent});store("kk_push",token)}
+    if(!silent){toast("Уведомления включены ✓");api({api:"pushtest"}).catch(()=>{})}
+    checkNotify();
+  }catch(e){if(!silent)toast("Не получилось включить: "+e.message)}
+}
+let pushChecked=false;
+function checkNotify(){
+  const st=pushState();
+  if(st==="granted"&&!pushChecked){pushChecked=true;enablePush(true)} // токен иногда меняется — тихо обновляем
+  document.querySelectorAll(".notif").forEach(b=>{
+    b.innerHTML=st==="default"?`<div class="box" style="flex-direction:row;align-items:center;gap:12px"><span style="font-size:26px">🔔</span><span style="flex:1"><b style="font-size:14px">Включи уведомления</b><small class="hint" style="display:block">Ответы на ДЗ, старт, оплаты, заказы — всплывут на телефоне</small></span><button class="btn y" style="width:auto;padding:10px 14px" onclick="enablePush()">Включить</button></div>`
+      :st==="ios-install"?`<div class="box" style="flex-direction:row;align-items:center;gap:12px"><span style="font-size:26px">🔔</span><span style="flex:1"><b style="font-size:14px">Уведомления на iPhone</b><small class="hint" style="display:block">Установи приложение на экран «Домой» — и открой его с иконки, тогда их можно включить</small></span><button class="btn y" style="width:auto;padding:10px 14px" onclick="installSheet()">Как</button></div>`
+      :b.dataset.full&&st==="granted"?`<div class="box" style="flex-direction:row;align-items:center;gap:12px"><span style="font-size:22px">🔔</span><span style="flex:1;font-size:14px">Уведомления включены</span><button class="btn g" style="width:auto;padding:8px 12px" onclick="api({api:'pushtest'}).then(r=>toast(r.sent?'Отправили тестовое ✓':'Не дошло — нажми «Включить» ещё раз')).catch(()=>{})">Проверить</button></div>`
+      :b.dataset.full&&st==="denied"?`<div class="box"><small class="hint">🔕 Уведомления запрещены в настройках браузера или телефона. Разреши их для этого сайта — и обнови страницу.</small></div>`:"";
+  });
+}
 function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window.open(u,'_blank')}
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
