@@ -424,6 +424,7 @@ function homeView(){
   return `<img class="banner" src="img/banner.jpg" alt="КОД КРЕАТОРА — программа обучения профессии режиссёра монтажа">
     <div class="hello"><h1>Привет, ${esc(S.user.n||"креатор")}</h1><p>${S.user.a?(S.user.s||"автор"):"ученица"} · пройдено ${p}% программы</p></div>
     ${n?`<button class="cont" onclick="openLes('${esc(n.id)}')"><span class="k">${last?"Продолжить":"Начать"} · урок ${esc(n.id)}</span><b>${esc(n.t)}</b><span class="bar"><i style="width:${p}%"></i></span></button>`:""}
+    <div id="notif"></div>
     <input type="search" id="kbq" enterkeyhint="search" placeholder="Найти урок: шрифты, цвет, портфолио…" value="${esc(S.q)}" autocomplete="off">
     <div id="kbres"></div>
     <div class="sec-t">Модули</div>
@@ -596,6 +597,7 @@ function hwForm(l,kind){
     <button class="btn y" type="submit">${{upload:"Отправить работу",text:"Отправить ответ",ls:"Отметить как сданное"}[how]}</button></form>`;
 }
 function bindView(h){
+  if(document.getElementById("notif"))checkNotify();
   const q=document.getElementById("kbq");
   if(q){q.oninput=()=>kbSearch(q.value);q.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();q.blur()}};if(S.q)kbSearch(S.q)}
   if(h==="me")loadAccount();
@@ -863,6 +865,16 @@ function payHtml(p){
 async function loadAccount(){
   try{const r=await api({api:"account"});if(!r.ok)return;S.acc=r;if(location.hash.slice(1)==="me")document.querySelector(".inner").innerHTML=meView()}catch(e){}
 }
+// уведомления приходят от @oebybusha_bot — бот может писать только тем, кто его запустил
+let NTF=null;
+async function checkNotify(force){
+  const box=document.getElementById("notif");if(!box||S.user.a)return;
+  if(NTF===null||force){try{const r=await api({api:"notify"});NTF=!!(r&&r.on)}catch(e){return}}
+  const b=document.getElementById("notif");if(!b)return;
+  b.innerHTML=NTF?"":`<div class="box" style="flex-direction:row;align-items:center;gap:12px"><span style="font-size:26px">🔔</span><span style="flex:1"><b style="font-size:14px">Включи уведомления</b><small class="hint" style="display:block">Старт, ответы на ДЗ, заказы, ССБ — приходят в Telegram</small></span><button class="btn y" style="width:auto;padding:10px 14px" onclick="enableNotify()">Включить</button></div>`;
+}
+function enableNotify(){openTg("https://t.me/oebybusha_bot?start=app");toast("Нажми «Запустить» в боте и возвращайся");setTimeout(()=>checkNotify(true),8000);setTimeout(()=>checkNotify(true),20000)}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&NTF===false)checkNotify(true)});
 function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window.open(u,'_blank')}
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
