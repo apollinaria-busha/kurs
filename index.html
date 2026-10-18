@@ -281,7 +281,7 @@ const IC = {
 };
 const TABS = [["", "База знаний", "les", "База<br>знаний"], ["hw", "Сдать ДЗ", "hw", "Сдать ДЗ"], ["mat", "Полезные материалы", "mat", "Полезные<br>материалы"], ["me", "Профиль", "me", "Профиль"]];
 
-function tabs(){return S.user&&S.user.a?TABS.map(t=>t[0]==="hw"?["hw","Проверка ДЗ","hw","Проверка"]:t):TABS}
+function tabs(){return S.user&&S.user.a?TABS.map(t=>t[0]==="hw"?["hw","Ученики","me","Ученики"]:t):TABS}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function store(k,v){try{v===undefined?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
 function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
@@ -376,7 +376,9 @@ function route(){
   else if(h.startsWith("m/")){const m=S.mods.find(m=>m.n===h.slice(2));if(m){view=moduleView(m);title="Модуль "+m.n;back=true;S.open.add(m.n)}}
   else if(h.startsWith("hw/new")){view=wizardView(h.slice(7));title="Сдать работу";back=true}
   else if(h==="mat")view=matView();
-  else if(h==="hw")view=S.user.a?reviewView():hwListView();
+  else if(h==="hw")view=S.user.a?studentsView():hwListView();
+  else if(h==="hw/check"){view=reviewView();title="Проверка ДЗ";back=true}
+  else if(h.startsWith("hw/s/")){view=studentView(h.slice(5));title="Ученица";back=true}
   else if(h.startsWith("hw/rv/")){view=reviewItem(h.slice(6));title="Проверка";back=true}
   else if(h==="me")view=meView();
   if(!view)view=homeView();
@@ -394,6 +396,7 @@ function route(){
 }
 function goBack(){const h=decodeURIComponent(location.hash.slice(1));
   if(h.startsWith("l/")){const l=findLes(h.slice(2));location.hash=l&&!wide()?"m/"+l.m.n:""}
+  else if(h.startsWith("hw/rv/")&&history.length>1)history.back();
   else if(h.startsWith("hw/"))location.hash="hw";
   else location.hash=""}
 window.addEventListener("hashchange",route);
@@ -594,6 +597,7 @@ function bindView(h){
   if(q){q.oninput=()=>kbSearch(q.value);q.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();q.blur()}};if(S.q)kbSearch(S.q)}
   if(h==="me")loadAccount();
   if(S.user.a&&h.startsWith("hw"))bindReview(h);
+  const sq=document.getElementById("svq");if(sq){sq.oninput=()=>{SV.q=sq.value;const p=sq.selectionStart;route();const n=document.getElementById("svq");n.focus();n.setSelectionRange(p,p)};sq.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();sq.blur()}}}
   if(h.startsWith("l/"))store("kk_last",h.slice(2));
   const f=document.getElementById("hwf");if(!f)return;
   f.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{WZ.how=b.dataset.m;route()});
@@ -666,8 +670,52 @@ function bindReview(h){
   f.onsubmit=async e=>{e.preventDefault();const row=h.split("/")[2],btns=f.querySelectorAll("button");btns.forEach(b=>b.disabled=true);
     try{const r=await api({api:"answer",row,status:st,reply:f.reply.value.trim()});if(!r.ok)throw new Error(r.error);
       const x=RV.items.find(i=>String(i.row)===String(row));if(x){x.status=st;x.reply=f.reply.value.trim()}
-      toast(r.notified?"Ответ отправлен ученице ✓":"Сохранено. Бот не смог написать ученице — она ещё не открывала бота");location.hash="hw"}
+      toast(r.notified?"Ответ отправлен ученице ✓":"Сохранено. Бот не смог написать ученице — она ещё не открывала бота");history.length>1?history.back():(location.hash="hw")}
     catch(err){btns.forEach(b=>b.disabled=false);if(err.message!=="auth")toast("Не сохранилось: "+err.message)}};
+}
+
+/* ---------- «Ученики» (автор и команда) ---------- */
+const SV={list:null,stream:null,q:""};
+async function loadStudents(force){
+  if(SV.list&&!force)return;
+  try{const r=await api({api:"students"});if(r.ok){SV.list=r.students;const h=location.hash.slice(1);if(h==="hw"||h.startsWith("hw/s/"))route()}}catch(e){}
+}
+function streamsOf(){const order=s=>-(parseInt(s)||0);return [...new Set(SV.list.map(x=>x.stream))].sort((a,b)=>order(a)-order(b))}
+function studentsView(){
+  loadReview();
+  if(!SV.list){loadStudents();return `<h1 class="h">Ученики</h1><div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}
+  const streams=streamsOf();if(!SV.stream||!streams.includes(SV.stream))SV.stream=streams[0];
+  const wait=(RV.items||[]).filter(x=>x.status==="на проверке"&&!/^отметка/.test(x.how)).length;
+  const q=SV.q.trim().toLowerCase();
+  let list=SV.list.map((x,i)=>({...x,i})).filter(x=>x.stream===SV.stream);
+  if(q)list=SV.list.map((x,i)=>({...x,i})).filter(x=>(x.name+" "+x.nick).toLowerCase().includes(q));
+  list.sort((a,b)=>(/отчисл/i.test(a.status)-/отчисл/i.test(b.status))||b.pct-a.pct||a.name.localeCompare(b.name));
+  return `<h1 class="h">Ученики</h1>
+    <button class="cont" onclick="location.hash='hw/check'"><span class="k">Домашние задания</span><b>${RV.items?(wait?`Ждут проверки: ${wait}`:"Все работы проверены ✓"):"Проверка ДЗ"}</b><span style="font-size:12.5px;font-weight:600;opacity:.75">Открыть список работ →</span></button>
+    <div class="chips">${streams.map(s=>`<button class="chipbtn ${s===SV.stream&&!q?"on":""}" onclick="SV.stream='${esc(s)}';SV.q='';route()">${esc(s)} · ${SV.list.filter(x=>x.stream===s).length}</button>`).join("")}</div>
+    <input type="search" id="svq" enterkeyhint="search" placeholder="Найти ученицу по имени или нику…" value="${esc(SV.q)}">
+    <div class="lessons">${list.map(x=>`<button class="les" style="grid-template-columns:40px minmax(0,1fr) auto;${/отчисл/i.test(x.status)?"opacity:.5":""}" onclick="location.hash='hw/s/${x.i}'">
+      <span class="ava" style="width:40px;height:40px;font-size:15px">${esc((x.name||"?").slice(0,1))}</span>
+      <span style="display:flex;flex-direction:column;gap:5px;min-width:0"><b style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.name)}</b>
+        <span style="display:flex;align-items:center;gap:8px"><span class="bar y" style="flex:1;height:6px"><i style="width:${x.pct}%"></i></span><small style="font-family:var(--f-mono);min-width:34px">${x.pct}%</small></span>
+        <small>${x.nick?"@"+esc(x.nick):"без ника"}${x.opened?"":" · ещё не заходила"}${/отчисл/i.test(x.status)?" · отчислена":""}</small></span>
+      <span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">${x.wait?`<span class="chip sent">ДЗ: ${x.wait}</span>`:""}${x.pay&&!x.pay.full&&x.pay.debt?`<span class="chip redo">${rub(x.pay.debt)}</span>`:""}</span></button>`).join("")||`<div class="empty">Никого не нашли</div>`}</div>`;
+}
+function studentView(i){
+  if(!SV.list){loadStudents();return `<div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}
+  loadReview();
+  const x=SV.list[i];if(!x)return `<div class="empty">Ученица не найдена</div>`;
+  const subs=(RV.items||[]).filter(r=>x.nick&&r.nick.replace(/^@/,"").toLowerCase()===x.nick.toLowerCase()||(x.tg&&String(r.tg)===String(x.tg)));
+  return `<div class="me-head"><div class="ava">${esc((x.name||"?").slice(0,1))}</div><div><b>${esc(x.name)}</b><small>${x.nick?"@"+esc(x.nick):"без ника"} · ${esc(x.stream)}</small>${x.status?`<small>${esc(x.status)}</small>`:""}</div></div>
+    ${x.nick?`<button class="btn g" onclick="openTg('https://t.me/${esc(x.nick)}')">Написать в Telegram</button>`:""}
+    <div class="sec-t">Прогресс</div>
+    <div class="box" style="flex-direction:row;align-items:center;gap:16px"><div style="width:120px;flex:none">${ringSvg(x.pct)}</div><div><b>Пройдено ${x.pct}% программы</b><p class="hint">${x.opened?"Заходила в приложение":"Ещё не заходила в приложение — прогресс появится после первого входа"}</p></div></div>
+    <div class="sec-t">Домашние задания · ${subs.length}</div>
+    ${subs.length?`<div class="lessons">${subs.map(s=>{const l=findLes(s.lesson);return `<button class="les th" onclick="location.hash='hw/rv/${s.row}'"><span class="thumb">${l&&l.cover?`<img src="${esc(l.cover)}" alt="">`:""}</span><span><b>${esc(l?hwTitle(l):s.title)}${s.part?" · "+esc(s.part):""}</b><small>${esc(s.when.slice(0,16))} · ${esc(s.how)}</small></span>${rvChip(s)}</button>`}).join("")}</div>`:`<div class="box"><p class="hint">Пока ничего не сдано в приложении.</p></div>`}
+    <div class="sec-t">Оплата</div>
+    ${x.pay?payHtml(x.pay):`<div class="box"><p class="hint">Данных об оплате нет (прошлый поток).</p></div>`}
+    <div class="sec-t">Портфолио · ${x.portfolio.length}</div>
+    ${pfHtml(x.portfolio,true)}`;
 }
 
 /* ---------- аккаунт ---------- */
@@ -703,7 +751,8 @@ function ringSvg(p){const r=52,c=2*Math.PI*r;
   return `<svg viewBox="0 0 130 130" role="img" aria-label="Пройдено ${p}%"><circle cx="65" cy="65" r="${r}" fill="none" stroke="var(--panel2)" stroke-width="12"/>
     <circle cx="65" cy="65" r="${r}" fill="none" stroke="var(--sun)" stroke-width="12" stroke-linecap="round" stroke-dasharray="${(c*p/100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 65 65)"/>
     <text x="65" y="74" text-anchor="middle" font-family="Montserrat" font-weight="900" font-size="28" fill="var(--text)">${p}%</text></svg>`}
-function pfHtml(list){
+function pfHtml(list,staff){
+  if(staff&&(!list||!list.length))return `<div class="box"><p class="hint">Работ в «КЕЙСЫ УЧЕНИКИ | КК» пока нет.</p></div>`;
   if(!list||!list.length)return `<div class="box"><p class="hint">Здесь появятся твои работы, которые Буша отметила как кейсы. Сдавай домашки — и портфолио будет расти 💛</p></div>`;
   return `<div class="pf">${list.map(v=>`<button onclick="playPf('${esc(v.id)}')"><span class="pic"><img src="https://drive.google.com/thumbnail?id=${esc(v.id)}&sz=w400" alt="" loading="lazy" onerror="this.remove()"></span><b>${esc(v.t)}</b></button>`).join("")}</div>`;
 }
