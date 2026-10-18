@@ -100,6 +100,11 @@ details>summary{list-style:none}details>summary::-webkit-details-marker{display:
 .crumbs{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
 .video{position:relative;aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:var(--panel)}
 .video iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.video[data-vid]{cursor:pointer}
+.video img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.video .vplay{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:68px;height:68px;border-radius:50%;background:var(--sun);display:grid;place-items:center;box-shadow:0 6px 24px rgba(0,0,0,.45)}
+.video .vplay svg{margin-left:5px}
+.video .vload{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none}
 .body-text .video{margin:14px 0}
 .body-text{font-size:15px;line-height:1.6;color:#e4ded1;overflow-wrap:break-word;word-break:normal;hyphens:manual}
 .body-text>*:first-child{margin-top:0}.body-text>*:last-child{margin-bottom:0}
@@ -305,6 +310,8 @@ function logo(){return `<div class="logo">КОД<br><span>КРЕАТОРА</span
 
 async function start(){
   await loadTG();
+  // Telegram дописывает в адрес #tgWebAppData=… — после чтения убираем, иначе роутер принимает это за раздел
+  if(/tgWebApp/.test(location.hash))history.replaceState(null,"",location.pathname+location.search);
   if(TG){TG.BackButton.onClick(goBack);TG.ready();TG.expand();try{TG.setHeaderColor("#0d0d0d");TG.setBackgroundColor("#0d0d0d")}catch(e){}}
   S.session=load("kk_session");
   if(TG && !S.session){ screen(`${logo()}<div class="spinner"></div><p>Проверяем доступ к программе…</p>`); return doLogin({initData:TG.initData}); }
@@ -375,9 +382,9 @@ function route(){
   if(!view)view=homeView();
   const sec=section();
   app.innerHTML=`<header class="top ${back?"":"home"}">
-      ${back?`<button class="back" onclick="goBack()">‹ Назад</button>`:""}
+      ${back&&!TG?`<button class="back" onclick="goBack()">‹ Назад</button>`:""}
       <span class="t">${!back||wide()?`<span class="logo-s">КОД <span>КРЕАТОРА</span></span>`:esc(title)}</span>
-      ${wide()?`<span class="user"><b>${esc(S.user.n)}</b> · @${esc(S.user.u)}</span>`:back?`<span class="sp"></span>`:""}
+      ${wide()?`<span class="user"><b>${esc(S.user.n)}</b> · @${esc(S.user.u)}</span>`:back&&!TG?`<span class="sp"></span>`:""}
     </header>
     <div class="wrap"><aside class="side">${sideView(sec)}</aside><main class="main" id="main"><div class="inner">${view}</div></main></div>
     <nav class="tabs">${tabs().map(([k,_,ic,t])=>`<button class="tab ${k==="hw"?"hw":""} ${sec===k?"on":""}" onclick="location.hash='${k}'">${k==="hw"?`<span class="ic">${IC[ic]}</span>`:IC[ic]}<span>${t}</span></button>`).join("")}</nav>`;
@@ -411,7 +418,7 @@ function homeView(){
   return `<img class="banner" src="img/banner.jpg" alt="КОД КРЕАТОРА — программа обучения профессии режиссёра монтажа">
     <div class="hello"><h1>Привет, ${esc(S.user.n||"креатор")}</h1><p>${S.user.a?(S.user.s||"автор"):"ученица"} · пройдено ${p}% программы</p></div>
     ${n?`<button class="cont" onclick="openLes('${esc(n.id)}')"><span class="k">${last?"Продолжить":"Начать"} · урок ${esc(n.id)}</span><b>${esc(n.t)}</b><span class="bar"><i style="width:${p}%"></i></span></button>`:""}
-    <input type="search" id="kbq" placeholder="Найти урок: шрифты, цвет, портфолио…" value="${esc(S.q)}" autocomplete="off">
+    <input type="search" id="kbq" enterkeyhint="search" placeholder="Найти урок: шрифты, цвет, портфолио…" value="${esc(S.q)}" autocomplete="off">
     <div id="kbres"></div>
     <div class="sec-t">Модули</div>
     <div class="covers">${S.mods.map(m=>{const d=modDone(m),t=m.les.length,pc=Math.round(d/t*100);return `
@@ -435,7 +442,14 @@ function lesRow(l){
 function videoHtml(v){
   if(!v)return "";
   const id=(String(v).match(/kinescope\.io\/(?:embed\/)?([A-Za-z0-9]+)/)||[])[1]||(/^[A-Za-z0-9]+$/.test(v)?v:"");
-  return id?`<div class="video"><iframe src="https://kinescope.io/embed/${id}" allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer; clipboard-write" allowfullscreen loading="lazy"></iframe></div>`:"";
+  if(!id)return "";
+  // сначала обложка (лежит у нас, открывается сразу), плеер Kinescope грузим только по нажатию
+  return `<div class="video" data-vid="${id}" onclick="playVideo(this)" role="button" aria-label="Смотреть урок"><img src="img/l/${id}.jpg" alt="" onerror="this.remove()"><span class="vplay"><svg width="26" height="28" viewBox="0 0 22 24"><path d="M3 2l17 10L3 22z" fill="#1a1200"/></svg></span></div>`;
+}
+function playVideo(el){
+  if(el.querySelector("iframe"))return;
+  el.innerHTML=`<iframe src="https://kinescope.io/embed/${el.dataset.vid}?autoplay=1" allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer; clipboard-write" allowfullscreen></iframe><span class="vload"><span class="spinner"></span></span>`;
+  const f=el.querySelector("iframe"),sp=el.querySelector(".vload");f.onload=()=>setTimeout(()=>sp&&sp.remove(),400);
 }
 // красивые ссылки: вместо голого адреса — кнопочка с названием сервиса
 function svc(u){
@@ -576,7 +590,8 @@ function hwForm(l,kind){
     <button class="btn y" type="submit">${{upload:"Отправить работу",text:"Отправить ответ",ls:"Отметить как сданное"}[how]}</button></form>`;
 }
 function bindView(h){
-  if(!h){const q=document.getElementById("kbq");if(q){q.oninput=()=>kbSearch(q.value);if(S.q)kbSearch(S.q)}}
+  const q=document.getElementById("kbq");
+  if(q){q.oninput=()=>kbSearch(q.value);q.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();q.blur()}};if(S.q)kbSearch(S.q)}
   if(h==="me")loadAccount();
   if(S.user.a&&h.startsWith("hw"))bindReview(h);
   if(h.startsWith("l/"))store("kk_last",h.slice(2));
@@ -750,6 +765,9 @@ function installSheet(){
 }
 if("serviceWorker" in navigator&&!TG)navigator.serviceWorker.register("sw.js").catch(()=>{});
 
+// клавиатура на телефоне: прячем по тапу вне поля и при прокрутке (в Telegram иначе её не убрать)
+document.addEventListener("touchstart",e=>{const a=document.activeElement;if(a&&/INPUT|TEXTAREA/.test(a.tagName)&&!e.target.closest("input,textarea,label"))a.blur()},{passive:true});
+let lastY=0;window.addEventListener("scroll",()=>{const a=document.activeElement;if(a&&a.id==="kbq"&&Math.abs(scrollY-lastY)>40)a.blur();lastY=scrollY},{passive:true});
 start();
 </script>
 </body>
