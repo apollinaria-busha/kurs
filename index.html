@@ -747,7 +747,7 @@ function bindReview(h){
   f.onsubmit=async e=>{e.preventDefault();const row=h.split("/")[2],btns=f.querySelectorAll("button");btns.forEach(b=>b.disabled=true);
     try{const r=await api({api:"answer",row,status:st,reply:f.reply.value.trim()});if(!r.ok)throw new Error(r.error);
       const x=RV.items.find(i=>String(i.row)===String(row));if(x){x.status=st;x.reply=f.reply.value.trim()}
-      toast(r.notified?"Ответ отправлен ученице ✓":"Сохранено. Бот не смог написать ученице — она ещё не открывала бота");history.length>1?history.back():(location.hash="st")}
+      toast(r.notified?"Ответ отправлен ученице ✓ (пуш)":"Сохранено ✓ Пуш не ушёл — у ученицы не включены уведомления, она увидит ответ в приложении");history.length>1?history.back():(location.hash="st")}
     catch(err){btns.forEach(b=>b.disabled=false);if(err.message!=="auth")toast("Не сохранилось: "+err.message)}};
 }
 
@@ -1089,7 +1089,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792411866";
+const BUILD="1792411888";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
