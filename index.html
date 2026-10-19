@@ -777,7 +777,7 @@ function jobsView(){
       <img src="icon-192.png" alt="" style="width:72px;border-radius:18px">
       <b style="font-size:18px">Биржа заказов скоро начнёт свою работу</b>
       <p class="hint" style="font-size:14px;max-width:34ch">А пока расти навык, собирай портфолио и твори 💛 Здесь появятся заказы по странам и уровням сложности — откликаться можно будет прямо из приложения.</p></div>`;
-  const REG=["Россия и СНГ","Европа","США и Канада","Азия","Ближний Восток","Латинская Америка","Австралия","Весь мир"],countries=["Все",...REG.filter(r=>d.jobs.some(j=>j.country===r))],levels=["Все",...new Set(d.jobs.map(j=>j.level).filter(Boolean))];
+  const REG=["Россия и СНГ","Европа","США и Канада","Азия","Ближний Восток","Латинская Америка","Австралия","Весь мир"],countries=["Все",...REG],levels=["Все",...new Set(d.jobs.map(j=>j.level).filter(Boolean))];
   const CUR={RUB:"₽",USD:"$",EUR:"€",GBP:"£",KZT:"₸",UAH:"₴",BYN:"Br",AUD:"A$",CAD:"C$",INR:"₹",AED:"AED"};
   const curs=["Все",...Object.keys(CUR).filter(c=>d.jobs.some(j=>j.cur===c))];
   const steps={RUB:[5000,15000,30000,60000],USD:[50,200,500,1000],EUR:[50,200,500,1000],GBP:[50,200,500,1000],KZT:[30000,100000,300000],AUD:[50,200,500],INR:[2000,10000,50000]}[JB.cur]||[];
