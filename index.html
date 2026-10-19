@@ -795,6 +795,8 @@ async function loadJobs(force){
   if(JB.data&&!force)return;
   try{const r=await api({api:"jobs"});if(r.ok){JB.data=r;if(location.hash.slice(1)==="jobs")route()}}catch(e){}
 }
+// перерисовать биржу, не прыгая наверх (фильтры, отметки)
+function rerJobs(){const m=document.getElementById("main"),y=window.scrollY,t=m?m.scrollTop:0,inner=document.querySelector(".inner");if(!inner||location.hash.slice(1)!=="jobs")return route();inner.innerHTML=jobsView();if(m)m.scrollTop=t;window.scrollTo(0,y)}
 function jobsView(){
   if(!JB.data){loadJobs();return `<h1 class="h">Биржа заказов</h1><div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}
   const d=JB.data;
@@ -816,11 +818,11 @@ function jobsView(){
       <div class="cnt"><span class="hint" style="flex:1;min-width:150px">Откликалась на других площадках? Добавь их сюда:</span>
         <button onclick="jobCount(-1)" aria-label="Минус отклик">−</button><button onclick="jobCount(1)" aria-label="Плюс отклик">+</button></div>
       <p class="hint">Цель — 25–35 разных откликов в день: так шансы получить заказ растут в разы. Просмотрено сегодня: ${d.viewsToday||0} · всего откликов: ${d.total}.</p></div>
-    <div class="sec-t">Локация</div><div class="chips">${countries.map(c=>`<button class="chipbtn ${c===JB.country?"on":""}" onclick="JB.country=${esc(JSON.stringify(c))};route()">${esc(c)}</button>`).join("")}</div>
-    ${levels.length>2?`<div class="sec-t">Уровень</div><div class="chips">${levels.map(c=>`<button class="chipbtn ${c===JB.level?"on":""}" onclick="JB.level=${esc(JSON.stringify(c))};route()">${esc(c)}</button>`).join("")}</div>`:""}
-    ${curs.length>2?`<div class="sec-t">Оплата</div><div class="chips">${curs.map(c=>`<button class="chipbtn ${c===JB.cur?"on":""}" onclick="JB.cur=${esc(JSON.stringify(c))};JB.min=0;route()">${c==="Все"?"Любая":esc(CUR[c]+" "+c)}</button>`).join("")}</div>
-      ${JB.cur!=="Все"?`<div class="chips">${[0,...steps].map(v=>`<button class="chipbtn ${v===JB.min?"on":""}" onclick="JB.min=${v};route()">${v?"от "+v.toLocaleString("ru-RU")+" "+CUR[JB.cur]:"любая сумма"}</button>`).join("")}
-        <label class="chipbtn" style="display:inline-flex;align-items:center;gap:6px;cursor:text">от <input type="number" inputmode="numeric" min="0" placeholder="своя сумма" value="${JB.min&&!steps.includes(JB.min)?JB.min:""}" style="width:96px;background:none;border:0;color:inherit;font:inherit;padding:0" onchange="JB.min=Math.max(0,+this.value||0);route()"> ${esc(CUR[JB.cur])}</label></div>`:""}`:""}
+    <div class="sec-t">Локация</div><div class="chips">${countries.map(c=>`<button class="chipbtn ${c===JB.country?"on":""}" onclick="JB.country=${esc(JSON.stringify(c))};rerJobs()">${esc(c)}</button>`).join("")}</div>
+    ${levels.length>2?`<div class="sec-t">Уровень</div><div class="chips">${levels.map(c=>`<button class="chipbtn ${c===JB.level?"on":""}" onclick="JB.level=${esc(JSON.stringify(c))};rerJobs()">${esc(c)}</button>`).join("")}</div>`:""}
+    ${curs.length>2?`<div class="sec-t">Оплата</div><div class="chips">${curs.map(c=>`<button class="chipbtn ${c===JB.cur?"on":""}" onclick="JB.cur=${esc(JSON.stringify(c))};JB.min=0;rerJobs()">${c==="Все"?"Любая":esc(CUR[c]+" "+c)}</button>`).join("")}</div>
+      ${JB.cur!=="Все"?`<div class="chips">${[0,...steps].map(v=>`<button class="chipbtn ${v===JB.min?"on":""}" onclick="JB.min=${v};rerJobs()">${v?"от "+v.toLocaleString("ru-RU")+" "+CUR[JB.cur]:"любая сумма"}</button>`).join("")}
+        <label class="chipbtn" style="display:inline-flex;align-items:center;gap:6px;cursor:text">от <input type="number" inputmode="numeric" min="0" placeholder="своя сумма" value="${JB.min&&!steps.includes(JB.min)?JB.min:""}" style="width:96px;background:none;border:0;color:inherit;font:inherit;padding:0" onchange="JB.min=Math.max(0,+this.value||0);rerJobs()"> ${esc(CUR[JB.cur])}</label></div>`:""}`:""}
     <div class="lessons">${list.map(jobCard).join("")||`<div class="empty">Под этот фильтр заказов пока нет</div>`}</div>`;
 }
 // описание заказа (как в постах биржи) → разделы карточки
@@ -864,16 +866,16 @@ function askJob(){
   const v=document.createElement("div");v.className="veil";
   v.innerHTML=`<div class="sheet" role="dialog"><h3 style="margin:0">Ты откликнулась?</h3><p class="hint" style="margin:0">${esc(j.title)}</p>
     <button class="btn y" id="jy">Да, откликнулась 💛</button><button class="btn g" id="jn">Просто посмотрела</button></div>`;
-  v.querySelector("#jy").onclick=()=>{v.remove();markJob(j.id)};v.querySelector("#jn").onclick=()=>{v.remove();if(location.hash.slice(1)==="jobs")route()};
+  v.querySelector("#jy").onclick=()=>{v.remove();markJob(j.id)};v.querySelector("#jn").onclick=()=>{v.remove();if(location.hash.slice(1)==="jobs")rerJobs()};
   v.addEventListener("click",e=>{if(e.target===v)v.remove()});document.body.appendChild(v);
 }
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)setTimeout(askJob,300)});
 window.addEventListener("focus",()=>setTimeout(askJob,300));
 async function markJob(id){
-  try{const r=await api({api:"jobclick",job:id,kind:"отклик"});if(r.ok){JB.data=r;toast(`Отклик засчитан · сегодня ${r.today} из ${JOB_GOAL}`);if(location.hash.slice(1)==="jobs")route()}}catch(e){toast("Нет связи — попробуй ещё раз")}
+  try{const r=await api({api:"jobclick",job:id,kind:"отклик"});if(r.ok){JB.data=r;toast(`Отклик засчитан · сегодня ${r.today} из ${JOB_GOAL}`);if(location.hash.slice(1)==="jobs")rerJobs()}}catch(e){toast("Нет связи — попробуй ещё раз")}
 }
 async function jobCount(n){
-  try{const r=await api({api:"jobclick",job:"",kind:"вручную",n});if(r.ok){JB.data=r;if(location.hash.slice(1)==="jobs")route()}}catch(e){toast("Нет связи — попробуй ещё раз")}
+  try{const r=await api({api:"jobclick",job:"",kind:"вручную",n});if(r.ok){JB.data=r;if(location.hash.slice(1)==="jobs")rerJobs()}}catch(e){toast("Нет связи — попробуй ещё раз")}
 }
 
 /* ---------- ССБ: сотрудничество с брендами ---------- */
@@ -1069,7 +1071,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792395758";
+const BUILD="1792395819";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
