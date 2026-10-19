@@ -289,7 +289,9 @@ mark{background:color-mix(in srgb,var(--sun) 35%,transparent);color:inherit;bord
 <script>
 const API = "https://script.google.com/macros/s/AKfycbw2LmiS_HoOdrIQko16UGsLNQj6T1Br2BymAb2bh8_iHPxOB8QyVgbiZ0vuPcwhHCPwyQ/exec";
 const BOT = "oebybusha_bot";
-const HELP = "https://t.me/bushas_team"; // служба заботы — чат с Busha’s team
+const HELP = "https://t.me/bushas_team"; // отдел заботы — Busha’s team (профиль №4)
+const BUSHA_TG = "https://t.me/apollinaria_busha"; // Буша лично (профиль №1)
+const TGK = "https://t.me/+kI7-_Q5Mnh80ZGUy"; // Telegram-канал программы
 // скрипт Telegram грузим только внутри Telegram: на сайте и в иконке на телефоне он не нужен (а в России без VPN telegram.org не открывается)
 let TG = null;
 const IN_TG = /tgWebApp/.test(location.hash + location.search) || !!window.TelegramWebviewProxy;
@@ -358,14 +360,14 @@ function showLogin(msg){
       <button class="btn y" type="submit">Получить код</button>
     </form>
     <details style="width:100%;margin-top:6px"><summary style="font-size:13px;cursor:pointer;opacity:.75">Войти через Telegram</summary><div class="tgw" id="tgw" style="margin-top:10px"></div></details>
-    <p style="font-size:12.5px">Не приходит письмо или почта не подходит — напиши в <a href="${HELP}">службу заботы</a>.</p></div>`);
+    <p style="font-size:12.5px">Не приходит письмо или почта не подходит — напиши в <a href="${HELP}">отдел заботы</a>.</p></div>`);
   document.getElementById("mf").onsubmit=async e=>{e.preventDefault();const em=e.target.email.value.trim().toLowerCase();if(!em)return;
     const btn=e.target.querySelector("button");btn.disabled=true;btn.textContent="Отправляем…";
     let res;try{res=await call({api:"mailcode",email:em})}catch(x){btn.disabled=false;btn.textContent="Получить код";return toast("Нет связи с сервером")}
     if(res.ok){store("kk_mail",em);return showCode(em)}
     btn.disabled=false;btn.textContent="Получить код";
     if(res.error==="expired")return doLoginResult(res);
-    if(res.error==="not_student_mail")return showLogin(`Не нашли почту <b>${esc(em)}</b> в списке учениц. Проверь, та ли это почта, что ты давала при оплате, или напиши в <a href="${HELP}">службу заботы</a>.`);
+    if(res.error==="not_student_mail")return showLogin(`Не нашли почту <b>${esc(em)}</b> в списке учениц. Проверь, та ли это почта, что ты давала при оплате, или напиши в <a href="${HELP}">отдел заботы</a>.`);
     toast(res.error)};
   document.querySelector("details").ontoggle=function(){if(!this.open||document.querySelector("#tgw script"))return;
     const s=document.createElement("script");s.async=true;s.src="https://telegram.org/js/telegram-widget.js?22";
@@ -398,10 +400,10 @@ async function doLogin(data){
   return doLoginResult(res);
 }
 function doLoginResult(res){
-  if(res.error==="expired")return screen(`${logo()}<p>Твой доступ к программе закрылся ${esc(fmtDate(res.until))}. Спасибо, что была с нами 💛</p><p>Если нужно продлить доступ — напиши в <a href="${HELP}">службу заботы</a>.</p>`);
+  if(res.error==="expired")return screen(`${logo()}<p>Твой доступ к программе закрылся ${esc(fmtDate(res.until))}. Спасибо, что была с нами 💛</p><p>Если нужно продлить доступ — напиши в <a href="${HELP}">отдел заботы</a>.</p>`);
   if(res.error==="not_student"){
     const nick=res.username?"@"+esc(res.username):"без ника";
-    return screen(`${logo()}<p>Не нашли твой Telegram (${nick}) в списке учениц программы.</p><p>Если ты ученица, напиши в <a href="${HELP}">службу заботы @bushas_team</a> — проверим ник. ${res.username?"":"И задай себе ник в настройках Telegram: по нему мы тебя узнаём."}</p><button class="btn y" style="max-width:260px" onclick="showLogin()">Войти по почте</button>`);
+    return screen(`${logo()}<p>Не нашли твой Telegram (${nick}) в списке учениц программы.</p><p>Если ты ученица, напиши в <a href="${HELP}">отдел заботы @bushas_team</a> — проверим ник. ${res.username?"":"И задай себе ник в настройках Telegram: по нему мы тебя узнаём."}</p><button class="btn y" style="max-width:260px" onclick="showLogin()">Войти по почте</button>`);
   }
   TG?screen(`${logo()}<p>Не получилось войти: ${esc(res.error)}</p><button class="btn y" style="max-width:260px" onclick="location.reload()">Попробовать ещё раз</button>`):showLogin("Не получилось войти: "+esc(res.error)+". Попробуй ещё раз.");
 }
@@ -966,7 +968,10 @@ function meView(){
     <div class="sec-t">Оплата</div>
     <div id="pay">${a?payHtml(a.pay):`<div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}</div>
     <div class="notif" data-full="1"></div>
-    <button class="btn g" onclick="openTg('${HELP}')">Написать в службу заботы</button>
+    <div class="sec-t">Связь</div>
+    <button class="file" onclick="openTg(HELP)"><span class="ext" style="background:var(--sun);color:var(--sun-ink)">💛</span><span><b>Написать в отдел заботы</b><small>Busha’s team — вопросы по программе, доступу, оплате</small></span></button>
+    <button class="file" onclick="openTg(BUSHA_TG)"><span class="ext">✍️</span><span><b>Написать Буше</b><small>Лично Аполлинарии · @apollinaria_busha</small></span></button>
+    <button class="file" onclick="openTg(TGK)"><span class="ext">📣</span><span><b>Telegram-канал программы</b><small>Анонсы, эфиры и новости потока</small></span></button>
     <button class="file" onclick="installSheet()"><span class="ext"><img src="icon-192.png" alt="" style="width:100%;border-radius:9px"></span><span><b>Установить приложение</b><small>Иконка на телефоне или компьютере — открывается без Telegram</small></span></button>
     ${TG?"":`<button class="btn g" style="color:var(--muted)" onclick="logout()">Выйти</button>`}`;
 }
@@ -1020,7 +1025,7 @@ function payHtml(p){
     ${p.debt?`<p class="hint">Осталось оплатить ${rub(p.debt)}</p>`:""}
     ${p.plan&&p.plan.length?`<div class="plan">${p.plan.map(x=>`<div class="${x.paid?"paid":p.next&&x.n===p.next.n?"nx":""}"><span>${x.paid?"✓":"•"}</span><span>${x.n} платёж · ${esc(fmtDate(x.date))}</span><b>${rub(x.amount)}</b></div>`).join("")}</div>`
       :p.raw&&p.raw!=="-"?`<p class="hint" style="white-space:pre-line">${esc(p.raw)}</p>`:""}
-    <p class="hint">Бот напомнит о платеже заранее. Вопросы по оплате — в службу заботы.</p></div>`;
+    <p class="hint">Бот напомнит о платеже заранее. Вопросы по оплате — в отдел заботы.</p></div>`;
 }
 async function loadAccount(){
   try{const r=await api({api:"account"});if(!r.ok)return;S.acc=r;if(location.hash.slice(1)==="me")document.querySelector(".inner").innerHTML=meView()}catch(e){}
@@ -1064,7 +1069,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792395668";
+const BUILD="1792395758";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
