@@ -490,7 +490,9 @@ const modCover=n=>`img/mod${esc(n)}.jpg`;
 function homeView(){
   const p=pct(),last=findLes(load("kk_last"));
   const n=last?(S.done.has(last.id)?(nextAfter(last.id)||last):last):allLes()[0];
-  return `<img class="banner" src="img/banner.jpg" alt="КОД КРЕАТОРА — программа обучения профессии режиссёра монтажа">
+  const lk=allLes().filter(l=>l.locked&&l.open).map(l=>l.open).sort()[0];
+  const pre=lk?`<div class="box" style="gap:6px;border-color:var(--sun)"><b style="font-size:16px">🎬 Старт программы — ${esc(fmtDate(lk))}</b><p class="hint" style="margin:0">До старта тебе уже открыты организационный модуль и вводный модуль «Погружение в мир режиссёра монтажа» — начинай с них 💛 В день старта откроется вся программа сразу.</p></div>`:"";
+  return `<img class="banner" src="img/banner.jpg" alt="КОД КРЕАТОРА — программа обучения профессии режиссёра монтажа">${pre}
     <div class="hello"><h1>Привет, ${esc(S.user.n||"креатор")}</h1><p>${S.user.a?(S.user.s||"автор"):"ученица"} · пройдено ${p}% программы</p></div>
     ${n?`<button class="cont" onclick="openLes('${esc(n.id)}')"><span class="k">${last?"Продолжить":"Начать"} · урок ${esc(n.id)}</span><b>${esc(n.t)}</b><span class="bar"><i style="width:${p}%"></i></span></button>`:""}
     <div class="notif"></div>
@@ -1087,7 +1089,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792408401";
+const BUILD="1792411772";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
