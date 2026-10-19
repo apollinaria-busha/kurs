@@ -826,8 +826,8 @@ function jobsView(){
   if(!d.jobs.length)return `<h1 class="h">Биржа заказов</h1>
     <div class="box" style="text-align:center;align-items:center;gap:14px;padding:28px 20px">
       <img src="icon-192.png" alt="" style="width:72px;border-radius:18px">
-      <b style="font-size:18px">Биржа заказов скоро начнёт свою работу</b>
-      <p class="hint" style="font-size:14px;max-width:34ch">А пока расти навык, собирай портфолио и твори 💛 Здесь появятся заказы по странам и уровням сложности — откликаться можно будет прямо из приложения.</p></div>`;
+      <b style="font-size:18px">Биржа заказов скоро<br>начнёт свою работу</b>
+      <p class="hint" style="font-size:14px;max-width:34ch;text-wrap:balance">А пока расти навык, собирай портфолио и твори 💛 Здесь появятся заказы по странам и уровням сложности — откликаться можно будет прямо из приложения.</p></div>`;
   const REG=["Россия и СНГ","Европа","США и Канада","Азия","Ближний Восток","Латинская Америка","Австралия","Весь мир"],countries=["Все",...REG],levels=["Все",...new Set(d.jobs.map(j=>j.level).filter(Boolean))];
   const CUR={RUB:"₽",USD:"$",EUR:"€",GBP:"£",KZT:"₸",UAH:"₴",BYN:"Br",AUD:"A$",CAD:"C$",INR:"₹",AED:"AED"};
   const curs=["Все",...Object.keys(CUR).filter(c=>d.jobs.some(j=>j.cur===c))];
@@ -1104,7 +1104,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792439577";
+const BUILD="1792439604";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
