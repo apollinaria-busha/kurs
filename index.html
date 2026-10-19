@@ -366,7 +366,6 @@ function showLogin(msg){
       <input name="email" type="email" inputmode="email" autocomplete="email" placeholder="твоя@почта.ru" value="${esc(mail)}" required>
       <button class="btn y" type="submit">Получить код</button>
     </form>
-    <details style="width:100%;margin-top:6px"><summary style="font-size:13px;cursor:pointer;opacity:.75">Войти через Telegram</summary><div class="tgw" id="tgw" style="margin-top:10px"></div></details>
     <p style="font-size:12.5px">Не приходит письмо или почта не подходит — напиши в <a href="${HELP}">отдел заботы</a>.</p></div>`);
   document.getElementById("mf").onsubmit=async e=>{e.preventDefault();const em=e.target.email.value.trim().toLowerCase();if(!em)return;
     const btn=e.target.querySelector("button");btn.disabled=true;btn.textContent="Отправляем…";
@@ -376,10 +375,7 @@ function showLogin(msg){
     if(res.error==="expired"||res.error==="soon")return doLoginResult(res);
     if(res.error==="not_student_mail")return showLogin(`Не нашли почту <b>${esc(em)}</b> в списке учениц. Проверь, та ли это почта, что ты давала при оплате, или напиши в <a href="${HELP}">отдел заботы</a>.`);
     toast(res.error)};
-  document.querySelector("details").ontoggle=function(){if(!this.open||document.querySelector("#tgw script"))return;
-    const s=document.createElement("script");s.async=true;s.src="https://telegram.org/js/telegram-widget.js?22";
-    s.setAttribute("data-telegram-login",BOT);s.setAttribute("data-size","large");s.setAttribute("data-radius","12");
-    s.setAttribute("data-onauth","onTgAuth(user)");s.setAttribute("data-request-access","write");document.getElementById("tgw").appendChild(s)};
+  // вход через Telegram-виджет убран (20.10): ученицы входят по почте; внутри Telegram Mini App вход по-прежнему через initData
 }
 function showCode(em,msg){
   screen(`<div class="card">${logo()}
@@ -1115,7 +1111,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792442300";
+const BUILD="1792442563";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
