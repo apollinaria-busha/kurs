@@ -864,25 +864,29 @@ function jobCard(j){
       ${done?"":`<button class="btn g" style="width:auto;padding:0 14px" onclick="markJob(${esc(JSON.stringify(String(j.id)))})" title="Отметить, что откликнулась">✓</button>`}</div>
   </div>`;
 }
-// переход к вакансии = просмотр; вернулась — спрашиваем, откликнулась ли
-let JOB_OPEN=null;
-async function openJob(id,url,title){
-  JOB_OPEN={id,title,at:0};
-  /t\.me\//.test(url)?openTg(url):(TG&&TG.openLink?TG.openLink(url):window.open(url,"_blank"));
-  setTimeout(askJob,700); // окно с вопросом ждёт её, когда она вернётся из вакансии
-  try{const r=await api({api:"jobclick",job:id,kind:"просмотр"});if(r.ok)JB.data=r}catch(e){}
+// «Откликнуться»: окно с двумя шагами — открыть вакансию и отметить результат.
+// Не зависит от того, умеет ли браузер (Telegram, iPhone, Android) сообщить о возвращении.
+function openJob(id,url,title){
+  document.querySelectorAll(".veil.jobask").forEach(v=>v.remove());
+  const v=document.createElement("div");v.className="veil jobask";
+  v.innerHTML=`<div class="sheet" role="dialog" aria-label="Отклик на вакансию">
+    <h3 style="margin:0">${esc(title)}</h3>
+    <p class="hint" style="margin:0">1. Открой вакансию и откликнись на площадке.<br>2. Вернись сюда и отметь, что получилось.</p>
+    <button class="btn y" id="jgo">Открыть вакансию ↗</button>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+      <button class="btn g" id="jy">✓ Откликнулась</button><button class="btn g" id="jn">Просто посмотрела</button></div>
+    <button class="btn g" id="jx" style="color:var(--muted)">Закрыть</button></div>`;
+  let viewed=false;
+  v.querySelector("#jgo").onclick=()=>{
+    /t\.me\//.test(url)?openTg(url):(TG&&TG.openLink?TG.openLink(url):window.open(url,"_blank"));
+    if(!viewed){viewed=true;api({api:"jobclick",job:id,kind:"просмотр"}).then(r=>{if(r&&r.ok)JB.data=r}).catch(()=>{})}
+    v.querySelector("#jgo").textContent="Открыть ещё раз ↗";
+  };
+  v.querySelector("#jy").onclick=()=>{v.remove();markJob(id)};
+  v.querySelector("#jn").onclick=()=>{v.remove();if(!viewed)api({api:"jobclick",job:id,kind:"просмотр"}).then(r=>{if(r&&r.ok){JB.data=r;rerJobs()}}).catch(()=>{});else rerJobs()};
+  v.querySelector("#jx").onclick=()=>{v.remove();rerJobs()};
+  document.body.appendChild(v);
 }
-function askJob(){
-  if(!JOB_OPEN||Date.now()-JOB_OPEN.at<3000)return;const j=JOB_OPEN;JOB_OPEN=null;
-  if(JB.data&&JB.data.clicked.includes(String(j.id)))return;
-  const v=document.createElement("div");v.className="veil";
-  v.innerHTML=`<div class="sheet" role="dialog"><h3 style="margin:0">Ты откликнулась?</h3><p class="hint" style="margin:0">${esc(j.title)}</p>
-    <button class="btn y" id="jy">Да, откликнулась 💛</button><button class="btn g" id="jn">Просто посмотрела</button></div>`;
-  v.querySelector("#jy").onclick=()=>{v.remove();markJob(j.id)};v.querySelector("#jn").onclick=()=>{v.remove();if(location.hash.slice(1)==="jobs")rerJobs()};
-  v.addEventListener("click",e=>{if(e.target===v)v.remove()});document.body.appendChild(v);
-}
-document.addEventListener("visibilitychange",()=>{if(!document.hidden)setTimeout(askJob,300)});
-window.addEventListener("focus",()=>setTimeout(askJob,300));
 async function markJob(id){
   try{const r=await api({api:"jobclick",job:id,kind:"отклик"});if(r.ok){JB.data=r;toast(`Отклик засчитан · сегодня ${r.today} из ${JOB_GOAL}`);if(location.hash.slice(1)==="jobs")rerJobs()}}catch(e){toast("Нет связи — попробуй ещё раз")}
 }
@@ -1083,7 +1087,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792398902";
+const BUILD="1792399374";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
