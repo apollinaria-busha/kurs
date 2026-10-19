@@ -43,6 +43,14 @@ a{color:var(--sun)}
 .top .back{color:var(--sun);font-weight:600;font-size:14px;min-width:64px;text-align:left}
 .top .t{flex:1;min-width:0;font-weight:800;font-size:14px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .top .sp{min-width:64px}
+.top .rf{position:absolute;right:10px;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;color:var(--muted);font-size:19px;display:grid;place-items:center}
+.top .rf:active,.top .rf.spin{color:var(--sun)}
+.top .rf.spin{animation:rfspin .8s linear infinite}
+@keyframes rfspin{to{transform:translateY(-50%) rotate(360deg)}}
+.ptr{position:fixed;left:50%;top:0;z-index:9;transform:translate(-50%,-60px);width:40px;height:40px;border-radius:50%;background:var(--panel2);border:1px solid var(--line);
+  display:grid;place-items:center;color:var(--sun);font-size:20px;transition:transform .15s;pointer-events:none}
+.ptr.go{animation:ptrspin .8s linear infinite}
+@keyframes ptrspin{from{rotate:0deg}to{rotate:360deg}}
 .top.home .t{text-align:left}
 .logo-s{font-weight:900;letter-spacing:.03em;font-size:15px}.logo-s span{color:var(--sun)}
 .user{margin-left:auto;font-size:13px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.user b{color:var(--text)}
@@ -428,6 +436,7 @@ function route(){
       ${back&&!TG?`<button class="back" onclick="goBack()">‹ Назад</button>`:""}
       <span class="t">${!back||wide()?`<span class="logo-s">КОД <span>КРЕАТОРА</span></span>`:esc(title)}</span>
       ${wide()?`<span class="user"><b>${esc(S.user.n)}</b> · @${esc(S.user.u)}</span>`:back&&!TG?`<span class="sp"></span>`:""}
+      ${wide()?"":`<button class="rf" onclick="refreshAll()" aria-label="Обновить">↻</button>`}
     </header>
     <div class="wrap"><aside class="side">${sideView(sec)}</aside><main class="main" id="main"><div class="inner">${view}</div></main></div>
     <nav class="tabs">${tabs().map(([k,_,ic,t])=>`<button class="tab ${k==="hw"?"hw":""} ${sec===k?"on":""}" onclick="location.hash='${k}'">${k==="hw"&&!S.user.a?`<span class="ic">${IC[ic]}</span>`:IC[ic]}<span>${t}</span></button>`).join("")}</nav>`;
@@ -992,6 +1001,26 @@ function checkNotify(){
 }
 function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window.open(u,'_blank')}
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
+
+/* ---------- обновление: кнопка ↻ в шапке и «потянуть вниз» ---------- */
+let refreshing=false;
+async function refreshAll(){
+  if(refreshing)return;refreshing=true;
+  const b=document.querySelector(".top .rf");if(b)b.classList.add("spin");
+  RV.items=null;SV.list=null;JB.data=null;S.acc=null;
+  try{await loadCourse()}catch(e){}
+  route();refreshing=false;toast("Обновлено");
+}
+(function(){
+  let y0=null,dy=0;const ind=document.createElement("div");ind.className="ptr";ind.textContent="↻";
+  const atTop=()=>{const m=document.getElementById("main");return window.scrollY<=0&&(!m||m.scrollTop<=0)};
+  document.addEventListener("touchstart",e=>{if(!refreshing&&atTop()&&!e.target.closest(".veil,textarea,input,iframe")){y0=e.touches[0].clientY;dy=0}else y0=null},{passive:true});
+  document.addEventListener("touchmove",e=>{if(y0===null)return;dy=e.touches[0].clientY-y0;if(dy<=0){ind.remove();return}
+    if(!ind.isConnected)document.body.appendChild(ind);const d=Math.min(dy*.5,90);ind.style.transform=`translate(-50%,${d-50}px) rotate(${dy*2}deg)`;ind.style.opacity=Math.min(1,dy/120)},{passive:true});
+  document.addEventListener("touchend",async()=>{if(y0===null)return;y0=null;
+    if(dy>140){ind.classList.add("go");ind.style.transform="translate(-50%,30px)";await refreshAll()}
+    ind.classList.remove("go");ind.style.transform="translate(-50%,-60px)";setTimeout(()=>ind.remove(),200);dy=0},{passive:true});
+})();
 
 /* ---------- иконка на телефон ---------- */
 let deferredInstall=null;
