@@ -1087,7 +1087,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792399374";
+const BUILD="1792399435";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
@@ -1097,7 +1097,8 @@ async function checkUpdate(){
         location.reload()}}}catch(e){}
 }
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkUpdate()});
-setTimeout(checkUpdate,1500);
+setTimeout(checkUpdate,1500);setInterval(()=>{if(!document.hidden&&!document.querySelector(".veil,textarea:focus,input:focus"))checkUpdate()},4*60*1000);
+window.addEventListener("focus",checkUpdate);
 
 /* ---------- обновление: кнопка ↻ в шапке и «потянуть вниз» ---------- */
 let refreshing=false;
