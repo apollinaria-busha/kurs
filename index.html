@@ -1039,7 +1039,7 @@ function payHtml(p){
     ${p.debt?`<p class="hint">Осталось оплатить ${rub(p.debt)}</p>`:""}
     ${p.plan&&p.plan.length?`<div class="plan">${p.plan.map(x=>`<div class="${x.paid?"paid":p.next&&x.n===p.next.n?"nx":""}"><span>${x.paid?"✓":"•"}</span><span>${x.n} платёж · ${esc(fmtDate(x.date))}</span><b>${rub(x.amount)}</b></div>`).join("")}</div>`
       :p.raw&&p.raw!=="-"?`<p class="hint" style="white-space:pre-line">${esc(p.raw)}</p>`:""}
-    <p class="hint">Бот напомнит о платеже заранее. Вопросы по оплате — в отдел заботы.</p></div>`;
+    <p class="hint">Приложение напомнит о платеже за 3 дня и в день оплаты. Вопросы по оплате — в отдел заботы.</p></div>`;
 }
 async function loadAccount(){
   try{const r=await api({api:"account"});if(!r.ok)return;S.acc=r;if(location.hash.slice(1)==="me")document.querySelector(".inner").innerHTML=meView()}catch(e){}
@@ -1083,7 +1083,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792398768";
+const BUILD="1792398902";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
