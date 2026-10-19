@@ -61,6 +61,7 @@ a{color:var(--sun)}
 .inner{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
 
 /* нижнее меню */
+body.kb .tabs{display:none!important}
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));background:color-mix(in srgb,var(--panel) 94%,transparent);
   backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
 .tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;color:var(--muted);font-size:10px;letter-spacing:-.01em;font-weight:600;line-height:1.15;text-align:center}
@@ -1103,7 +1104,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792438852";
+const BUILD="1792439577";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
@@ -1174,6 +1175,10 @@ function installSheet(){
 }
 if("serviceWorker" in navigator&&!TG)navigator.serviceWorker.register("sw.js").catch(()=>{});
 
+// пока набираем текст — прячем нижнее меню (иначе на iPhone и в Telegram оно встаёт поверх поля) и показываем поле по центру
+document.addEventListener("focusin",e=>{if(!e.target.matches||!e.target.matches("input:not([type=file]):not([type=checkbox]):not([type=radio]),textarea"))return;
+  document.body.classList.add("kb");setTimeout(()=>{try{e.target.scrollIntoView({block:"center",behavior:"smooth"})}catch(x){}},350)});
+document.addEventListener("focusout",()=>setTimeout(()=>{const a=document.activeElement;if(!a||!/INPUT|TEXTAREA/.test(a.tagName))document.body.classList.remove("kb")},100));
 // клавиатура на телефоне: прячем по тапу вне поля и при прокрутке (в Telegram иначе её не убрать)
 document.addEventListener("touchstart",e=>{const a=document.activeElement;if(a&&/INPUT|TEXTAREA/.test(a.tagName)&&!e.target.closest("input,textarea,label"))a.blur()},{passive:true});
 let lastY=0;window.addEventListener("scroll",()=>{const a=document.activeElement;if(a&&a.id==="kbq"&&Math.abs(scrollY-lastY)>40)a.blur();lastY=scrollY},{passive:true});
