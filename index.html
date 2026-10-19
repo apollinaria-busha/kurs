@@ -214,6 +214,9 @@ mark{background:color-mix(in srgb,var(--sun) 35%,transparent);color:inherit;bord
 .les.pick{outline:2px solid var(--sun)}
 /* портфолио */
 .pf{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.job-about{font-size:14px;line-height:1.5;white-space:pre-line;color:var(--text)}
+.job-about.cut{max-height:9.5em;overflow:hidden;position:relative;cursor:pointer}
+.job-about.cut::after{content:"Подробнее ↓";position:absolute;left:0;right:0;bottom:0;padding-top:28px;background:linear-gradient(transparent,var(--panel) 70%);color:var(--sun);font-weight:700;font-size:13px}
 .pf button,.pf a{display:flex;flex-direction:column;gap:6px;text-align:left;color:inherit;text-decoration:none}
 .pf-host{position:absolute;top:8px;left:8px;right:8px;font-size:11px;font-weight:700;background:rgba(0,0,0,.6);color:#fff;border-radius:8px;padding:4px 7px;width:max-content;max-width:calc(100% - 16px)}
 .pf .pic{position:relative;aspect-ratio:9/12;border-radius:14px;overflow:hidden;background:var(--panel2)}
@@ -787,7 +790,7 @@ function jobsView(){
       <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><b style="font-size:15px">${esc(j.title)}</b>${d.clicked.includes(String(j.id))?`<span class="chip ok">откликнулась</span>`:""}</div>
       <small class="hint">${[j.country,j.level,j.site,j.date&&fmtDate(j.date)].filter(Boolean).map(esc).join(" · ")}</small>
       ${j.pay?`<b style="color:var(--sun)">💸 ${esc(j.pay)}</b>`:""}
-      ${j.about?`<div class="body-text" style="font-size:14px">${esc(j.about)}</div>`:""}
+      ${j.about?`<div class="job-about${j.about.length>320?" cut":""}" onclick="this.classList.remove('cut')">${esc(j.about)}</div>`:""}
       <button class="btn y" onclick="applyJob(${esc(JSON.stringify(String(j.id)))},${esc(JSON.stringify(j.url))})">Откликнуться →</button></div>`).join("")||`<div class="empty">Под этот фильтр заказов пока нет</div>`}</div>`;
 }
 async function applyJob(id,url){
