@@ -573,7 +573,7 @@ function lessonView(l){
     ${/data-kv=/.test(l.html)?"":videoHtml(l.video)}
     ${l.html?`<div class="body-text">${prettyLinks(l.html).replace(/<div data-kv="([A-Za-z0-9]+)"><\/div>/g,(_,id)=>videoHtml(id))}</div>`:""}
     ${l.files.length?`<div class="sec-t">Материалы к уроку</div>${btnBlock(l.files)}`:""}
-    ${isTest(l)?`<div class="box"><b>Тест к уроку</b>${testOf(l)?`<p class="hint">${testOf(l).q.length} ${plural(testOf(l).q.length,"вопрос","вопроса","вопросов")}</p>${testResHtml(l)}<a class="btn ${S.testRes&&S.testRes[l.id]?"g":"y"}" href="#test/${encodeURIComponent(l.id)}">${S.testRes&&S.testRes[l.id]?"Пройти ещё раз":"Пройти тест"}</a>`:`<a class="btn y" href="${esc(l.gk)}" target="_blank" rel="noopener">Пройти тест ↗</a>`}</div>`:""}
+    ${isTest(l)?`<div class="box"><b>Тест к уроку</b>${testOf(l)?`<p class="hint">${testOf(l).q.length} ${plural(testOf(l).q.length,"вопрос","вопроса","вопросов")}</p>${testResHtml(l)}<a class="btn ${S.testRes&&S.testRes[l.id]?"g":"y"}" href="#test/${encodeURIComponent(l.id)}">${S.testRes&&S.testRes[l.id]?"Пройти ещё раз":"Пройти тест"}</a>`:`<p class="hint">Тест скоро появится в приложении.</p>`}</div>`:""}
     ${hasHw(l)?`<div class="box"><b>Домашнее задание</b><div class="body-text">${prettyLinks(l.task)}</div>
       ${parts(l).length>1||partsDone(l)?`<div class="chips">${parts(l).map(p=>{const x=lastSub(l.id,p);return `<span class="chipbtn ${x?(x.status==="доработать"?"redo":"has"):""}" style="cursor:default">${x&&x.status!=="доработать"?"✓ ":""}${esc(p)}</span>`}).join("")}</div>`:""}
       <a class="btn y" href="#hw/new/${encodeURIComponent(l.id)}">${hwKind(l)==="confirm"?esc(String(l.hw).split(":")[1]||"Готово"):"Сдать работу"}</a></div>`:""}
@@ -666,7 +666,7 @@ function wizardView(pre){
     ${step(1,"Модуль")}<div class="chips">${mods.map(x=>`<button class="chipbtn ${x.n===m.n?"on":""}" onclick="WZ.mod='${esc(x.n)}';WZ.les=null;WZ.part=null;WZ.how=null;route()">${esc(x.t.replace(/-модуль$/,""))}</button>`).join("")}</div>
     ${step(2,"Задание")}<div class="lessons">${tasks.map(x=>`<button class="les th ${x.id===WZ.les?"pick":""}" onclick="WZ.les='${esc(x.id)}';WZ.part=null;WZ.how=null;route();setTimeout(()=>document.getElementById('wzp')?.scrollIntoView({behavior:'smooth',block:'start'}),50)">
       <span class="thumb">${x.cover?`<img src="${esc(x.cover)}" alt="">`:""}</span><span><b>${esc(hwTitle(x))}</b><small>Урок ${esc(x.id)}${parts(x).length>1?" · "+parts(x).length+" "+plural(parts(x).length,"часть","части","частей"):""}</small></span>${hwChip(x.id)}</button>`).join("")}</div>
-    <span id="wzp"></span>${l?`<details class="box"><summary style="cursor:pointer;font-weight:700;display:flex;justify-content:space-between">Текст задания <span style="color:var(--sun)">показать ▾</span></summary><div class="body-text" style="margin-top:10px">${prettyLinks(l.task)}</div>${kind==="text+test"?`<a class="btn g" href="${esc(l.gk)}" target="_blank" rel="noopener">Пройти тест ↗</a>`:""}</details>`:""}
+    <span id="wzp"></span>${l?`<details class="box"><summary style="cursor:pointer;font-weight:700;display:flex;justify-content:space-between">Текст задания <span style="color:var(--sun)">показать ▾</span></summary><div class="body-text" style="margin-top:10px">${prettyLinks(l.task)}</div>${kind==="text+test"?(testOf(l)?`<a class="btn g" href="#test/${encodeURIComponent(l.id)}">Пройти тест к уроку</a>`:`<p class="hint">Тест скоро появится в приложении.</p>`):""}</details>`:""}
     ${l&&ps.length>1?`${step(3,"Что сдаёшь")}<div class="chips">${ps.map(p=>{const s=lastSub(l.id,p);return `<button class="chipbtn ${p===WZ.part?"on":""} ${s?(s.status==="доработать"?"redo":"has"):""}" onclick="WZ.part=${esc(JSON.stringify(p))};route();setTimeout(()=>document.getElementById('hwf')?.scrollIntoView({behavior:'smooth',block:'center'}),50)">${s&&s.status!=="доработать"?"✓ ":""}${esc(p)}</button>`}).join("")}</div>`:""}
     ${l&&WZ.part?hwForm(l,kind):""}`;
 }
@@ -1111,7 +1111,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792442563";
+const BUILD="1792442808";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
