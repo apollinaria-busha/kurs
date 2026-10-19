@@ -117,6 +117,7 @@ details>summary{list-style:none}details>summary::-webkit-details-marker{display:
 .body-text{font-size:15px;line-height:1.6;color:#e4ded1;overflow-wrap:break-word;word-break:normal;hyphens:manual}
 .body-text>*:first-child{margin-top:0}.body-text>*:last-child{margin-bottom:0}
 .body-text img{max-width:100%;height:auto;border-radius:12px}
+.body-text .gap{display:block;height:12px}
 .files{display:flex;flex-direction:column;gap:8px}
 .file{display:flex;gap:12px;align-items:center;background:var(--panel);border-radius:12px;padding:10px 12px;text-decoration:none;color:var(--text);text-align:left;width:100%}
 .file .ext{font-family:var(--f-mono);font-size:10px;width:42px;height:40px;border-radius:9px;background:var(--panel2);display:grid;place-items:center;color:var(--sun);flex:none;text-align:center;line-height:1.1}
@@ -126,7 +127,7 @@ details>summary{list-style:none}details>summary::-webkit-details-marker{display:
 .box .body-text{font-size:14px}
 .reply{border-left:2px solid var(--sun);padding-left:12px;font-size:14px;color:#e4ded1}
 label.f{display:flex;flex-direction:column;gap:6px;font-size:12.5px;color:var(--muted)}
-input[type=url],input[type=search],textarea{font:inherit;font-size:15px;color:var(--text);background:var(--ink);border:1px solid var(--line);border-radius:12px;padding:11px 13px;width:100%}
+input[type=url],input[type=search],input[type=email],input[type=tel],input[type=text],input:not([type]),textarea{font:inherit;font-size:15px;color:var(--text);background:var(--ink);border:1px solid var(--line);border-radius:12px;padding:11px 13px;width:100%}
 textarea{min-height:70px;resize:vertical}
 input[type=file]{font-size:13px;color:var(--muted)}
 .btn{display:block;border-radius:13px;padding:13px;font-weight:800;font-size:14.5px;text-align:center;width:100%;text-decoration:none}
@@ -541,7 +542,16 @@ function svc(u){
   return ["ln","↗",u.replace(/^https?:\/\/(www\.)?/,"").split("/")[0]];
 }
 function pill(u,label){const [c,ic,t]=svc(u);return `<a class="pill ${c}" href="${esc(u)}" target="_blank" rel="noopener"><i>${ic}</i>${esc(label||t)}</a>`}
+// конспекты из ГК: пустые абзацы-отбивки (<p><br></p>) шли подряд по 2–3 — сводим к одной короткой отбивке, после подзаголовка убираем
+function tidy(h){
+  const SP=/<p>(?:\s|&nbsp;|<br\s*\/?>|<(strong|b|em|i|span)[^>]*>(?:\s|&nbsp;|<br\s*\/?>)*<\/\1>)*<\/p>|<h\d>\s*<\/h\d>/gi;
+  h=String(h||"").replace(SP,'<i class="gap"></i>').replace(/<br\s*\/?>\s*<\/p>/gi,"</p>");
+  h=h.replace(/(<i class="gap"><\/i>\s*)+/g,'<i class="gap"></i>');
+  h=h.replace(/(<p>\s*<(strong|b)>[^<]*<\/\2>\s*<\/p>)\s*<i class="gap"><\/i>/gi,"$1");
+  return h.replace(/^\s*<i class="gap"><\/i>|<i class="gap"><\/i>\s*$/g,"");
+}
 function prettyLinks(h){
+  h=tidy(h);
   return h.replace(/<a href="([^"]+)"[^>]*>(.*?)<\/a>/g,(all,u,txt)=>{u=u.replace(/&amp;/g,"&");const t=txt.replace(/<[^>]+>/g,"").trim();
     return /^(https?:\/\/|www\.)|^[\w.-]+\.(ru|com|io|me)(\/|$)/i.test(t)||!t?pill(u):`<a href="${esc(u)}" target="_blank" rel="noopener">${txt}</a>`})
    .replace(/(^|[\s>(])(https?:\/\/[^\s<)"]+)/g,(all,pre,u)=>pre+pill(u));
@@ -1089,7 +1099,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792411888";
+const BUILD="1792415320";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
