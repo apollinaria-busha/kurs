@@ -334,6 +334,7 @@ async function call(body, tries=3){
 async function api(body){
   const res=await call({...body,session:S.session});
   if(res&&res.error==="auth"){store("kk_session");store("kk_course");S.session=null;start();throw new Error("auth")}
+  if(res&&res.error==="soon"){showSoon();throw new Error("auth")}
   return res;
 }
 
@@ -372,7 +373,7 @@ function showLogin(msg){
     let res;try{res=await call({api:"mailcode",email:em})}catch(x){btn.disabled=false;btn.textContent="Получить код";return toast("Нет связи с сервером")}
     if(res.ok){store("kk_mail",em);return showCode(em)}
     btn.disabled=false;btn.textContent="Получить код";
-    if(res.error==="expired")return doLoginResult(res);
+    if(res.error==="expired"||res.error==="soon")return doLoginResult(res);
     if(res.error==="not_student_mail")return showLogin(`Не нашли почту <b>${esc(em)}</b> в списке учениц. Проверь, та ли это почта, что ты давала при оплате, или напиши в <a href="${HELP}">отдел заботы</a>.`);
     toast(res.error)};
   document.querySelector("details").ontoggle=function(){if(!this.open||document.querySelector("#tgw script"))return;
@@ -405,7 +406,9 @@ async function doLogin(data){
   if(res.ok){S.session=res.session;store("kk_session",res.session);return loadCourse()}
   return doLoginResult(res);
 }
+function showSoon(){store("kk_course");screen(`${logo()}<p style="font-size:17px;font-weight:700;color:var(--text)">Приложение программы откроется совсем скоро 💛</p><p>Мы уже всё готовим. Как только откроемся — напишем в Telegram-канале программы, и ты сможешь войти по своей почте.</p><button class="btn g" onclick="location.reload()">Обновить</button>`)}
 function doLoginResult(res){
+  if(res.error==="soon")return showSoon();
   if(res.error==="expired")return screen(`${logo()}<p>Твой доступ к программе закрылся ${esc(fmtDate(res.until))}. Спасибо, что была с нами 💛</p><p>Если нужно продлить доступ — напиши в <a href="${HELP}">отдел заботы</a>.</p>`);
   if(res.error==="not_student"){
     const nick=res.username?"@"+esc(res.username):"без ника";
@@ -1112,7 +1115,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792439692";
+const BUILD="1792440351";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
