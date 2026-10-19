@@ -907,8 +907,16 @@ function openJob(id,url,title){
 async function markJob(id){
   try{const r=await api({api:"jobclick",job:id,kind:"отклик"});if(r.ok){JB.data=r;toast(`Отклик засчитан · сегодня ${r.today} из ${JOB_GOAL}`);if(location.hash.slice(1)==="jobs")rerJobs()}}catch(e){toast("Нет связи — попробуй ещё раз")}
 }
-async function jobCount(n){
-  try{const r=await api({api:"jobclick",job:"",kind:"вручную",n});if(r.ok){JB.data=r;if(location.hash.slice(1)==="jobs")rerJobs()}}catch(e){toast("Нет связи — попробуй ещё раз")}
+// ± отклики: счётчик меняется сразу, на сервер уходит одна сумма нажатий через полсекунды
+let JC={pend:0,t:null};
+function jobCount(n){
+  const d=JB.data;if(!d)return;
+  if(n<0&&(d.today||0)+JC.pend<=0)return;
+  JC.pend+=n;d.today=Math.max(0,(d.today||0)+n);d.total=Math.max(0,(d.total||0)+n);
+  if(location.hash.slice(1)==="jobs")rerJobs();
+  clearTimeout(JC.t);JC.t=setTimeout(async()=>{const k=JC.pend;JC.pend=0;if(!k)return;
+    try{const r=await api({api:"jobclick",job:"",kind:"вручную",n:k});if(r.ok&&!JC.pend){JB.data=r;if(location.hash.slice(1)==="jobs")rerJobs()}}
+    catch(e){JC.pend+=k;toast("Нет связи — отклики сохранятся, когда появится интернет")}},600);
 }
 
 /* ---------- ССБ: сотрудничество с брендами ---------- */
@@ -1104,7 +1112,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792439604";
+const BUILD="1792439692";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
