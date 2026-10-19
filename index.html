@@ -23,7 +23,7 @@
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--ink);color:var(--text);min-height:100%}
+html,body{margin:0;background:var(--ink);color:var(--text);min-height:100%;overscroll-behavior-y:none}
 body{font-family:var(--f-display);font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
 button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
 button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--sun);outline-offset:2px}
@@ -38,7 +38,7 @@ a{color:var(--sun)}
 .card{width:min(420px,100%);background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:30px 24px;display:flex;flex-direction:column;gap:18px;align-items:center}
 .tgw{min-height:44px;display:grid;place-items:center}
 
-.top{position:sticky;top:0;z-index:4;background:color-mix(in srgb,var(--ink) 92%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line);
+.top{position:sticky;top:0;z-index:4;background:var(--ink);border-bottom:1px solid var(--line);
   display:flex;align-items:center;gap:14px;padding:10px 16px;padding-top:max(10px,env(safe-area-inset-top))}
 .top .back{color:var(--sun);font-weight:600;font-size:14px;min-width:64px;text-align:left}
 .top .t{flex:1;min-width:0;font-weight:800;font-size:14px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -222,6 +222,21 @@ mark{background:color-mix(in srgb,var(--sun) 35%,transparent);color:inherit;bord
 .les.pick{outline:2px solid var(--sun)}
 /* портфолио */
 .pf{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.job{gap:10px!important}
+.job .kind{font-family:var(--f-display);font-weight:900;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--sun)}
+.job .vac{border-left:3px solid var(--sun);padding:6px 0 6px 12px;font-weight:800;font-size:16px;line-height:1.3}
+.job .meta{display:flex;flex-wrap:wrap;gap:6px}
+.job .meta span{font-size:12px;padding:3px 9px;border-radius:999px;background:var(--panel2);color:var(--muted)}
+.job .row{display:flex;gap:8px;align-items:flex-start;font-size:14px}
+.job .row b{color:var(--sun)}
+.job .lbl{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.job ul{margin:0;padding-left:18px;display:grid;gap:4px;font-size:14px}
+.job p{margin:0;font-size:14px;line-height:1.5}
+.job .mot{background:color-mix(in srgb,var(--sun) 10%,transparent);border-radius:12px;padding:10px 12px;font-size:13.5px}
+.job .note{font-size:12.5px;color:var(--muted)}
+.job .acts{display:grid;grid-template-columns:1fr auto;gap:8px}
+.cnt{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cnt button{width:36px;height:36px;border-radius:10px;background:var(--panel2);font-weight:800;font-size:18px;color:var(--text)}
 .job-about{font-size:14px;line-height:1.5;white-space:pre-line;color:var(--text)}
 .job-about.cut{max-height:9.5em;overflow:hidden;position:relative;cursor:pointer}
 .job-about.cut::after{content:"Подробнее ↓";position:absolute;left:0;right:0;bottom:0;padding-top:28px;background:linear-gradient(transparent,var(--panel) 70%);color:var(--sun);font-weight:700;font-size:13px}
@@ -794,23 +809,69 @@ function jobsView(){
     &&(JB.cur==="Все"||j.cur===JB.cur)&&(!JB.min||j.amt>=JB.min));
   const pc=Math.min(100,Math.round(d.today/JOB_GOAL*100));
   return `<h1 class="h">Биржа заказов</h1>
-    <div class="box" style="gap:8px"><div style="display:flex;justify-content:space-between;font-weight:700"><span>Откликов сегодня</span><span>${d.today} из ${JOB_GOAL}</span></div>
+    <div class="box" style="gap:10px"><div style="display:flex;justify-content:space-between;font-weight:700"><span>Откликов сегодня</span><span>${d.today} из ${JOB_GOAL}</span></div>
       <span class="bar y" style="height:7px"><i style="width:${pc}%"></i></span>
-      <p class="hint">Откликайся минимум на 25–35 разных вакансий в день — так шансы получить заказ растут в разы. Всего откликов: ${d.total}.</p></div>
+      <div class="cnt"><span class="hint" style="flex:1;min-width:150px">Откликалась на других площадках? Добавь их сюда:</span>
+        <button onclick="jobCount(-1)" aria-label="Минус отклик">−</button><button onclick="jobCount(1)" aria-label="Плюс отклик">+</button></div>
+      <p class="hint">Цель — 25–35 разных откликов в день: так шансы получить заказ растут в разы. Просмотрено сегодня: ${d.viewsToday||0} · всего откликов: ${d.total}.</p></div>
     <div class="sec-t">Локация</div><div class="chips">${countries.map(c=>`<button class="chipbtn ${c===JB.country?"on":""}" onclick="JB.country=${esc(JSON.stringify(c))};route()">${esc(c)}</button>`).join("")}</div>
     ${levels.length>2?`<div class="sec-t">Уровень</div><div class="chips">${levels.map(c=>`<button class="chipbtn ${c===JB.level?"on":""}" onclick="JB.level=${esc(JSON.stringify(c))};route()">${esc(c)}</button>`).join("")}</div>`:""}
     ${curs.length>2?`<div class="sec-t">Оплата</div><div class="chips">${curs.map(c=>`<button class="chipbtn ${c===JB.cur?"on":""}" onclick="JB.cur=${esc(JSON.stringify(c))};JB.min=0;route()">${c==="Все"?"Любая":esc(CUR[c]+" "+c)}</button>`).join("")}</div>
-      ${steps.length?`<div class="chips">${[0,...steps].map(v=>`<button class="chipbtn ${v===JB.min?"on":""}" onclick="JB.min=${v};route()">${v?"от "+v.toLocaleString("ru-RU")+" "+CUR[JB.cur]:"любая сумма"}</button>`).join("")}</div>`:""}`:""}
-    <div class="lessons">${list.map(j=>`<div class="box" style="gap:8px">
-      <div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><b style="font-size:15px">${esc(j.title)}</b>${d.clicked.includes(String(j.id))?`<span class="chip ok">откликнулась</span>`:""}</div>
-      <small class="hint">${[j.country,j.level,j.site,j.date&&fmtDate(j.date)].filter(Boolean).map(esc).join(" · ")}</small>
-      ${j.pay?`<b style="color:var(--sun)">💸 ${esc(j.pay)}</b>`:""}
-      ${j.about?`<div class="job-about${j.about.length>320?" cut":""}" onclick="this.classList.remove('cut')">${esc(j.about)}</div>`:""}
-      <button class="btn y" onclick="applyJob(${esc(JSON.stringify(String(j.id)))},${esc(JSON.stringify(j.url))})">Откликнуться →</button></div>`).join("")||`<div class="empty">Под этот фильтр заказов пока нет</div>`}</div>`;
+      ${JB.cur!=="Все"?`<div class="chips">${[0,...steps].map(v=>`<button class="chipbtn ${v===JB.min?"on":""}" onclick="JB.min=${v};route()">${v?"от "+v.toLocaleString("ru-RU")+" "+CUR[JB.cur]:"любая сумма"}</button>`).join("")}
+        <label class="chipbtn" style="display:inline-flex;align-items:center;gap:6px;cursor:text">от <input type="number" inputmode="numeric" min="0" placeholder="своя сумма" value="${JB.min&&!steps.includes(JB.min)?JB.min:""}" style="width:96px;background:none;border:0;color:inherit;font:inherit;padding:0" onchange="JB.min=Math.max(0,+this.value||0);route()"> ${esc(CUR[JB.cur])}</label></div>`:""}`:""}
+    <div class="lessons">${list.map(jobCard).join("")||`<div class="empty">Под этот фильтр заказов пока нет</div>`}</div>`;
 }
-async function applyJob(id,url){
+// описание заказа (как в постах биржи) → разделы карточки
+function jobParts(t){
+  const o={kind:"",fmt:"",tasks:[],about:"",mot:[],notes:[]};let mode="";
+  String(t||"").split("\n").forEach(raw=>{const l=raw.trim();if(!l){mode=mode==="tasks"?"":mode;return}
+    if(/^📌/.test(l)){const x=l.replace(/^📌\s*/,"").split(" · ");o.kind=x.shift();o.fmt=x.join(" · ");return}
+    if(/^Твои задачи/i.test(l)){mode="tasks";return}
+    if(/^[•\-–]\s*/.test(l)&&mode==="tasks"){o.tasks.push(l.replace(/^[•\-–]\s*/,""));return}
+    if(/^О проекте:/i.test(l)){o.about=l.replace(/^О проекте:\s*/i,"");mode="";return}
+    if(/^(ℹ️|🌍)/.test(l)){o.notes.push(l);return}
+    o.mot.push(l)});
+  return o;
+}
+function jobCard(j){
+  const d=JB.data,done=d.clicked.includes(String(j.id)),seen=(d.viewed||[]).includes(String(j.id)),p=jobParts(j.about);
+  return `<div class="box job">
+    <div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span class="kind">${esc(p.kind||"Проект")} × КОД КРЕАТОРА</span>${done?`<span class="chip ok">откликнулась ✓</span>`:seen?`<span class="chip">смотрела</span>`:""}</div>
+    <div class="vac">${esc(j.title)}</div>
+    <div class="meta">${[j.country,j.level,j.site,j.date&&fmtDate(j.date)].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join("")}</div>
+    ${j.pay?`<div class="row">💸 <b>${esc(j.pay)}</b></div>`:""}
+    ${p.fmt?`<div class="row">📄 <span>${esc(p.fmt)}</span></div>`:""}
+    ${p.tasks.length?`<div class="lbl">Твои задачи</div><ul>${p.tasks.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}
+    ${p.about?`<div class="lbl">О проекте</div><p>${esc(p.about)}</p>`:""}
+    ${p.mot.length?`<div class="mot">${p.mot.map(esc).join("<br>")}</div>`:""}
+    ${p.notes.map(n=>`<div class="note">${esc(n)}</div>`).join("")}
+    <div class="acts"><button class="btn y" onclick="openJob(${esc(JSON.stringify(String(j.id)))},${esc(JSON.stringify(j.url))},${esc(JSON.stringify(j.title))})">Откликнуться →</button>
+      ${done?"":`<button class="btn g" style="width:auto;padding:0 14px" onclick="markJob(${esc(JSON.stringify(String(j.id)))})" title="Отметить, что откликнулась">✓</button>`}</div>
+  </div>`;
+}
+// переход к вакансии = просмотр; вернулась — спрашиваем, откликнулась ли
+let JOB_OPEN=null;
+async function openJob(id,url,title){
+  JOB_OPEN={id,title,at:Date.now()};
   /t\.me\//.test(url)?openTg(url):(TG&&TG.openLink?TG.openLink(url):window.open(url,"_blank"));
-  try{const r=await api({api:"jobclick",job:id});if(r.ok){JB.data=r;if(location.hash.slice(1)==="jobs")route()}}catch(e){}
+  try{const r=await api({api:"jobclick",job:id,kind:"просмотр"});if(r.ok)JB.data=r}catch(e){}
+}
+function askJob(){
+  if(!JOB_OPEN||Date.now()-JOB_OPEN.at<3000)return;const j=JOB_OPEN;JOB_OPEN=null;
+  if(JB.data&&JB.data.clicked.includes(String(j.id)))return;
+  const v=document.createElement("div");v.className="veil";
+  v.innerHTML=`<div class="sheet" role="dialog"><h3 style="margin:0">Ты откликнулась?</h3><p class="hint" style="margin:0">${esc(j.title)}</p>
+    <button class="btn y" id="jy">Да, откликнулась 💛</button><button class="btn g" id="jn">Просто посмотрела</button></div>`;
+  v.querySelector("#jy").onclick=()=>{v.remove();markJob(j.id)};v.querySelector("#jn").onclick=()=>{v.remove();if(location.hash.slice(1)==="jobs")route()};
+  v.addEventListener("click",e=>{if(e.target===v)v.remove()});document.body.appendChild(v);
+}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)setTimeout(askJob,300)});
+window.addEventListener("focus",()=>setTimeout(askJob,300));
+async function markJob(id){
+  try{const r=await api({api:"jobclick",job:id,kind:"отклик"});if(r.ok){JB.data=r;toast(`Отклик засчитан · сегодня ${r.today} из ${JOB_GOAL}`);if(location.hash.slice(1)==="jobs")route()}}catch(e){toast("Нет связи — попробуй ещё раз")}
+}
+async function jobCount(n){
+  try{const r=await api({api:"jobclick",job:"",kind:"вручную",n});if(r.ok){JB.data=r;if(location.hash.slice(1)==="jobs")route()}}catch(e){toast("Нет связи — попробуй ещё раз")}
 }
 
 /* ---------- ССБ: сотрудничество с брендами ---------- */
@@ -1001,6 +1062,19 @@ function checkNotify(){
 }
 function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window.open(u,'_blank')}
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
+
+/* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
+const BUILD="1792395511";
+async function checkUpdate(){
+  if(BUILD.startsWith("__"))return;
+  try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
+    if(v&&v!==BUILD){let n=0;try{n=+sessionStorage.getItem("kk_upd_"+v)||0}catch(e){}
+      if(n<2){try{sessionStorage.setItem("kk_upd_"+v,n+1)}catch(e){}
+        if("serviceWorker" in navigator){const r=await navigator.serviceWorker.getRegistration();if(r)await r.update()}
+        location.reload()}}}catch(e){}
+}
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)checkUpdate()});
+setTimeout(checkUpdate,1500);
 
 /* ---------- обновление: кнопка ↻ в шапке и «потянуть вниз» ---------- */
 let refreshing=false;
