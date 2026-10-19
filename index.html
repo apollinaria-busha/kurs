@@ -61,7 +61,7 @@ a{color:var(--sun)}
 .inner{max-width:780px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
 
 /* нижнее меню */
-.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(5,1fr);background:color-mix(in srgb,var(--panel) 94%,transparent);
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));background:color-mix(in srgb,var(--panel) 94%,transparent);
   backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
 .tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;color:var(--muted);font-size:10px;letter-spacing:-.01em;font-weight:600;line-height:1.15;text-align:center}
 .tab svg{width:24px;height:24px}
@@ -312,7 +312,7 @@ const IC = {
 };
 const TABS = [["", "База знаний", "les", "База<br>знаний"], ["mat", "Полезные материалы", "mat", "Полезные<br>материалы"], ["hw", "Сдать ДЗ", "hw", "Сдать ДЗ"], ["jobs", "Биржа заказов", "job", "Биржа<br>заказов"], ["me", "Профиль", "me", "Профиль"]];
 
-function tabs(){return S.user&&S.user.a?TABS.map(t=>t[0]==="hw"?["hw","Ученики","st","Ученики"]:t):TABS}
+function tabs(){if(!(S.user&&S.user.a))return TABS;const t=[...TABS];t.splice(3,0,["st","Ученики","st","Ученики"]);return t}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function store(k,v){try{v===undefined?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
 function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
@@ -430,9 +430,11 @@ function nextLes(){return allLes().find(l=>!l.locked&&!S.done.has(l.id))||allLes
 function nextAfter(id){const a=allLes(),i=a.findIndex(l=>l.id===id);return a.slice(i+1).find(l=>!l.locked)}
 
 /* ---------- каркас ---------- */
-function section(){const h=location.hash.slice(1);for(const k of ["mat","hw","jobs","me"])if(h.startsWith(k))return k;return ""}
+function section(){const h=location.hash.slice(1);if(h==="st"||/^hw\/(check|s\/|rv\/)/.test(h))return "st";for(const k of ["mat","hw","jobs","me"])if(h.startsWith(k))return k;return ""}
+let LAST_H=null;const KEEP={t:0,y:0};
 function route(){
   if(!S.user)return;
+  {const m=document.getElementById("main");KEEP.t=m?m.scrollTop:0;KEEP.y=window.scrollY}
   const h=decodeURIComponent(location.hash.slice(1));
   let view,title="",back=false;
   S.cur=null;
@@ -441,7 +443,8 @@ function route(){
   else if(h.startsWith("test/")){const l=findLes(h.slice(5));if(l){view=testView(l);title="Тест";back=true}}
   else if(h.startsWith("hw/new")){view=wizardView(h.slice(7));title="Сдать работу";back=true}
   else if(h==="mat")view=matView();
-  else if(h==="hw")view=S.user.a?studentsView():hwListView();
+  else if(h==="hw")view=hwListView();
+  else if(h==="st"&&S.user.a)view=studentsView();
   else if(h==="hw/check"){view=reviewView();title="Проверка ДЗ";back=true}
   else if(h.startsWith("hw/s/")){view=studentView(h.slice(5));title="Ученица";back=true}
   else if(h.startsWith("hw/rv/")){view=reviewItem(h.slice(6));title="Проверка";back=true}
@@ -457,14 +460,16 @@ function route(){
     </header>
     <div class="wrap"><aside class="side">${sideView(sec)}</aside><main class="main" id="main"><div class="inner">${view}</div></main></div>
     <nav class="tabs">${tabs().map(([k,_,ic,t])=>`<button class="tab ${k==="hw"?"hw":""} ${sec===k?"on":""}" onclick="location.hash='${k}'">${k==="hw"&&!S.user.a?`<span class="ic">${IC[ic]}</span>`:IC[ic]}<span>${t}</span></button>`).join("")}</nav>`;
-  document.getElementById("main").scrollTop=0;window.scrollTo(0,0);
+  const m0=document.getElementById("main");
+  if(h===LAST_H){m0.scrollTop=KEEP.t;window.scrollTo(0,KEEP.y)}else{m0.scrollTop=0;window.scrollTo(0,0)}
+  LAST_H=h;
   if(TG){back?TG.BackButton.show():TG.BackButton.hide()}
   bindView(h);
 }
 function goBack(){const h=decodeURIComponent(location.hash.slice(1));
   if(h.startsWith("l/")){const l=findLes(h.slice(2));location.hash=l&&!wide()?"m/"+l.m.n:""}
   else if(h.startsWith("hw/rv/")&&history.length>1)history.back();
-  else if(h.startsWith("hw/"))location.hash="hw";
+  else if(h.startsWith("hw/"))location.hash=S.user.a&&/^hw\/(check|s\/|rv\/)/.test(h)?"st":"hw";
   else location.hash=""}
 window.addEventListener("hashchange",route);
 matchMedia("(min-width:900px)").addEventListener("change",route);
@@ -665,7 +670,7 @@ function bindView(h){
   const q=document.getElementById("kbq");
   if(q){q.oninput=()=>kbSearch(q.value);q.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();q.blur()}};if(S.q)kbSearch(S.q)}
   if(h==="me")loadAccount();
-  if(S.user.a&&h.startsWith("hw"))bindReview(h);
+  if(S.user.a&&(h.startsWith("hw")||h==="st"))bindReview(h);
   if(h.startsWith("test/")){const l=findLes(h.slice(5));if(l)bindTest(l)}
   const sq=document.getElementById("svq");if(sq){sq.oninput=()=>{SV.q=sq.value;const p=sq.selectionStart;route();const n=document.getElementById("svq");n.focus();n.setSelectionRange(p,p)};sq.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();sq.blur()}}}
   if(h.startsWith("l/"))store("kk_last",h.slice(2));
@@ -740,7 +745,7 @@ function bindReview(h){
   f.onsubmit=async e=>{e.preventDefault();const row=h.split("/")[2],btns=f.querySelectorAll("button");btns.forEach(b=>b.disabled=true);
     try{const r=await api({api:"answer",row,status:st,reply:f.reply.value.trim()});if(!r.ok)throw new Error(r.error);
       const x=RV.items.find(i=>String(i.row)===String(row));if(x){x.status=st;x.reply=f.reply.value.trim()}
-      toast(r.notified?"Ответ отправлен ученице ✓":"Сохранено. Бот не смог написать ученице — она ещё не открывала бота");history.length>1?history.back():(location.hash="hw")}
+      toast(r.notified?"Ответ отправлен ученице ✓":"Сохранено. Бот не смог написать ученице — она ещё не открывала бота");history.length>1?history.back():(location.hash="st")}
     catch(err){btns.forEach(b=>b.disabled=false);if(err.message!=="auth")toast("Не сохранилось: "+err.message)}};
 }
 
@@ -748,7 +753,7 @@ function bindReview(h){
 const SV={list:null,stream:null,q:""};
 async function loadStudents(force){
   if(SV.list&&!force)return;
-  try{const r=await api({api:"students"});if(r.ok){SV.list=r.students;const h=location.hash.slice(1);if(h==="hw"||h.startsWith("hw/s/"))route()}}catch(e){}
+  try{const r=await api({api:"students"});if(r.ok){SV.list=r.students;const h=location.hash.slice(1);if(h==="st"||h==="hw"||h.startsWith("hw/s/"))route()}}catch(e){}
 }
 function streamsOf(){const order=s=>-(parseInt(s)||0);return [...new Set(SV.list.map(x=>x.stream))].sort((a,b)=>order(a)-order(b))}
 function studentsView(){
@@ -789,7 +794,8 @@ function studentView(i){
 }
 
 /* ---------- биржа заказов ---------- */
-const JB={data:null,country:"Все",level:"Все",cur:"Все",min:0};
+const JB={data:null,country:"Все",level:"Все",cur:"Все",min:0,open:false};
+function act0(){return JB.country!=="Все"||JB.level!=="Все"||JB.cur!=="Все"||JB.min}
 const JOB_GOAL=25;
 async function loadJobs(force){
   if(JB.data&&!force)return;
@@ -818,11 +824,16 @@ function jobsView(){
       <div class="cnt"><span class="hint" style="flex:1;min-width:150px">Откликалась на других площадках? Добавь их сюда:</span>
         <button onclick="jobCount(-1)" aria-label="Минус отклик">−</button><button onclick="jobCount(1)" aria-label="Плюс отклик">+</button></div>
       <p class="hint">Цель — 25–35 разных откликов в день: так шансы получить заказ растут в разы. Просмотрено сегодня: ${d.viewsToday||0} · всего откликов: ${d.total}.</p></div>
-    <div class="sec-t">Локация</div><div class="chips">${countries.map(c=>`<button class="chipbtn ${c===JB.country?"on":""}" onclick="JB.country=${esc(JSON.stringify(c))};rerJobs()">${esc(c)}</button>`).join("")}</div>
+    ${(()=>{const act=[JB.country!=="Все"&&JB.country,JB.level!=="Все"&&JB.level,JB.cur!=="Все"&&(CUR[JB.cur]+" "+JB.cur),JB.min&&("от "+JB.min.toLocaleString("ru-RU"))].filter(Boolean);
+      return `<button class="box" style="flex-direction:row;align-items:center;gap:10px;width:100%;text-align:left" onclick="JB.open=!JB.open;rerJobs()">
+        <span style="font-size:18px">⚙️</span><span style="flex:1"><b>Фильтры</b><small class="hint" style="display:block">${act.length?esc(act.join(" · ")):"все заказы"} · найдено ${list.length}</small></span><span style="color:var(--sun);font-weight:800">${JB.open?"Свернуть ▴":"Открыть ▾"}</span></button>`})()}
+    ${JB.open?`<div class="sec-t">Локация</div><div class="chips">${countries.map(c=>`<button class="chipbtn ${c===JB.country?"on":""}" onclick="JB.country=${esc(JSON.stringify(c))};rerJobs()">${esc(c)}</button>`).join("")}</div>
     ${levels.length>2?`<div class="sec-t">Уровень</div><div class="chips">${levels.map(c=>`<button class="chipbtn ${c===JB.level?"on":""}" onclick="JB.level=${esc(JSON.stringify(c))};rerJobs()">${esc(c)}</button>`).join("")}</div>`:""}
-    ${curs.length>2?`<div class="sec-t">Оплата</div><div class="chips">${curs.map(c=>`<button class="chipbtn ${c===JB.cur?"on":""}" onclick="JB.cur=${esc(JSON.stringify(c))};JB.min=0;rerJobs()">${c==="Все"?"Любая":esc(CUR[c]+" "+c)}</button>`).join("")}</div>
-      ${JB.cur!=="Все"?`<div class="chips">${[0,...steps].map(v=>`<button class="chipbtn ${v===JB.min?"on":""}" onclick="JB.min=${v};rerJobs()">${v?"от "+v.toLocaleString("ru-RU")+" "+CUR[JB.cur]:"любая сумма"}</button>`).join("")}
-        <label class="chipbtn" style="display:inline-flex;align-items:center;gap:6px;cursor:text">от <input type="number" inputmode="numeric" min="0" placeholder="своя сумма" value="${JB.min&&!steps.includes(JB.min)?JB.min:""}" style="width:96px;background:none;border:0;color:inherit;font:inherit;padding:0" onchange="JB.min=Math.max(0,+this.value||0);rerJobs()"> ${esc(CUR[JB.cur])}</label></div>`:""}`:""}
+    <div class="sec-t">Оплата</div><div class="chips">${curs.map(c=>`<button class="chipbtn ${c===JB.cur?"on":""}" onclick="JB.cur=${esc(JSON.stringify(c))};JB.min=0;rerJobs()">${c==="Все"?"Любая валюта":esc(CUR[c]+" "+c)}</button>`).join("")}</div>
+    <div class="chips">${JB.cur!=="Все"?[0,...steps].map(v=>`<button class="chipbtn ${v===JB.min?"on":""}" onclick="JB.min=${v};rerJobs()">${v?"от "+v.toLocaleString("ru-RU")+" "+CUR[JB.cur]:"любая сумма"}</button>`).join(""):""}
+      <label class="chipbtn" style="display:inline-flex;align-items:center;gap:6px;cursor:text">от <input type="number" inputmode="numeric" min="0" placeholder="своя сумма" value="${JB.min&&!steps.includes(JB.min)?JB.min:""}" style="width:100px;background:none;border:0;color:inherit;font:inherit;padding:0;outline:none" onchange="JB.min=Math.max(0,+this.value||0);rerJobs()"> ${JB.cur!=="Все"?esc(CUR[JB.cur]):""}</label></div>
+    ${JB.cur==="Все"&&JB.min?`<p class="hint">Сумма сравнивается в валюте заказа — для точного фильтра выбери валюту выше.</p>`:""}
+    ${act0()?`<button class="btn g" onclick="JB.country='Все';JB.level='Все';JB.cur='Все';JB.min=0;rerJobs()">Сбросить фильтры</button>`:""}`:""}
     <div class="lessons">${list.map(jobCard).join("")||`<div class="empty">Под этот фильтр заказов пока нет</div>`}</div>`;
 }
 // описание заказа (как в постах биржи) → разделы карточки
@@ -856,8 +867,9 @@ function jobCard(j){
 // переход к вакансии = просмотр; вернулась — спрашиваем, откликнулась ли
 let JOB_OPEN=null;
 async function openJob(id,url,title){
-  JOB_OPEN={id,title,at:Date.now()};
+  JOB_OPEN={id,title,at:0};
   /t\.me\//.test(url)?openTg(url):(TG&&TG.openLink?TG.openLink(url):window.open(url,"_blank"));
+  setTimeout(askJob,700); // окно с вопросом ждёт её, когда она вернётся из вакансии
   try{const r=await api({api:"jobclick",job:id,kind:"просмотр"});if(r.ok)JB.data=r}catch(e){}
 }
 function askJob(){
@@ -1071,7 +1083,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792397907";
+const BUILD="1792398768";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
