@@ -346,6 +346,10 @@ async function start(){
   if(/tgWebApp/.test(location.hash))history.replaceState(null,"",location.pathname+location.search);
   if(TG){TG.BackButton.onClick(goBack);TG.ready();TG.expand();try{TG.setHeaderColor("#0d0d0d");TG.setBackgroundColor("#0d0d0d")}catch(e){}}
   S.session=load("kk_session");
+  // пришла по ссылке с ключом входа (из Telegram → Safari → иконка «Домой») — входим без почты
+  const qs=new URLSearchParams(location.search),ho=qs.get("login");
+  if(ho){qs.delete("login");history.replaceState(null,"",location.pathname+(qs.toString()?"?"+qs:"")+location.hash);
+    if(!S.session){try{const r=await call({api:"handin",token:ho});if(r.ok){S.session=r.session;store("kk_session",r.session)}}catch(e){}}}
   if(TG && !S.session){ screen(`${logo()}<div class="spinner"></div><p>Проверяем доступ к программе…</p>`); return doLogin({initData:TG.initData}); }
   if(S.session) return loadCourse();
   showLogin();
@@ -416,7 +420,7 @@ async function loadCourse(){
   let res;
   try{res=await api({api:"course"})}catch(e){if(e.message==="auth")return;if(!cached)screen(`${logo()}<p>Нет связи с сервером. Обнови страницу чуть позже.</p>`);return}
   if(!res.ok){if(!cached)screen(`${logo()}<p>Ошибка: ${esc(res.error)}</p>`);return}
-  store("kk_course",JSON.stringify(res));apply(res);
+  store("kk_course",JSON.stringify(res));apply(res);handoffUrl();
   if(!document.querySelector("#hwf"))route(); // не сбрасываем форму ДЗ, если ученица её заполняет
 }
 function apply(res){S.user=res.user;S.mods=res.mods;S.mats=res.mats||[];S.done=new Set(res.done);S.subs=res.hw||[];S.tests=res.tests||{};S.testRes=res.testRes||{};S.lsName=res.lsName||"Полине"}
@@ -1099,7 +1103,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792435554";
+const BUILD="1792438852";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
@@ -1132,6 +1136,25 @@ async function refreshAll(){
     ind.classList.remove("go");ind.style.transform="translate(-50%,-60px)";setTimeout(()=>ind.remove(),200);dy=0},{passive:true});
 })();
 
+/* ---------- перенос входа ---------- */
+// у Safari, иконки «Домой» и браузера внутри Telegram на iPhone разные хранилища — вход везёт одноразовый ключ в адресе
+const STANDALONE=matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+const IOS=/iphone|ipad|ipod/i.test(navigator.userAgent),MOBILE=IOS||/android/i.test(navigator.userAgent);
+async function handoffToken(){
+  try{const c=JSON.parse(sessionStorage.getItem("kk_ho")||"null");if(c&&c.until>Date.now())return c.t}catch(e){}
+  try{const r=await api({api:"handoff"});if(r.ok){try{sessionStorage.setItem("kk_ho",JSON.stringify({t:r.token,until:Date.now()+90*60e3}))}catch(e){}return r.token}}catch(e){}
+  return "";
+}
+async function handoffUrl(){
+  if(TG||STANDALONE||!MOBILE||!S.session)return;
+  const t=await handoffToken();if(!t)return;
+  history.replaceState(null,"","?login="+encodeURIComponent(t)+location.hash);
+  // iPhone берёт адрес для иконки из manifest — без него возьмёт текущий адрес с ключом
+  if(IOS){const m=document.querySelector('link[rel="manifest"]');if(m)m.remove()}
+}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")handoffUrl()});
+async function openOutside(url){const t=await handoffToken();TG.openLink(url+(t?"?login="+encodeURIComponent(t):""))}
+
 /* ---------- иконка на телефон ---------- */
 let deferredInstall=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e});
@@ -1144,7 +1167,7 @@ function installSheet(){
     <ol>${ios?`<li>Открой в <b>Safari</b></li><li>Нажми «Поделиться» (квадрат со стрелкой)</li><li>Прокрути вниз и выбери «На экран „Домой“» (на новых iOS «Поделиться» спрятано под ⋯ внизу справа)</li>`
       :`<li>Открой в <b>Chrome</b></li><li>Нажми ⋮ в правом верхнем углу</li><li>Выбери «Установить приложение» или «Добавить на гл. экран»</li>`}
     <li>Иконка «Код Креатора» появится на экране — входить заново не придётся</li></ol>
-    ${TG?`<button class="btn y" onclick="TG.openLink('${url}')">Открыть в браузере</button>`:""}
+    ${TG?`<button class="btn y" onclick="openOutside('${url}')">Открыть в браузере</button>`:""}
     <button class="btn g" onclick="this.closest('.veil').remove()">Понятно</button></div>`;
   v.addEventListener("click",e=>{if(e.target===v)v.remove()});
   document.body.appendChild(v);
