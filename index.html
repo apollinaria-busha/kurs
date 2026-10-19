@@ -777,7 +777,7 @@ function jobsView(){
       <img src="icon-192.png" alt="" style="width:72px;border-radius:18px">
       <b style="font-size:18px">Биржа заказов скоро начнёт свою работу</b>
       <p class="hint" style="font-size:14px;max-width:34ch">А пока расти навык, собирай портфолио и твори 💛 Здесь появятся заказы по странам и уровням сложности — откликаться можно будет прямо из приложения.</p></div>`;
-  const countries=["Все",...new Set(d.jobs.map(j=>j.country).filter(Boolean))],levels=["Все",...new Set(d.jobs.map(j=>j.level).filter(Boolean))];
+  const REG=["Россия и СНГ","Европа","США и Канада","Азия","Ближний Восток","Латинская Америка","Австралия","Весь мир"],countries=["Все",...REG.filter(r=>d.jobs.some(j=>j.country===r))],levels=["Все",...new Set(d.jobs.map(j=>j.level).filter(Boolean))];
   const CUR={RUB:"₽",USD:"$",EUR:"€",GBP:"£",KZT:"₸",UAH:"₴",BYN:"Br",AUD:"A$",CAD:"C$",INR:"₹",AED:"AED"};
   const curs=["Все",...Object.keys(CUR).filter(c=>d.jobs.some(j=>j.cur===c))];
   const steps={RUB:[5000,15000,30000,60000],USD:[50,200,500,1000],EUR:[50,200,500,1000],GBP:[50,200,500,1000],KZT:[30000,100000,300000],AUD:[50,200,500],INR:[2000,10000,50000]}[JB.cur]||[];
@@ -788,7 +788,7 @@ function jobsView(){
     <div class="box" style="gap:8px"><div style="display:flex;justify-content:space-between;font-weight:700"><span>Откликов сегодня</span><span>${d.today} из ${JOB_GOAL}</span></div>
       <span class="bar y" style="height:7px"><i style="width:${pc}%"></i></span>
       <p class="hint">Откликайся минимум на 25–35 разных вакансий в день — так шансы получить заказ растут в разы. Всего откликов: ${d.total}.</p></div>
-    <div class="sec-t">Страна</div><div class="chips">${countries.map(c=>`<button class="chipbtn ${c===JB.country?"on":""}" onclick="JB.country=${esc(JSON.stringify(c))};route()">${esc(c)}</button>`).join("")}</div>
+    <div class="sec-t">Локация</div><div class="chips">${countries.map(c=>`<button class="chipbtn ${c===JB.country?"on":""}" onclick="JB.country=${esc(JSON.stringify(c))};route()">${esc(c)}</button>`).join("")}</div>
     ${levels.length>2?`<div class="sec-t">Уровень</div><div class="chips">${levels.map(c=>`<button class="chipbtn ${c===JB.level?"on":""}" onclick="JB.level=${esc(JSON.stringify(c))};route()">${esc(c)}</button>`).join("")}</div>`:""}
     ${curs.length>2?`<div class="sec-t">Оплата</div><div class="chips">${curs.map(c=>`<button class="chipbtn ${c===JB.cur?"on":""}" onclick="JB.cur=${esc(JSON.stringify(c))};JB.min=0;route()">${c==="Все"?"Любая":esc(CUR[c]+" "+c)}</button>`).join("")}</div>
       ${steps.length?`<div class="chips">${[0,...steps].map(v=>`<button class="chipbtn ${v===JB.min?"on":""}" onclick="JB.min=${v};route()">${v?"от "+v.toLocaleString("ru-RU")+" "+CUR[JB.cur]:"любая сумма"}</button>`).join("")}</div>`:""}`:""}
