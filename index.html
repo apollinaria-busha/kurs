@@ -1111,7 +1111,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792473338";
+const BUILD="1792473831";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
@@ -1165,7 +1165,19 @@ document.addEventListener("visibilitychange",()=>{if(document.visibilityState===
 // ссылку открываем сразу по нажатию (Telegram на iPhone не даёт открыть её после ожидания) — ключ входа готовим заранее
 let HO_READY="";
 function cachedHo(){try{const c=JSON.parse(sessionStorage.getItem("kk_ho")||"null");if(c&&c.until>Date.now())return c.t}catch(e){}return HO_READY}
-function openOutside(url){const t=cachedHo();const u=url+(t?"?login="+encodeURIComponent(t):"");try{TG&&TG.openLink?TG.openLink(u,{try_instant_view:false}):window.open(u,"_blank")}catch(e){window.open(u,"_blank")}}
+function openOutside(url,btn){const t=cachedHo();const u=url+(t?"?login="+encodeURIComponent(t):"");
+  toast("Открываю в браузере…");
+  try{TG&&TG.openLink?TG.openLink(u,{try_instant_view:false}):window.open(u,"_blank")}catch(e){try{window.open(u,"_blank")}catch(x){}}
+  // если Telegram не открыл браузер — показываем ссылку, её можно скопировать и вставить в Safari/Chrome
+  setTimeout(()=>{if(document.visibilityState!=="visible")return;const box=btn&&btn.closest(".sheet");if(!box||box.querySelector(".copylink"))return;
+    const d=document.createElement("div");d.className="box copylink";d.style.gap="8px";
+    d.innerHTML=`<p class="hint" style="margin:0">Если браузер не открылся — скопируй ссылку и вставь её в Safari (на Android — в Chrome):</p>
+      <input readonly value="${esc(u)}" style="font-size:12px" onclick="this.select()"><button class="btn y" type="button">Скопировать ссылку</button>`;
+    d.querySelector("button").onclick=()=>copyText(u);btn.after(d)},1500);
+}
+function copyText(t){const done=()=>toast("Ссылка скопирована ✓");
+  if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,()=>fb());else fb();
+  function fb(){const i=document.createElement("textarea");i.value=t;i.style.position="fixed";i.style.opacity="0";document.body.appendChild(i);i.focus();i.select();try{document.execCommand("copy");done()}catch(e){toast("Выдели ссылку и скопируй вручную")}i.remove()}}
 
 /* ---------- иконка на телефон ---------- */
 let deferredInstall=null;
@@ -1180,7 +1192,7 @@ function installSheet(){
     <ol>${ios?`<li>Открой в <b>Safari</b></li><li>Нажми «Поделиться» (квадрат со стрелкой)</li><li>Прокрути вниз и выбери «На экран „Домой“» (на новых iOS «Поделиться» спрятано под ⋯ внизу справа)</li>`
       :`<li>Открой в <b>Chrome</b></li><li>Нажми ⋮ в правом верхнем углу</li><li>Выбери «Установить приложение» или «Добавить на гл. экран»</li>`}
     <li>Иконка «Код Креатора» появится на экране — входить заново не придётся</li></ol>
-    ${TG?`<button class="btn y" onclick="openOutside('${url}')">Открыть в браузере</button>`:""}
+    ${TG?`<button class="btn y" onclick="openOutside('${url}',this)">Открыть в браузере</button>`:""}
     <button class="btn g" onclick="this.closest('.veil').remove()">Понятно</button></div>`;
   v.addEventListener("click",e=>{if(e.target===v)v.remove()});
   document.body.appendChild(v);
