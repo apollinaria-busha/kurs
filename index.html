@@ -1111,7 +1111,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792443193";
+const BUILD="1792470684";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
@@ -1168,7 +1168,7 @@ let deferredInstall=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e});
 function installSheet(){
   if(deferredInstall){deferredInstall.prompt();deferredInstall=null;return}
-  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent),url="https://app.videocreators.ru/";
+  const ios=/iphone|ipad|ipod/i.test(navigator.userAgent),url="https://kodkreatora.bybusha.com/";
   const v=document.createElement("div");v.className="veil";
   v.innerHTML=`<div class="sheet" role="dialog" aria-label="Установить приложение"><h3>Установить приложение</h3>
     ${TG?`<p class="hint" style="font-size:14px">Из Telegram установить нельзя — сначала открой приложение в браузере, войди через Telegram один раз, и дальше:</p>`:""}
