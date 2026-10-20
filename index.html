@@ -1111,7 +1111,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792470684";
+const BUILD="1792473107";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
@@ -1154,20 +1154,25 @@ async function handoffToken(){
   return "";
 }
 async function handoffUrl(){
-  if(TG||STANDALONE||!MOBILE||!S.session)return;
+  if(TG&&S.session){handoffToken().then(t=>{HO_READY=t||""}).catch(()=>{});return}
+  if(STANDALONE||!MOBILE||!S.session)return;
   const t=await handoffToken();if(!t)return;
   history.replaceState(null,"","?login="+encodeURIComponent(t)+location.hash);
   // iPhone берёт адрес для иконки из manifest — без него возьмёт текущий адрес с ключом
   if(IOS){const m=document.querySelector('link[rel="manifest"]');if(m)m.remove()}
 }
 document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible")handoffUrl()});
-async function openOutside(url){const t=await handoffToken();TG.openLink(url+(t?"?login="+encodeURIComponent(t):""))}
+// ссылку открываем сразу по нажатию (Telegram на iPhone не даёт открыть её после ожидания) — ключ входа готовим заранее
+let HO_READY="";
+function cachedHo(){try{const c=JSON.parse(sessionStorage.getItem("kk_ho")||"null");if(c&&c.until>Date.now())return c.t}catch(e){}return HO_READY}
+function openOutside(url){const t=cachedHo();const u=url+(t?"?login="+encodeURIComponent(t):"");try{TG&&TG.openLink?TG.openLink(u,{try_instant_view:false}):window.open(u,"_blank")}catch(e){window.open(u,"_blank")}}
 
 /* ---------- иконка на телефон ---------- */
 let deferredInstall=null;
 window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();deferredInstall=e});
 function installSheet(){
   if(deferredInstall){deferredInstall.prompt();deferredInstall=null;return}
+  if(TG&&S.session)handoffToken().then(t=>{HO_READY=t||""}).catch(()=>{});
   const ios=/iphone|ipad|ipod/i.test(navigator.userAgent),url="https://kodkreatora.bybusha.com/";
   const v=document.createElement("div");v.className="veil";
   v.innerHTML=`<div class="sheet" role="dialog" aria-label="Установить приложение"><h3>Установить приложение</h3>
