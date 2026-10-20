@@ -6,7 +6,7 @@
 <title>Код Креатора</title>
 <meta name="theme-color" content="#0d0d0d">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
 <meta name="apple-mobile-web-app-title" content="Код Креатора">
 <meta name="robots" content="noindex">
 <link rel="manifest" href="manifest.json">
@@ -438,6 +438,7 @@ function nextAfter(id){const a=allLes(),i=a.findIndex(l=>l.id===id);return a.sli
 function section(){const h=location.hash.slice(1);if(h==="st"||/^hw\/(check|s\/|rv\/)/.test(h))return "st";for(const k of ["mat","hw","jobs","me"])if(h.startsWith(k))return k;return ""}
 let LAST_H=null;const KEEP={t:0,y:0};
 function route(){
+  {const a=document.activeElement;if(!a||!/INPUT|TEXTAREA/.test(a.tagName))document.body.classList.remove("kb")} // меню снизу не должно остаться спрятанным после входа
   if(!S.user)return;
   {const m=document.getElementById("main");KEEP.t=m?m.scrollTop:0;KEEP.y=window.scrollY}
   const h=decodeURIComponent(location.hash.slice(1));
@@ -1111,7 +1112,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792473831";
+const BUILD="1792474733";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
