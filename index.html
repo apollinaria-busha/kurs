@@ -1111,7 +1111,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792473107";
+const BUILD="1792473338";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
@@ -1176,7 +1176,7 @@ function installSheet(){
   const ios=/iphone|ipad|ipod/i.test(navigator.userAgent),url="https://kodkreatora.bybusha.com/";
   const v=document.createElement("div");v.className="veil";
   v.innerHTML=`<div class="sheet" role="dialog" aria-label="Установить приложение"><h3>Установить приложение</h3>
-    ${TG?`<p class="hint" style="font-size:14px">Из Telegram установить нельзя — сначала открой приложение в браузере, войди через Telegram один раз, и дальше:</p>`:""}
+    ${TG?`<p class="hint" style="font-size:14px">Из Telegram установить нельзя — нажми «Открыть в браузере» ниже (вход перенесётся сам), и дальше:</p>`:""}
     <ol>${ios?`<li>Открой в <b>Safari</b></li><li>Нажми «Поделиться» (квадрат со стрелкой)</li><li>Прокрути вниз и выбери «На экран „Домой“» (на новых iOS «Поделиться» спрятано под ⋯ внизу справа)</li>`
       :`<li>Открой в <b>Chrome</b></li><li>Нажми ⋮ в правом верхнем углу</li><li>Выбери «Установить приложение» или «Добавить на гл. экран»</li>`}
     <li>Иконка «Код Креатора» появится на экране — входить заново не придётся</li></ol>
@@ -1186,6 +1186,12 @@ function installSheet(){
   document.body.appendChild(v);
 }
 if("serviceWorker" in navigator&&!TG)navigator.serviceWorker.register("sw.js").catch(()=>{});
+// внутри Telegram обычные ссылки (файлы, гайды, Zoom, Диск) открываем через Telegram сразу по нажатию — иначе iPhone их может не открыть
+document.addEventListener("click",e=>{
+  if(!TG||e.defaultPrevented)return;const a=e.target.closest&&e.target.closest("a[href]");if(!a)return;
+  const href=a.getAttribute("href")||"";if(!/^https?:/i.test(href))return;
+  e.preventDefault();/^https?:\/\/t\.me\//i.test(href)?openTg(href):TG.openLink(href);
+});
 
 // пока набираем текст — прячем нижнее меню (иначе на iPhone и в Telegram оно встаёт поверх поля) и показываем поле по центру
 document.addEventListener("focusin",e=>{if(!e.target.matches||!e.target.matches("input:not([type=file]):not([type=checkbox]):not([type=radio]),textarea"))return;
