@@ -62,6 +62,11 @@ a{color:var(--sun)}
 
 /* нижнее меню */
 body.kb .tabs{display:none!important}
+/* установленное приложение на iPhone: iOS размывает полосу под часами — держим там сплошной фон, шапку опускаем ниже */
+@media (display-mode: standalone){
+  .top{padding-top:calc(env(safe-area-inset-top) + 18px)}
+  body::before{content:"";position:fixed;left:0;right:0;top:0;height:calc(env(safe-area-inset-top) + 18px);background:var(--ink);z-index:5;pointer-events:none}
+}
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));background:color-mix(in srgb,var(--panel) 94%,transparent);
   backdrop-filter:blur(12px);border-top:1px solid var(--line);padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
 .tab{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 0;color:var(--muted);font-size:10px;letter-spacing:-.01em;font-weight:600;line-height:1.15;text-align:center}
@@ -1112,7 +1117,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792474733";
+const BUILD="1792475132";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
