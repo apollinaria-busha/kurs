@@ -338,7 +338,7 @@ async function call(body, tries=3){
 }
 async function api(body){
   const res=await call({...body,session:S.session});
-  if(res&&res.error==="auth"){store("kk_session");store("kk_course");S.session=null;start();throw new Error("auth")}
+  if(res&&res.error==="auth"){store("kk_session");store("kk_course");store("kk_acc");S.session=null;start();throw new Error("auth")}
   if(res&&res.error==="soon"){showSoon();throw new Error("auth")}
   return res;
 }
@@ -425,7 +425,7 @@ async function loadCourse(){
   let res;
   try{res=await api({api:"course"})}catch(e){if(e.message==="auth")return;if(!cached)screen(`${logo()}<p>Нет связи с сервером. Обнови страницу чуть позже.</p>`);return}
   if(!res.ok){if(!cached)screen(`${logo()}<p>Ошибка: ${esc(res.error)}</p>`);return}
-  store("kk_course",JSON.stringify(res));apply(res);handoffUrl();
+  store("kk_course",JSON.stringify(res));apply(res);handoffUrl();if(!S.acc)setTimeout(loadAccount,300);
   if(!document.querySelector("#hwf"))route(); // не сбрасываем форму ДЗ, если ученица её заполняет
 }
 function apply(res){S.user=res.user;S.mods=res.mods;S.mats=res.mats||[];S.done=new Set(res.done);S.subs=res.hw||[];S.tests=res.tests||{};S.testRes=res.testRes||{};S.lsName=res.lsName||"Полине"}
@@ -1104,8 +1104,14 @@ function payHtml(p){
       :p.raw&&p.raw!=="-"?`<p class="hint" style="white-space:pre-line">${esc(p.raw)}</p>`:""}
     <p class="hint">Приложение напомнит о платеже за 3 дня и в день оплаты. Вопросы по оплате — в отдел заботы.</p></div>`;
 }
-async function loadAccount(){
-  try{const r=await api({api:"account"});if(!r.ok)return;S.acc=r;if(location.hash.slice(1)==="me")document.querySelector(".inner").innerHTML=meView()}catch(e){}
+// профиль: показываем сохранённый на телефоне сразу, свежий подтягиваем в фоне (сервер отвечает 3–10 секунд)
+let accLoading=null;
+function loadAccount(){
+  if(!S.acc){try{const c=JSON.parse(load("kk_acc")||"null");if(c&&c.ok)S.acc=c}catch(e){}}
+  if(accLoading)return accLoading;
+  accLoading=(async()=>{try{const r=await api({api:"account"});if(!r.ok)return;S.acc=r;store("kk_acc",JSON.stringify(r));
+    if(location.hash.slice(1)==="me"&&document.querySelector(".inner"))rerenderMe()}catch(e){}finally{accLoading=null}})();
+  return accLoading;
 }
 // уведомления от самого приложения (web push через Firebase): всплывают с иконкой КК, тап открывает нужный экран.
 // На iPhone — только у приложения, установленного на экран «Домой»; внутри Telegram пушей нет (тогда письмо на почту).
@@ -1143,10 +1149,10 @@ function checkNotify(){
   });
 }
 function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window.open(u,'_blank')}
-function logout(){store("kk_session");store("kk_course");location.hash="";location.reload()}
+function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792475902";
+const BUILD="1792478301";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
