@@ -598,7 +598,7 @@ function lessonView(l){
 function isAuthor(){return !!(S.user&&S.user.a&&S.user.s==="автор")}
 const edIn=h=>String(h||"").replace(/<div data-kv="([A-Za-z0-9]+)"><\/div>/g,'<div data-kv="$1" class="kvph" contenteditable="false">🎬 Видео урока — остаётся на этом месте</div>');
 function edOut(el){const c=el.cloneNode(true);c.querySelectorAll("[data-kv]").forEach(d=>{const id=d.dataset.kv,n=document.createElement("div");n.setAttribute("data-kv",id);d.replaceWith(n)});
-  return c.innerHTML.replace(/<div data-kv="([A-Za-z0-9]+)"><\/div>/g,'<div data-kv="$1"></div>').replace(/(<br>\s*)+$/,"").trim()}
+  return c.innerHTML.replace(/<div data-kv="([A-Za-z0-9]+)"><\/div>/g,'<div data-kv="$1"></div>').replace(/<p>\s*<\/p>/g,"").replace(/(<br>\s*)+$/,"").trim()}
 function editView(l){
   const bar=t=>`<div class="edbar" data-for="${t}"><button type="button" data-c="bold"><b>Ж</b></button><button type="button" data-c="italic"><i>К</i></button><button type="button" data-c="insertUnorderedList">• Список</button><button type="button" data-c="link">🔗 Ссылка</button><button type="button" data-c="unlink">Убрать ссылку</button></div>`;
   return `<div class="crumbs">Урок ${esc(l.id)} · правка</div>
@@ -613,6 +613,7 @@ function editView(l){
 }
 function bindEdit(id){
   const f=document.getElementById("lef");if(!f)return;const l=findLes(id);
+  const eh0=document.getElementById("edH"),et0=document.getElementById("edT"),init={h:eh0?edOut(eh0):"",t:et0?edOut(et0):""}; // сохраняем только то, что правили
   f.querySelectorAll(".edbar button").forEach(b=>b.onmousedown=e=>e.preventDefault());
   f.querySelectorAll(".edbar button").forEach(b=>b.onclick=()=>{const ed=document.getElementById(b.parentNode.dataset.for);ed.focus();
     if(b.dataset.c==="link"){const u=prompt("Ссылка (https://…)");if(u)document.execCommand("createLink",false,/^https?:/i.test(u)?u:"https://"+u)}
@@ -621,8 +622,8 @@ function bindEdit(id){
   f.onsubmit=async e=>{e.preventDefault();const btn=f.querySelector("[type=submit]"),body={api:"lessonedit",lesson:l.id};
     const t=f.t.value.trim();if(!t)return toast("Название не может быть пустым");if(t!==l.t)body.t=t;
     const eh=document.getElementById("edH"),et=document.getElementById("edT");
-    if(eh){const v=edOut(eh);if(v!==String(l.html||"").trim())body.html=v}
-    if(et){const v=edOut(et);if(v!==String(l.task||"").trim())body.task=v}
+    if(eh){const v=edOut(eh);if(v!==init.h)body.html=v}
+    if(et){const v=edOut(et);if(v!==init.t)body.task=v}
     if(Object.keys(body).length<3)return toast("Ничего не изменилось");
     btn.disabled=true;btn.textContent="Сохраняем…";
     try{const r=await api(body);if(!r.ok)throw new Error(r.error);
@@ -1235,7 +1236,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792594646";
+const BUILD="1792594764";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
