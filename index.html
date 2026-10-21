@@ -124,6 +124,10 @@ details>summary{list-style:none}details>summary::-webkit-details-marker{display:
 .body-text>*:first-child{margin-top:0}.body-text>*:last-child{margin-bottom:0}
 .body-text img{max-width:100%;height:auto;border-radius:12px}
 .body-text .gap{display:block;height:12px}
+.ed{min-height:140px;background:var(--panel2);border-radius:12px;padding:12px 14px;outline:none;font-size:15px;line-height:1.6;color:#e4ded1;overflow-wrap:break-word}
+.ed:focus{box-shadow:0 0 0 2px var(--sun)}.ed a{color:var(--sun)}
+.ed .kvph{display:block;margin:10px 0;padding:14px;border-radius:10px;background:var(--panel);color:var(--muted);font-size:13px;text-align:center;user-select:none}
+.edbar{display:flex;gap:6px;flex-wrap:wrap}.edbar button{background:var(--panel2);color:var(--text);border:0;border-radius:9px;padding:7px 12px;font:inherit;font-size:13.5px;cursor:pointer}
 .files{display:flex;flex-direction:column;gap:8px}
 .file{display:flex;gap:12px;align-items:center;background:var(--panel);border-radius:12px;padding:10px 12px;text-decoration:none;color:var(--text);text-align:left;width:100%}
 .file .ext{font-family:var(--f-mono);font-size:10px;width:42px;height:40px;border-radius:9px;background:var(--panel2);display:grid;place-items:center;color:var(--sun);flex:none;text-align:center;line-height:1.1}
@@ -450,6 +454,7 @@ function route(){
   let view,title="",back=false;
   S.cur=null;
   if(h.startsWith("l/")){const l=findLes(h.slice(2));if(l){view=lessonView(l);title="Урок "+l.id;back=true;S.open.add(l.m.n);S.cur=l.id}}
+  else if(h.startsWith("le/")&&isAuthor()){const l=findLes(h.slice(3));if(l){view=editView(l);title="Правка урока";back=true}}
   else if(h.startsWith("m/")){const m=S.mods.find(m=>m.n===h.slice(2));if(m){view=moduleView(m);title="Модуль "+m.n;back=true;S.open.add(m.n)}}
   else if(h.startsWith("test/")){const l=findLes(h.slice(5));if(l){view=testView(l);title="Тест";back=true}}
   else if(h.startsWith("hw/new")){view=wizardView(h.slice(7));title="Сдать работу";back=true}
@@ -576,6 +581,7 @@ function lessonView(l){
   const d=S.done.has(l.id),nx=nextAfter(l.id);
   return `<div class="crumbs">Модуль ${esc(l.m.n)} · ${esc(l.m.t)} · урок ${esc(l.id)}</div>
     <h1 class="h">${esc(l.t)}</h1>
+    ${isAuthor()?`<a class="btn g" href="#le/${encodeURIComponent(l.id)}">✏️ Редактировать текст урока</a>`:""}
     ${/data-kv=/.test(l.html)?"":videoHtml(l.video)}
     ${l.html?`<div class="body-text">${prettyLinks(l.html).replace(/<div data-kv="([A-Za-z0-9]+)"><\/div>/g,(_,id)=>videoHtml(id))}</div>`:""}
     ${l.files.length?`<div class="sec-t">Материалы к уроку</div>${btnBlock(l.files)}`:""}
@@ -586,6 +592,44 @@ function lessonView(l){
     <button class="btn ${d?"done":"g"}" id="doneBtn" onclick="toggleDone('${esc(l.id)}')">${d?"✓ Урок пройден":"Отметить пройденным"}</button>
     <div class="navrow"><button class="btn g" onclick="location.hash='m/${esc(l.m.n)}'">К модулю</button>
       ${nx?`<button class="btn y" onclick="openLes('${esc(nx.id)}')">Следующий →</button>`:`<button class="btn g" onclick="location.hash=''">На главную</button>`}</div>`;
+}
+
+// правка урока автором: название, текст, задание — сразу в таблицу, без уведомлений ученицам (история — лист «Правки уроков»)
+function isAuthor(){return !!(S.user&&S.user.a&&S.user.s==="автор")}
+const edIn=h=>String(h||"").replace(/<div data-kv="([A-Za-z0-9]+)"><\/div>/g,'<div data-kv="$1" class="kvph" contenteditable="false">🎬 Видео урока — остаётся на этом месте</div>');
+function edOut(el){const c=el.cloneNode(true);c.querySelectorAll("[data-kv]").forEach(d=>{const id=d.dataset.kv,n=document.createElement("div");n.setAttribute("data-kv",id);d.replaceWith(n)});
+  return c.innerHTML.replace(/<div data-kv="([A-Za-z0-9]+)"><\/div>/g,'<div data-kv="$1"></div>').replace(/(<br>\s*)+$/,"").trim()}
+function editView(l){
+  const bar=t=>`<div class="edbar" data-for="${t}"><button type="button" data-c="bold"><b>Ж</b></button><button type="button" data-c="italic"><i>К</i></button><button type="button" data-c="insertUnorderedList">• Список</button><button type="button" data-c="link">🔗 Ссылка</button><button type="button" data-c="unlink">Убрать ссылку</button></div>`;
+  return `<div class="crumbs">Урок ${esc(l.id)} · правка</div>
+    <h1 class="h" style="font-size:22px">Правка урока</h1>
+    <p class="hint">Меняется сразу у всех учениц, уведомления им не приходят. Каждая правка сохраняется в листе «Правки уроков» — её можно вернуть.</p>
+    <form class="box" id="lef">
+      <label class="f">Название урока<input name="t" value="${esc(l.t)}"></label>
+      ${l.html||!l.task?`<b>Текст урока</b>${bar("edH")}<div class="ed" id="edH" contenteditable="true">${edIn(l.html)}</div>`:""}
+      ${hasHw(l)?`<b>Домашнее задание</b>${bar("edT")}<div class="ed" id="edT" contenteditable="true">${edIn(l.task)}</div>`:""}
+      <div class="navrow"><button class="btn g" type="button" onclick="history.back()">Отмена</button><button class="btn y" type="submit">Сохранить</button></div>
+    </form>`;
+}
+function bindEdit(id){
+  const f=document.getElementById("lef");if(!f)return;const l=findLes(id);
+  f.querySelectorAll(".edbar button").forEach(b=>b.onmousedown=e=>e.preventDefault());
+  f.querySelectorAll(".edbar button").forEach(b=>b.onclick=()=>{const ed=document.getElementById(b.parentNode.dataset.for);ed.focus();
+    if(b.dataset.c==="link"){const u=prompt("Ссылка (https://…)");if(u)document.execCommand("createLink",false,/^https?:/i.test(u)?u:"https://"+u)}
+    else document.execCommand(b.dataset.c)});
+  f.querySelectorAll(".ed").forEach(ed=>ed.onpaste=e=>{e.preventDefault();document.execCommand("insertText",false,(e.clipboardData||window.clipboardData).getData("text/plain"))});
+  f.onsubmit=async e=>{e.preventDefault();const btn=f.querySelector("[type=submit]"),body={api:"lessonedit",lesson:l.id};
+    const t=f.t.value.trim();if(!t)return toast("Название не может быть пустым");if(t!==l.t)body.t=t;
+    const eh=document.getElementById("edH"),et=document.getElementById("edT");
+    if(eh){const v=edOut(eh);if(v!==String(l.html||"").trim())body.html=v}
+    if(et){const v=edOut(et);if(v!==String(l.task||"").trim())body.task=v}
+    if(Object.keys(body).length<3)return toast("Ничего не изменилось");
+    btn.disabled=true;btn.textContent="Сохраняем…";
+    try{const r=await api(body);if(!r.ok)throw new Error(r.error);
+      if(body.t)l.t=body.t;if(body.html!=null)l.html=body.html;if(body.task!=null)l.task=body.task;
+      try{const c=JSON.parse(load("kk_course")||"{}");(c.mods||[]).forEach(m=>(m.les||[]).forEach(x=>{if(x.id===l.id){x.t=l.t;x.html=l.html;x.task=l.task}}));store("kk_course",JSON.stringify(c))}catch(e){}
+      toast("Сохранено ✓");location.hash="l/"+encodeURIComponent(l.id)}
+    catch(err){btn.disabled=false;btn.textContent="Сохранить";if(err.message!=="auth")toast("Не сохранилось: "+err.message)}};
 }
 
 async function toggleDone(id){
@@ -705,6 +749,7 @@ function bindView(h){
   if(h.startsWith("test/")){const l=findLes(h.slice(5));if(l)bindTest(l)}
   const sq=document.getElementById("svq");if(sq){sq.oninput=()=>{SV.q=sq.value;const p=sq.selectionStart;route();const n=document.getElementById("svq");n.focus();n.setSelectionRange(p,p)};sq.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();sq.blur()}}}
   if(h.startsWith("l/"))store("kk_last",h.slice(2));
+  if(h.startsWith("le/"))bindEdit(h.slice(3));
   const qf=document.getElementById("hwq");
   if(qf)qf.onsubmit=async e=>{e.preventDefault();const t=qf.q.value.trim(),b=qf.querySelector("button");if(!t)return toast("Напиши вопрос");
     b.disabled=true;b.textContent="Отправляем…";const l=findLes(WZ.les);
@@ -1190,7 +1235,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792580782";
+const BUILD="1792594646";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
