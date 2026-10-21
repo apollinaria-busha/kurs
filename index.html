@@ -628,6 +628,7 @@ function bindEdit(id){
     btn.disabled=true;btn.textContent="Сохраняем…";
     try{const r=await api(body);if(!r.ok)throw new Error(r.error);
       if(body.t)l.t=body.t;if(body.html!=null)l.html=body.html;if(body.task!=null)l.task=body.task;
+      S.mods.forEach(m=>m.les.forEach(x=>{if(x.id===l.id){x.t=l.t;x.html=l.html;x.task=l.task}})); // findLes отдаёт копию — правим сам урок
       try{const c=JSON.parse(load("kk_course")||"{}");(c.mods||[]).forEach(m=>(m.les||[]).forEach(x=>{if(x.id===l.id){x.t=l.t;x.html=l.html;x.task=l.task}}));store("kk_course",JSON.stringify(c))}catch(e){}
       toast("Сохранено ✓");location.hash="l/"+encodeURIComponent(l.id)}
     catch(err){btn.disabled=false;btn.textContent="Сохранить";if(err.message!=="auth")toast("Не сохранилось: "+err.message)}};
@@ -1236,7 +1237,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792594764";
+const BUILD="1792594863";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
