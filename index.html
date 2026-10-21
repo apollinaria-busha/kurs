@@ -428,8 +428,8 @@ async function loadCourse(){
   store("kk_course",JSON.stringify(res));apply(res);handoffUrl();if(!S.acc)setTimeout(loadAccount,300);
   if(!document.querySelector("#hwf"))route(); // не сбрасываем форму ДЗ, если ученица её заполняет
 }
-function apply(res){S.user=res.user;S.mods=res.mods;S.mats=res.mats||[];S.done=new Set(res.done);S.subs=res.hw||[];S.tests=res.tests||{};S.testRes=res.testRes||{};S.lsName=res.lsName||"Полине"}
-function saveCache(){try{const c=JSON.parse(load("kk_course")||"{}");c.done=[...S.done];c.hw=S.subs;store("kk_course",JSON.stringify(c))}catch(e){}}
+function apply(res){S.user=res.user;S.mods=res.mods;S.mats=res.mats||[];S.done=new Set(res.done);setHw(res.hw);S.tests=res.tests||{};S.testRes=res.testRes||{};S.lsName=res.lsName||"Полине"}
+function saveCache(){try{const c=JSON.parse(load("kk_course")||"{}");c.done=[...S.done];c.hw=[...S.subs,...S.qs];store("kk_course",JSON.stringify(c))}catch(e){}}
 
 /* ---------- данные ---------- */
 const allLes=()=>S.mods.flatMap(m=>m.les.map(l=>({...l,m})));
@@ -627,7 +627,15 @@ function hwTitle(l){return shortT(String(l.hw||"").split("|")[2]||l.t)}
 function subsOf(id,part){return S.subs.filter(x=>x.lesson===id&&(part==null||x.part===part||(!x.part&&(parts(findLes(id)).length===1||x.how==='из ГетКурса'))))}
 function lastSub(id,part){const a=subsOf(id,part);return a[a.length-1]}
 function partsDone(l){return parts(l).filter(p=>lastSub(l.id,p)).length}
-const ST={"принято":["ok","принято ✓"],"доработать":["redo","доработать"]};
+const ST={"принято":["ok","принято ✓"],"доработать":["redo","доработать"],"вопрос":["sent","вопрос"],"отвечено":["ok","отвечено ✓"]};
+// вопросы учениц по заданию — отдельно от сдач: не засчитываются и не попадают в «Мои работы»
+function setHw(list){list=list||[];S.subs=list.filter(x=>x.how!=="вопрос");S.qs=list.filter(x=>x.how==="вопрос")}
+function qBox(l){
+  const qs=(S.qs||[]).filter(x=>x.lesson===l.id);
+  return `<form class="box" id="hwq"><b>Вопрос ${esc(S.lsName)} по заданию</b>
+    ${qs.map(x=>`<div style="display:grid;gap:6px;padding:10px 0;border-top:1px solid var(--line)"><small class="hint">${esc(x.when.slice(0,16))} ${stChip(x)}</small><div class="body-text" style="white-space:pre-line">${esc(x.comment||"")}</div>${x.reply?`<div class="reply">${esc(x.reply)}</div>`:""}</div>`).join("")}
+    <textarea name="q" placeholder="Что непонятно в задании? Это не сдача работы — просто вопрос" style="min-height:90px"></textarea>
+    <button class="btn g" type="submit">Задать вопрос</button></form>`}
 function stChip(s){if(!s)return `<span class="chip">не сдано</span>`;const x=ST[s.status];
   if(x)return `<span class="chip ${x[0]}">${s.how&&s.how.startsWith("отметка")?"сделано ✓":x[1]}</span>`;
   return `<span class="chip sent">${s.how==="в ЛС"?"в ЛС":"на проверке"}</span>`}
@@ -674,7 +682,8 @@ function wizardView(pre){
       <span class="thumb">${x.cover?`<img src="${esc(x.cover)}" alt="">`:""}</span><span><b>${esc(hwTitle(x))}</b><small>Урок ${esc(x.id)}${parts(x).length>1?" · "+parts(x).length+" "+plural(parts(x).length,"часть","части","частей"):""}</small></span>${hwChip(x.id)}</button>`).join("")}</div>
     <span id="wzp"></span>${l?`<details class="box"><summary style="cursor:pointer;font-weight:700;display:flex;justify-content:space-between">Текст задания <span style="color:var(--sun)">показать ▾</span></summary><div class="body-text" style="margin-top:10px">${prettyLinks(l.task)}</div>${kind==="text+test"?(testOf(l)?`<a class="btn g" href="#test/${encodeURIComponent(l.id)}">Пройти тест к уроку</a>`:`<p class="hint">Тест скоро появится в приложении.</p>`):""}</details>`:""}
     ${l&&ps.length>1?`${step(3,"Что сдаёшь")}<div class="chips">${ps.map(p=>{const s=lastSub(l.id,p);return `<button class="chipbtn ${p===WZ.part?"on":""} ${s?(s.status==="доработать"?"redo":"has"):""}" onclick="WZ.part=${esc(JSON.stringify(p))};route();setTimeout(()=>document.getElementById('hwf')?.scrollIntoView({behavior:'smooth',block:'center'}),50)">${s&&s.status!=="доработать"?"✓ ":""}${esc(p)}</button>`}).join("")}</div>`:""}
-    ${l&&WZ.part?hwForm(l,kind):""}`;
+    ${l&&WZ.part?hwForm(l,kind):""}
+    ${l?qBox(l):""}`;
 }
 function hwForm(l,kind){
   const s=lastSub(l.id,WZ.part);
@@ -683,7 +692,7 @@ function hwForm(l,kind){
   const how=WZ.how;
   return prev+`<form class="box" id="hwf" data-mode="${how}">
     <div class="seg" style="grid-template-columns:repeat(3,1fr)">${[["upload","Файл / ссылка"],["text","Текстом"],["ls",`Уже в ЛС ${esc(S.lsName)}`]].map(([k,t])=>`<button type="button" data-m="${k}" aria-pressed="${how===k}">${t}</button>`).join("")}</div>
-    ${how==="upload"?`<label class="f">Ссылка на работу<input type="url" name="link" placeholder="https://"></label><label class="f">Или файл до 20 МБ<input type="file" name="file"></label>`:""}
+    ${how==="upload"?`<label class="f">Ссылка на работу<input type="url" name="link" placeholder="https://"></label><label class="f">Или файлы — фото и видео, до ${HW_MAX} штук<input type="file" name="file" multiple></label><p class="hint" id="hwfl" style="margin:-4px 0 0"></p>`:""}
     ${how!=="ls"?`<label class="f">${how==="text"?"Твой ответ":"Комментарий"}<textarea name="comment" placeholder="…" ${how==="text"?'style="min-height:150px"':""}></textarea></label>`:`<p class="hint">Отметим, что эта работа сдана в личку — она засчитается в программе.</p>`}
     <button class="btn y" type="submit">${{upload:"Отправить работу",text:"Отправить ответ",ls:"Отметить как сданное"}[how]}</button></form>`;
 }
@@ -696,22 +705,35 @@ function bindView(h){
   if(h.startsWith("test/")){const l=findLes(h.slice(5));if(l)bindTest(l)}
   const sq=document.getElementById("svq");if(sq){sq.oninput=()=>{SV.q=sq.value;const p=sq.selectionStart;route();const n=document.getElementById("svq");n.focus();n.setSelectionRange(p,p)};sq.onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();sq.blur()}}}
   if(h.startsWith("l/"))store("kk_last",h.slice(2));
+  const qf=document.getElementById("hwq");
+  if(qf)qf.onsubmit=async e=>{e.preventDefault();const t=qf.q.value.trim(),b=qf.querySelector("button");if(!t)return toast("Напиши вопрос");
+    b.disabled=true;b.textContent="Отправляем…";const l=findLes(WZ.les);
+    try{const r=await api({api:"homework",mode:"question",lesson:l.id,part:WZ.part||"",lessonTitle:l.id+" "+l.t,comment:t});if(!r.ok)throw new Error(r.error);
+      setHw(r.hw);saveCache();toast("Вопрос отправлен ✓ Ответ придёт уведомлением");route()}
+    catch(err){b.disabled=false;b.textContent="Задать вопрос";if(err.message!=="auth")toast("Не отправилось: "+(err.message||"нет связи"))}};
   const f=document.getElementById("hwf");if(!f)return;
   f.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{WZ.how=b.dataset.m;route()});
+  if(f.file)f.file.onchange=()=>{const n=f.file.files.length,mb=[...f.file.files].reduce((a,x)=>a+x.size,0)/1048576;document.getElementById("hwfl").textContent=n?`Выбрано: ${n} ${plural(n,"файл","файла","файлов")} · ${mb<1?"<1":Math.round(mb)} МБ`+(n>HW_MAX?` — можно не больше ${HW_MAX}`:""):""};
   f.onsubmit=async e=>{
     e.preventDefault();
     const l=findLes(WZ.les),btn=f.querySelector("[type=submit]"),m=f.dataset.mode,was=btn.textContent;
-    const link=f.link?f.link.value.trim():"",file=f.file?f.file.files[0]:null,comment=f.comment?f.comment.value.trim():"";
-    if(m==="upload"&&!link&&!file)return toast("Добавь ссылку или файл");
+    const link=f.link?f.link.value.trim():"",files=m==="upload"&&f.file?[...f.file.files].filter(x=>x.size>0):[],comment=f.comment?f.comment.value.trim():"";
+    if(m==="upload"&&!link&&!files.length)return toast("Добавь ссылку или файлы");
     if(m==="text"&&!comment)return toast("Напиши ответ");
-    if(file&&file.size>20*1024*1024)return toast("Файл больше 20 МБ — загрузи его на диск и пришли ссылку");
-    btn.disabled=true;btn.textContent=file?"Загружаем файл…":"Отправляем…";
+    if(files.length>HW_MAX)return toast(`Можно не больше ${HW_MAX} файлов за раз`);
+    btn.disabled=true;btn.textContent=files.length?"Загружаем файлы…":"Отправляем…";
     try{
-      let fd=null;
-      if(m==="upload"&&file)fd={name:file.name,type:file.type,data:await new Promise((ok,bad)=>{const r=new FileReader();r.onload=()=>ok(String(r.result).split(",")[1]);r.onerror=bad;r.readAsDataURL(file)})};
-      const r=await api({api:"homework",mode:m,lesson:l.id,part:WZ.part,lessonTitle:l.id+" "+l.t,link:m==="upload"?link:"",comment,file:fd});
+      const ids=[],total=files.reduce((a,x)=>a+x.size,0);let sent=0;
+      for(const [i,file] of files.entries()){
+        const st=await api({api:"upstart",lesson:l.id,name:file.name,type:file.type||"application/octet-stream",size:file.size,origin:location.origin});
+        if(!st.ok)throw new Error(st.error);
+        ids.push(await uploadFile(st.url,file,b=>{btn.textContent=`Загружаем ${files.length>1?(i+1)+" из "+files.length+" · ":""}${Math.floor((sent+b)/total*100)}%`}));
+        sent+=file.size;
+      }
+      if(files.length)btn.textContent="Отправляем…";
+      const r=await api({api:"homework",mode:m,lesson:l.id,part:WZ.part,lessonTitle:l.id+" "+l.t,link:m==="upload"?link:"",comment,files:ids});
       if(!r.ok)throw new Error(r.error);
-      S.subs=r.hw;saveCache();
+      setHw(r.hw);saveCache();
       if(TG)try{TG.HapticFeedback.notificationOccurred("success")}catch(e){}
       const left=parts(l).filter(p=>!lastSub(l.id,p));
       toast(m==="done"?"Задание засчитано ✓":"Сдано: "+WZ.part+" ✓");
@@ -719,6 +741,22 @@ function bindView(h){
     }catch(err){btn.disabled=false;btn.textContent=was;if(err.message!=="auth")toast("Не отправилось: "+(err.message||"нет связи"))}
   };
 }
+
+// файл ДЗ — прямо на Google Диск по сессии загрузки с сервера, кусками по 8 МБ (большие видео не упираются в предел запроса)
+var HW_MAX=50,CHUNK=8*1024*1024;
+function uploadFile(url,file,prog){
+  const put=(from)=>new Promise((ok,bad)=>{
+    const to=Math.min(from+CHUNK,file.size),x=new XMLHttpRequest();
+    x.open("PUT",url);x.setRequestHeader("Content-Range",`bytes ${from}-${to-1}/${file.size}`);
+    x.upload.onprogress=e=>prog(from+e.loaded);
+    x.onload=()=>x.status===308?ok({next:to}):x.status>=200&&x.status<300?ok({id:JSON.parse(x.responseText).id}):bad(new Error("загрузка "+x.status));
+    x.onerror=()=>bad(new Error("нет связи"));x.send(file.slice(from,to));
+  });
+  return (async()=>{let from=0;for(;;){let r,tries=0;
+    for(;;){try{r=await put(from);break}catch(e){if(++tries>=4)throw e;await new Promise(t=>setTimeout(t,1500*tries))}}
+    if(r.id)return r.id;from=r.next}})();
+}
+function fileList(f){return String(f||"").split(/\s+/).filter(Boolean)}
 
 /* ---------- проверка ДЗ (автор и команда) ---------- */
 const RV={items:null,filter:"wait",q:""};
@@ -729,7 +767,7 @@ async function loadReview(force){
 function rvChip(s){return stChip({status:s.status,how:s.how})}
 function reviewView(){
   if(!RV.items){loadReview();return `<h1 class="h">Проверка ДЗ</h1><div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}
-  const wait=RV.items.filter(x=>x.status==="на проверке"&&!/^отметка/.test(x.how));
+  const wait=RV.items.filter(x=>(x.status==="на проверке"||x.status==="вопрос")&&!/^отметка/.test(x.how));
   const q=RV.q.trim().toLowerCase();
   let list=RV.filter==="wait"?wait:RV.items;
   if(q)list=list.filter(x=>(x.name+" "+x.nick+" "+x.title+" "+x.part).toLowerCase().includes(q));
@@ -746,24 +784,24 @@ function driveId(u){const m=String(u||"").match(/\/d\/([\w-]{20,})|[?&]id=([\w-]
 function reviewItem(row){
   const x=(RV.items||[]).find(i=>String(i.row)===String(row));
   if(!x){loadReview();return `<div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}
-  const l=findLes(x.lesson),fid=driveId(x.file)||driveId(x.link);
+  const l=findLes(x.lesson),fl=fileList(x.file),fids=fl.map(driveId).filter(Boolean),fid=fids.length?"":driveId(x.link);
   return `<div class="crumbs">${esc(x.when)} · ${esc(x.how)}</div>
     <h1 class="h" style="font-size:22px">${esc(x.name)} <span style="color:var(--muted)">${esc(x.nick)}</span></h1>
     <div class="box" style="gap:6px"><b>${esc(l?hwTitle(l):x.title)}${x.part?" · "+esc(x.part):""}</b><small class="hint">Урок ${esc(x.lesson)}</small>${l?`<a class="hint" href="#l/${encodeURIComponent(l.id)}">Открыть урок и текст задания →</a>`:""}</div>
-    ${fid?`<div class="video" style="aspect-ratio:9/12;max-height:70vh"><iframe src="https://drive.google.com/file/d/${esc(fid)}/preview" allow="autoplay; fullscreen" allowfullscreen></iframe></div>`:""}
+    ${fids.length>1?`<p class="hint">Файлов: ${fids.length}</p>`:""}${(fids.length?fids:fid?[fid]:[]).map((id,i)=>`<div class="video" style="aspect-ratio:9/12;max-height:70vh"><iframe src="https://drive.google.com/file/d/${esc(id)}/preview" allow="autoplay; fullscreen" allowfullscreen ${i?'loading="lazy"':""}></iframe></div>`).join("")}
     ${x.link&&!driveId(x.link)?`<div>${pill(x.link,"Открыть работу")}</div>`:""}
-    ${x.file?`<div>${pill(x.file,"Файл на Диске")}</div>`:""}
-    ${x.comment?`<div class="box"><b>${x.how==="ответ текстом"?"Ответ ученицы":"Комментарий ученицы"}</b><div class="body-text" style="white-space:pre-line">${esc(x.comment)}</div></div>`:""}
+    ${fl.length?`<div class="chips">${fl.map((u,i)=>pill(u,fl.length>1?"Файл "+(i+1):"Файл на Диске")).join("")}</div>`:""}
+    ${x.comment?`<div class="box"><b>${x.how==="вопрос"?"❓ Вопрос ученицы":x.how==="ответ текстом"?"Ответ ученицы":"Комментарий ученицы"}</b><div class="body-text" style="white-space:pre-line">${esc(x.comment)}</div></div>`:""}
     ${x.how==="в ЛС"?`<p class="hint">Работа отправлена тебе в личные сообщения — посмотри её там.</p>`:""}
     <form class="box" id="rvf"><div style="display:flex;justify-content:space-between;align-items:center"><b>Твой ответ</b>${rvChip(x)}</div>
       <textarea name="reply" placeholder="…" style="min-height:110px">${esc(x.reply||"")}</textarea>
-      <div class="navrow"><button class="btn done" type="submit" data-st="принято">Принято ✓</button><button class="btn g" type="submit" data-st="доработать" style="color:var(--bad)">Доработать</button></div>
+      ${x.how==="вопрос"?`<button class="btn y" type="submit" data-st="отвечено">Ответить</button>`:`<div class="navrow"><button class="btn done" type="submit" data-st="принято">Принято ✓</button><button class="btn g" type="submit" data-st="доработать" style="color:var(--bad)">Доработать</button></div>`}
       <p class="hint">Ученице сразу придёт сообщение от бота со статусом и твоим ответом.</p></form>`;
 }
 function bindReview(h){
   const q=document.getElementById("rvq");if(q)q.oninput=()=>{RV.q=q.value;const pos=q.selectionStart;route();const n=document.getElementById("rvq");n.focus();n.setSelectionRange(pos,pos)};
   const f=document.getElementById("rvf");if(!f)return;
-  let st="принято";f.querySelectorAll("[data-st]").forEach(b=>b.onclick=()=>st=b.dataset.st);
+  let st=f.querySelector("[data-st]").dataset.st;f.querySelectorAll("[data-st]").forEach(b=>b.onclick=()=>st=b.dataset.st);
   f.onsubmit=async e=>{e.preventDefault();const row=h.split("/")[2],btns=f.querySelectorAll("button");btns.forEach(b=>b.disabled=true);
     try{const r=await api({api:"answer",row,status:st,reply:f.reply.value.trim()});if(!r.ok)throw new Error(r.error);
       const x=RV.items.find(i=>String(i.row)===String(row));if(x){x.status=st;x.reply=f.reply.value.trim()}
@@ -1152,7 +1190,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792580369";
+const BUILD="1792580568";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
