@@ -1020,14 +1020,14 @@ function ssbHtml(list){
   const dleft=b.start?Math.ceil((new Date(b.start+"T10:00:00+03:00")-new Date())/864e5):null;
   const when=b.start?`${dleft>0?`Старт ${["в воскресенье","в понедельник","во вторник","в среду","в четверг","в пятницу","в субботу"][new Date(b.start+"T12:00:00+03:00").getDay()]}, ${fmtDate(b.start)} · через ${dleft} ${plural(dleft,"день","дня","дней")}`:dleft===0?"Старт сегодня!":"Старт был "+fmtDate(b.start)}`:"Дата скоро появится";
   const me=b.me;if(ssbOpen===null)ssbOpen=list.some(x=>x.status==="идёт");
-  const dl=b.deadline?Math.ceil((new Date(b.deadline+"T23:59:00+03:00")-new Date())/864e5):null;
+  const msk=new Date(Date.now()+3*36e5).toISOString().slice(0,10),dl=b.deadline?Math.round((new Date(b.deadline)-new Date(msk))/864e5):null; // календарные дни по МСК
   const dlTxt=b.deadline?(dl>=0?`Дедлайн ${fmtDate(b.deadline)} включительно (МСК) · ${dl?"осталось "+dl+" "+plural(dl,"день","дня","дней"):"сегодня последний день"}`:`Дедлайн был ${fmtDate(b.deadline)}`):"";
   const live=b.status==="идёт"&&!S.user.a;
   return `<div class="sec-t">ССБ · сотрудничество с брендами</div>
     <div class="box" style="gap:12px">
       <button style="display:flex;align-items:center;gap:12px;text-align:left;width:100%" onclick="ssbOpen=!ssbOpen;rerenderMe()">
         <img src="img/ssb.jpg" alt="ССБ" style="width:52px;height:52px;border-radius:50%">
-        <span style="flex:1"><b style="font-size:15px">${list.length>1?list.length+" "+plural(list.length,"бренд","бренда","брендов"):esc(b.brand)}</b><small class="hint" style="display:block">${esc(when)}</small></span>
+        <span style="flex:1"><b style="font-size:15px">${list.length>1?list.length+" "+plural(list.length,"бренд","бренда","брендов"):esc(b.brand)}</b><small class="hint" style="display:block">${esc(b.deadline&&b.status==="идёт"?"Тестовое до "+fmtDate(b.deadline):when)}</small></span>
         <span style="color:var(--sun);font-weight:700;font-size:13px">${ssbOpen?"свернуть ▴":"открыть ▾"}</span></button>
       ${ssbOpen?`${list.length>1?`<div class="chips">${list.map((x,i)=>`<button class="chipbtn ${i===ssbPick?"on":""}" style="display:flex;align-items:center;gap:8px;padding:6px 12px 6px 6px" onclick="ssbPick=${i};rerenderMe()"><img src="${esc(x.logo||"img/ssb.jpg")}" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover">${esc(x.brand)}</button>`).join("")}</div>`:""}
         <div style="display:flex;gap:14px;align-items:center"><img src="${esc(b.logo||"img/ssb.jpg")}" alt="" style="width:84px;height:84px;border-radius:18px;object-fit:cover;flex:none">
@@ -1035,7 +1035,7 @@ function ssbHtml(list){
         ${b.poster?`<img src="${esc(b.poster)}" alt="" style="width:100%;border-radius:14px">`:""}
         ${b.about?`<div class="body-text" style="font-size:14px;white-space:pre-line">${esc(b.about)}</div>`:`<p class="hint">Скоро здесь будет вся информация о бренде и задании.</p>`}
         ${dlTxt?`<div class="next" style="font-size:13.5px">⏰ ${esc(dlTxt)}</div>`:""}
-        ${b.link?`<div>${pill(b.link,"Открыть пост и тестовое задание в группе")}</div>`:""}
+        ${b.link?`<div>${pill(b.link,"Пост с заданием в группе")}</div>`:""}
         ${live?(me&&me.took?`<div class="kv"><span>Твоё участие</span><b style="color:var(--ok)">отправила тестовое ✓</b></div><button class="btn g" onclick="ssbJoin(${esc(JSON.stringify(b.brand))},false)">Отменить отметку</button>`
           :`<button class="btn y" onclick="ssbJoin(${esc(JSON.stringify(b.brand))},true)">Я отправила тестовое ${esc(S.lsName)} ✓</button><p class="hint" style="margin-top:-4px">Нажми, когда отправишь ролик в личку — так мы увидим, что ты участвуешь.</p>`):""}
         ${dleft>0?`<div class="next" style="font-size:13.5px">🔔 Напоминание: ${esc(when.toLowerCase())}. Подготовь портфолио и будь на связи — детали придут сюда и в группу.</div>`:""}
@@ -1263,7 +1263,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792768128";
+const BUILD="1792768280";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
