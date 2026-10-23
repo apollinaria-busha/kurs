@@ -511,6 +511,7 @@ function homeView(){
   return `<img class="banner" src="img/banner.jpg" alt="КОД КРЕАТОРА — программа обучения профессии режиссёра монтажа">${pre}
     <div class="hello"><h1>Привет, ${esc(S.user.n||"креатор")}</h1><p>${S.user.a?(S.user.s||"автор"):"ученица"} · пройдено ${p}% программы</p></div>
     ${n?`<button class="cont" onclick="openLes('${esc(n.id)}')"><span class="k">${last?"Продолжить":"Начать"} · урок ${esc(n.id)}</span><b>${esc(n.t)}</b><span class="bar"><i style="width:${p}%"></i></span></button>`:""}
+    ${ssbHome()}
     <div class="notif"></div>
     <input type="search" id="kbq" enterkeyhint="search" placeholder="Найти урок: шрифты, цвет, портфолио…" value="${esc(S.q)}" autocomplete="off">
     <div id="kbres"></div>
@@ -881,7 +882,7 @@ function studentsView(){
       <span style="display:flex;flex-direction:column;gap:5px;min-width:0"><b style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.name)}</b>
         <span style="display:flex;align-items:center;gap:8px"><span class="bar y" style="flex:1;height:6px"><i style="width:${x.pct}%"></i></span><small style="font-family:var(--f-mono);min-width:34px">${x.pct}%</small></span>
         <small>${x.nick?"@"+esc(x.nick):"без ника"}${x.opened?"":" · ещё не заходила"}${/отчисл/i.test(x.status)?" · отчислена":""}</small></span>
-      <span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">${x.wait?`<span class="chip sent">ДЗ: ${x.wait}</span>`:""}${x.pay&&!x.pay.full&&x.pay.debt?`<span class="chip redo">${rub(x.pay.debt)}</span>`:""}</span></button>`).join("")||`<div class="empty">Никого не нашли</div>`}</div>`;
+      <span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">${x.ssb?`<span class="chip ok">ССБ ✓</span>`:""}${x.wait?`<span class="chip sent">ДЗ: ${x.wait}</span>`:""}${x.pay&&!x.pay.full&&x.pay.debt?`<span class="chip redo">${rub(x.pay.debt)}</span>`:""}</span></button>`).join("")||`<div class="empty">Никого не нашли</div>`}</div>`;
 }
 function studentView(i){
   if(!SV.list){loadStudents();return `<div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}
@@ -1010,7 +1011,7 @@ function jobCount(n){
 }
 
 /* ---------- ССБ: сотрудничество с брендами ---------- */
-let ssbOpen=false,ssbPick=0;
+let ssbOpen=null,ssbPick=0; // null — раскрыт сам, пока идёт ССБ
 // перерисовать профиль, не прыгая наверх
 function rerenderMe(){const m=document.getElementById("main"),y=window.scrollY,t=m?m.scrollTop:0;document.querySelector(".inner").innerHTML=meView();checkNotify();if(m)m.scrollTop=t;window.scrollTo(0,y)}
 function ssbHtml(list){
@@ -1018,7 +1019,10 @@ function ssbHtml(list){
   const b=list[Math.min(ssbPick,list.length-1)];
   const dleft=b.start?Math.ceil((new Date(b.start+"T10:00:00+03:00")-new Date())/864e5):null;
   const when=b.start?`${dleft>0?`Старт ${["в воскресенье","в понедельник","во вторник","в среду","в четверг","в пятницу","в субботу"][new Date(b.start+"T12:00:00+03:00").getDay()]}, ${fmtDate(b.start)} · через ${dleft} ${plural(dleft,"день","дня","дней")}`:dleft===0?"Старт сегодня!":"Старт был "+fmtDate(b.start)}`:"Дата скоро появится";
-  const me=b.me;
+  const me=b.me;if(ssbOpen===null)ssbOpen=list.some(x=>x.status==="идёт");
+  const dl=b.deadline?Math.ceil((new Date(b.deadline+"T23:59:00+03:00")-new Date())/864e5):null;
+  const dlTxt=b.deadline?(dl>=0?`Дедлайн ${fmtDate(b.deadline)} включительно (МСК) · ${dl?"осталось "+dl+" "+plural(dl,"день","дня","дней"):"сегодня последний день"}`:`Дедлайн был ${fmtDate(b.deadline)}`):"";
+  const live=b.status==="идёт"&&!S.user.a;
   return `<div class="sec-t">ССБ · сотрудничество с брендами</div>
     <div class="box" style="gap:12px">
       <button style="display:flex;align-items:center;gap:12px;text-align:left;width:100%" onclick="ssbOpen=!ssbOpen;rerenderMe()">
@@ -1028,12 +1032,34 @@ function ssbHtml(list){
       ${ssbOpen?`${list.length>1?`<div class="chips">${list.map((x,i)=>`<button class="chipbtn ${i===ssbPick?"on":""}" style="display:flex;align-items:center;gap:8px;padding:6px 12px 6px 6px" onclick="ssbPick=${i};rerenderMe()"><img src="${esc(x.logo||"img/ssb.jpg")}" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover">${esc(x.brand)}</button>`).join("")}</div>`:""}
         <div style="display:flex;gap:14px;align-items:center"><img src="${esc(b.logo||"img/ssb.jpg")}" alt="" style="width:84px;height:84px;border-radius:18px;object-fit:cover;flex:none">
           <div><b style="font-size:16px">${esc(b.brand)}</b><p class="hint" style="margin-top:4px">${esc(when)}</p></div></div>
+        ${b.poster?`<img src="${esc(b.poster)}" alt="" style="width:100%;border-radius:14px">`:""}
         ${b.about?`<div class="body-text" style="font-size:14px;white-space:pre-line">${esc(b.about)}</div>`:`<p class="hint">Скоро здесь будет вся информация о бренде и задании.</p>`}
+        ${dlTxt?`<div class="next" style="font-size:13.5px">⏰ ${esc(dlTxt)}</div>`:""}
+        ${b.link?`<div>${pill(b.link,"Открыть пост и тестовое задание в группе")}</div>`:""}
+        ${live?(me&&me.took?`<div class="kv"><span>Твоё участие</span><b style="color:var(--ok)">отправила тестовое ✓</b></div><button class="btn g" onclick="ssbJoin(${esc(JSON.stringify(b.brand))},false)">Отменить отметку</button>`
+          :`<button class="btn y" onclick="ssbJoin(${esc(JSON.stringify(b.brand))},true)">Я отправила тестовое ${esc(S.lsName)} ✓</button><p class="hint" style="margin-top:-4px">Нажми, когда отправишь ролик в личку — так мы увидим, что ты участвуешь.</p>`):""}
         ${dleft>0?`<div class="next" style="font-size:13.5px">🔔 Напоминание: ${esc(when.toLowerCase())}. Подготовь портфолио и будь на связи — детали придут сюда и в группу.</div>`:""}
-        ${b.status==="завершено"||me?`<div class="kv"><span>Твоё участие</span><b>${me?(me.took?"участвовала ✓":"не участвовала"):"—"}</b></div>
+        ${!live&&(b.status==="завершено"||me)?`<div class="kv"><span>Твоё участие</span><b>${me?(me.took?"участвовала ✓":"не участвовала"):"—"}</b></div>
           ${me&&me.result?`<div class="kv"><span>Результат</span><b>${esc(me.result)}</b></div>`:""}
           ${me&&me.work?pfHtml([{t:"Моя работа для бренда",id:me.work}]):""}`:""}`:""}
     </div>`;
+}
+
+// на главной — карточка идущего ССБ (ведёт в профиль), пока ученица не отметила участие
+function ssbHome(){
+  if(!S.acc&&!S.user.a){try{const c=JSON.parse(load("kk_acc")||"null");if(c&&c.ok)S.acc=c}catch(e){}}
+  const b=((S.acc&&S.acc.ssb)||[]).find(x=>x.status==="идёт");if(!b||S.user.a)return "";
+  const done=b.me&&b.me.took;
+  return `<button class="cont" style="background:var(--panel);color:var(--text);border:1px solid var(--sun)" onclick="ssbOpen=true;location.hash='me';setTimeout(()=>document.querySelector('.sec-t+.box')&&[...document.querySelectorAll('.sec-t')].find(x=>/ССБ/.test(x.textContent))?.scrollIntoView({behavior:'smooth'}),400)">
+    <span class="k" style="color:var(--sun)">🤝 Сотрудничество с брендами</span><b>${esc(b.brand)}</b>
+    <span style="font-size:12.5px;font-weight:600;opacity:.8">${done?"Ты участвуешь ✓":"Тестовое задание"+(b.deadline?" до "+fmtDate(b.deadline):"")+" → подробнее"}</span></button>`;
+}
+async function ssbJoin(brand,v){
+  try{const r=await api({api:"ssbjoin",brand,value:v});if(!r.ok)throw new Error(r.error);
+    if(S.acc){S.acc.ssb=r.ssb;try{store("kk_acc",JSON.stringify(S.acc))}catch(e){}}
+    if(TG)try{TG.HapticFeedback.notificationOccurred("success")}catch(e){}
+    toast(v?"Отметили: ты участвуешь ✓ Удачи!":"Отметка снята");rerenderMe()}
+  catch(e){if(e.message!=="auth")toast("Не сохранилось: "+(e.message||"нет связи"))}
 }
 
 /* ---------- тесты (перенесены из ГК) ---------- */
@@ -1237,7 +1263,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1792594863";
+const BUILD="1792768128";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
