@@ -232,7 +232,8 @@ home(){const pc=dev==="pc";
 
 plugin(id){const p=PLUG[id];if(!p)return null;
  return {t:p.n,v:`<h1 class="h">${e(p.n)}</h1><p class="sub">Плагин для Premiere Pro 2019–2026, Mac и Windows. Для вертикали и горизонтали. Работает по твоему нику из приложения.</p>
- <div class="pk-btns"><button class="pk-btn" onclick="PK.soon('Плагин в разработке: скачивание появится здесь')">Скачать для Mac</button><button class="pk-btn" onclick="PK.soon('Плагин в разработке: скачивание появится здесь')">Скачать для Windows</button></div>
+ <div class="pk-btns">${p.zip?`<a class="pk-btn" href="${e(p.zip)}">Скачать установщик</a>`:`<button class="pk-btn" onclick="PK.soon('Скоро здесь будет установщик')">Скачать установщик</button>`}<button class="pk-btn ghost" onclick="PK.key()">Получить ключ</button></div>
+ <div class="pk-box" id="pk-key" hidden></div>
  <div class="pk-box"><h3>Как установить</h3><ol class="pk-steps"><li>Скачай архив и распакуй.</li><li>Открой «Установить КК» (на Mac) или «Установить КК.bat» (на Windows). Премьер должен быть закрыт.</li><li>Открой Премьер → «Окно» → «Расширения» → «${e(p.n)}».</li><li>Введи свой ник из приложения. Всё.</li></ol><p class="pk-muted" style="margin:0">Обновления приходят сами: в плагине появится плашка «Обновить».</p></div>
  <div class="sec-t">Что умеет</div>
  ${p.tabs.map(t=>`<details><summary>${e(t[0])}</summary><ul>${t[1].map(x=>`<li>${e(x)}</li>`).join("")}</ul></details>`).join("")}
@@ -316,6 +317,12 @@ window.PK={
  ck(i,v){store("kk_pk_ck"+i,v?"1":undefined)},
  reset(){CHECKS.forEach((_,i)=>store("kk_pk_ck"+i,undefined));route()},
  copy(){const t=BRIEF.map((b,i)=>(i+1)+". "+b).join("\n");(navigator.clipboard?navigator.clipboard.writeText(t):Promise.reject()).then(()=>soon("Бриф скопирован"),()=>soon("Не получилось скопировать"))},
- soon
+ soon,
+ async key(){const b=document.getElementById("pk-key");b.hidden=false;b.innerHTML='<p class="pk-muted" style="margin:0">Получаю ключ…</p>';
+  try{const r=await api({api:"pluginkey"});
+   if(!r.ok){b.innerHTML='<p class="pk-muted" style="margin:0">'+(r.error==="pack_soon"?"Плагин скоро откроется ученицам.":"Не получилось: "+e(r.error||""))+'</p>';return}
+   b.innerHTML='<h3>Твой ключ для плагина</h3><p class="pk-muted" style="margin:0">Скопируй и вставь в плагин при первом запуске. Ключ личный — не передавай его.</p><code style="word-break:break-all;font:500 11px var(--f-mono);background:var(--panel2);padding:10px;border-radius:8px;user-select:all">'+e(r.key)+'</code><button class="pk-btn" onclick="PK.copyKey()">Скопировать ключ</button>';PK._k=r.key}
+  catch(x){b.innerHTML='<p class="pk-muted" style="margin:0">Нет связи с сервером. Попробуй ещё раз.</p>'}},
+ copyKey(){(navigator.clipboard?navigator.clipboard.writeText(PK._k):Promise.reject()).then(()=>soon("Ключ скопирован"),()=>soon("Выдели ключ и скопируй вручную"))}
 };
 })();
