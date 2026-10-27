@@ -305,6 +305,9 @@ mark{background:color-mix(in srgb,var(--sun) 35%,transparent);color:inherit;bord
 .chip.y{color:var(--sun);border-color:color-mix(in srgb,var(--sun) 50%,transparent)}.chip.dr{color:#c9a7ff;border-color:#5d4a86}
 .uphero{display:flex;flex-direction:column;gap:8px}.uphero h1{margin:0;font-size:22px;font-weight:900;line-height:1.2}.uphero p{margin:0;color:var(--muted);font-size:14px}
 .upfig{margin:0;display:flex;flex-direction:column;gap:6px}.upfig img{width:100%;border-radius:12px;border:1px solid var(--line);display:block;background:var(--panel2)}
+.upfig video{width:100%;border-radius:12px;border:1px solid var(--line);display:block;background:#000;aspect-ratio:16/9}
+.upth{position:relative;display:block;aspect-ratio:16/9;border-radius:11px;overflow:hidden;background:var(--panel2)}.upth img{width:100%;height:100%;object-fit:cover;display:block}
+.upth .vplay.sm{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:38px;height:38px;border-radius:50%;background:var(--sun);display:grid;place-items:center}
 .upfig figcaption{font-size:12px;color:var(--muted)}
 .upbox ol,.upbox ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:7px;font-size:14px}.upbox p{margin:0;font-size:14px}
 .upbox.warn{border-color:color-mix(in srgb,var(--bad) 45%,transparent)}.upbox.why{border-color:color-mix(in srgb,var(--sun) 45%,transparent)}
@@ -1117,6 +1120,7 @@ function updBtn(){
 function upMd(t){return esc(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>")}
 function upMeta(u,big){const isNew=!updSeen().has(u.id)&&!u.done;
   return `<span class="meta">${!u.pub?`<span class="chip dr">черновик</span>`:u.done?`<span class="chip ok">✓ разобралась</span>`:isNew?`<span class="chip y">НОВОЕ</span>`:""}<span>${esc(fmtDate(u.date))}</span><span class="chip">${UP_IC[u.area]||"🆕"} ${esc((u.area||"").toLowerCase())}</span>${u.where&&!/везде/i.test(u.where)?`<span class="chip">${/телефон/i.test(u.where)?"📱":"💻"} ${big?"только ":""}${esc(u.where)}</span>`:""}</span>`}
+function updThumb(u){const m=((u.card&&u.card.media)||[])[0];if(!m)return "";const src=m.video?m.poster:m.img;return src?`<span class="upth"><img src="${esc(src)}" alt="" loading="lazy">${m.video?`<span class="vplay sm"><svg width="14" height="16" viewBox="0 0 22 24"><path d="M3 2l17 10L3 22z" fill="#1a1200"/></svg></span>`:""}</span>`:""}
 function updListView(){
   if(!S.upd){loadUpd();return `<div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}
   const areas=UP_AREAS.filter(a=>S.upd.some(u=>u.area===a));
@@ -1126,7 +1130,7 @@ function updListView(){
     ${isAuthor()&&drafts?`<div class="updraft">👀 Режим автора: черновиков ${drafts}. Ученицы их не видят, пока ты не нажмёшь «Опубликовать» в карточке.</div>`:""}
     <div class="chips"><button class="chipbtn ${!UP.f?"on":""}" onclick="UP.f='';route()">Все</button>${areas.map(a=>`<button class="chipbtn ${UP.f===a?"on":""}" onclick="UP.f='${esc(a)}';route()">${UP_IC[a]} ${esc(a)}</button>`).join("")}</div>
     <div style="display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted)">Разобралась в ${done} из ${S.upd.length}<span class="bar y" style="flex:1;height:6px"><i style="width:${S.upd.length?Math.round(done/S.upd.length*100):0}%"></i></span></div>
-    ${list.map(u=>`<button class="upd ${!updSeen().has(u.id)&&!u.done?"new":""}" onclick="location.hash='up/${esc(u.id)}'">${upMeta(u)}<b>${esc(u.t)}</b><p>${esc(u.short)}</p><span class="go">${esc((u.card&&u.card.go)||"Подробнее")} →</span></button>`).join("")||`<div class="empty">Пока пусто</div>`}`;
+    ${list.map(u=>`<button class="upd ${!updSeen().has(u.id)&&!u.done?"new":""}" onclick="location.hash='up/${esc(u.id)}'">${updThumb(u)}${upMeta(u)}<b>${esc(u.t)}</b><p>${esc(u.short)}</p><span class="go">${esc((u.card&&u.card.go)||"Подробнее")} →</span></button>`).join("")||`<div class="empty">Пока пусто</div>`}`;
 }
 function updCardView(u){
   const c=u.card||{};
@@ -1135,7 +1139,7 @@ function updCardView(u){
   return `<div class="uphero">${upMeta(u,1)}<h1>${esc(u.t)}</h1>${c.lead?`<p>${upMd(c.lead)}</p>`:""}</div>
     ${isAuthor()?`<div class="updraft">${u.pub?"✅ Опубликовано — ученицы видят эту карточку.":"👀 Черновик — ученицы не видят. Проверь текст и опубликуй."}
       <button class="btn ${u.pub?"g":"y"}" onclick="updPub('${esc(u.id)}',${u.pub?"false":"true"})">${u.pub?"Снять с публикации":"Опубликовать ученицам"}</button></div>`:""}
-    ${(c.media||[]).map(m=>`<figure class="upfig"><img src="${esc(m.img)}" alt="${esc(m.cap||"")}" loading="lazy">${m.cap?`<figcaption>${esc(m.cap)}</figcaption>`:""}</figure>`).join("")}
+    ${(c.media||[]).map(m=>`<figure class="upfig">${m.video?`<video src="${esc(m.video)}" poster="${esc(m.poster||"")}" controls playsinline preload="none"></video>`:`<img src="${esc(m.img)}" alt="${esc(m.cap||"")}" loading="lazy">`}${m.cap?`<figcaption>${esc(m.cap)}</figcaption>`:""}</figure>`).join("")}
     ${c.why?sec({h:"💡 Зачем это креатору",p:c.why,kind:"why"}):""}
     ${(c.sections||[]).map(sec).join("")}
     ${c.link?`<a class="btn g" href="${esc(c.link.u)}" target="_blank" rel="noopener">${esc(c.link.t)} ↗</a>`:""}
@@ -1361,7 +1365,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1793112741";
+const BUILD="1793113309";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();

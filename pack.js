@@ -7,9 +7,9 @@ const CSS=`
 .pk{display:grid;gap:18px}
 .pk-author{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;color:#ffd27a;background:#2a1f00;border-radius:10px;padding:8px 12px}
 .pk-hero{position:relative;display:grid;gap:6px;border-radius:18px;background:var(--sun);color:var(--sun-ink);padding:18px;text-decoration:none;overflow:hidden;margin-bottom:6px}
-.pk-hero .ch{position:absolute;right:-10px;top:-10px;width:120px;height:120px;background:conic-gradient(var(--sun-ink) 25%,transparent 0 50%,var(--sun-ink) 0 75%,transparent 0) 0 0/30px 30px;opacity:.14;transform:rotate(12deg)}
-.pk-hero b{font-size:20px;font-weight:900;line-height:1.15;max-width:15ch}
-.pk-hero small{font-size:12.5px;max-width:36ch}
+.pk-hero .ch{position:absolute;right:-6px;bottom:-4px;width:150px;height:auto;pointer-events:none}
+.pk-hero b{font-size:20px;font-weight:900;line-height:1.15;max-width:12ch}
+.pk-hero small{font-size:12.5px;max-width:calc(100% - 140px)}
 .pk-new{justify-self:start;background:var(--sun-ink);color:var(--sun);font:500 10px var(--f-mono);letter-spacing:.08em;padding:3px 7px;border-radius:5px}
 .pk-badge{font:500 10px var(--f-mono);letter-spacing:.06em;padding:2px 6px;border-radius:5px;background:var(--sun);color:var(--sun-ink);white-space:nowrap}
 .pk-badge.soon{background:#24204a;color:#c3bdff}.pk-badge.o{background:var(--panel2);color:var(--muted)}
@@ -303,7 +303,7 @@ howto(){const pc=dev==="pc";const G=pc?[
 window.PK={
  view(path){const [k,...rest]=(path||"").replace(/^\//,"").split("/");const fn=V[k||"home"];const r=fn&&fn(decodeURIComponent(rest.join("/")));
   return r?{t:r.t,v:`<div class="pk">${r.v}</div>`}:null},
- hero(){return `<a class="pk-hero" href="#mat/pk"><span class="ch"></span><span class="pk-new">NEW · ВИДИШЬ ТОЛЬКО ТЫ</span><b>Пак режиссёра монтажа</b><small>Плагины для Премьера, стилевые наборы, справочник сервисов, шпаргалки и чек-листы. Для компьютера и телефона.</small></a>`},
+ hero(){return `<a class="pk-hero" href="#mat/pk"><img class="ch" src="img/pack-hero.png" alt=""><span class="pk-new">NEW · ВИДИШЬ ТОЛЬКО ТЫ</span><b>Пак режиссёра монтажа</b><small>Плагины для Премьера, стилевые наборы, справочник сервисов, шпаргалки и чек-листы. Для компьютера и телефона.</small></a>`},
  dev(d){dev=d;store("kk_pk_dev",d);route()},
  client(c){client=c;route()},
  ct(c){ct=c;route()},
