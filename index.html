@@ -293,6 +293,26 @@ mark{background:color-mix(in srgb,var(--sun) 35%,transparent);color:inherit;bord
   .navrow{display:flex;gap:10px}.navrow .btn{width:auto;padding:12px 22px}
 }
 @media (prefers-reduced-motion:reduce){.spinner{animation:none}}
+/* апдейты мира контента */
+.upbtn{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:12px;padding:9px 12px;font-size:13px;font-weight:700;text-align:left;width:100%;color:var(--text)}
+.upbtn.new{border-color:var(--sun);box-shadow:0 0 0 3px color-mix(in srgb,var(--sun) 14%,transparent)}
+.upbtn .tx{flex:1;min-width:0}.upbtn small{display:block;color:var(--muted);font-weight:500;font-size:11.5px}
+.upbadge{background:var(--sun);color:var(--sun-ink);font-family:var(--f-mono);font-size:10.5px;font-weight:700;border-radius:20px;padding:2px 8px;white-space:nowrap}
+.upd{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:7px;text-align:left;width:100%;color:var(--text)}
+.upd.new{border-color:color-mix(in srgb,var(--sun) 55%,transparent)}
+.upd .meta,.uphero .meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-family:var(--f-mono);font-size:10.5px;color:var(--muted)}
+.upd b{font-size:15px;line-height:1.3}.upd p{margin:0;color:var(--muted);font-size:13px}.upd .go{color:var(--sun);font-size:12.5px;font-weight:700}
+.chip.y{color:var(--sun);border-color:color-mix(in srgb,var(--sun) 50%,transparent)}.chip.dr{color:#c9a7ff;border-color:#5d4a86}
+.uphero{display:flex;flex-direction:column;gap:8px}.uphero h1{margin:0;font-size:22px;font-weight:900;line-height:1.2}.uphero p{margin:0;color:var(--muted);font-size:14px}
+.upfig{margin:0;display:flex;flex-direction:column;gap:6px}.upfig img{width:100%;border-radius:12px;border:1px solid var(--line);display:block;background:var(--panel2)}
+.upfig figcaption{font-size:12px;color:var(--muted)}
+.upbox ol,.upbox ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:7px;font-size:14px}.upbox p{margin:0;font-size:14px}
+.upbox.warn{border-color:color-mix(in srgb,var(--bad) 45%,transparent)}.upbox.why{border-color:color-mix(in srgb,var(--sun) 45%,transparent)}
+.upq{display:flex;flex-direction:column;gap:6px}.upq button{border:1px solid var(--line);border-radius:11px;padding:10px 12px;text-align:left;font-size:13.5px;background:var(--panel2);color:var(--text)}
+.upq button.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 15%,transparent)}.upq button.no{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,transparent)}
+.upq .res{font-size:13px;color:var(--muted);min-height:18px}.upq .res.ok{color:var(--ok)}.upq .res.no{color:var(--bad)}
+.updraft{border:1px dashed #5d4a86;border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:8px;font-size:13px;color:#c9a7ff}
+.upsrc{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:3px}
 </style>
 </head>
 <body>
@@ -429,7 +449,7 @@ async function loadCourse(){
   let res;
   try{res=await api({api:"course"})}catch(e){if(e.message==="auth")return;if(!cached)screen(`${logo()}<p>Нет связи с сервером. Обнови страницу чуть позже.</p>`);return}
   if(!res.ok){if(!cached)screen(`${logo()}<p>Ошибка: ${esc(res.error)}</p>`);return}
-  store("kk_course",JSON.stringify(res));apply(res);handoffUrl();if(!S.acc)setTimeout(loadAccount,300);
+  store("kk_course",JSON.stringify(res));apply(res);handoffUrl();if(!S.acc)setTimeout(loadAccount,300);setTimeout(loadUpd,600);
   if(!document.querySelector("#hwf"))route(); // не сбрасываем форму ДЗ, если ученица её заполняет
 }
 function apply(res){S.user=res.user;S.mods=res.mods;S.mats=res.mats||[];S.done=new Set(res.done);setHw(res.hw);S.tests=res.tests||{};S.testRes=res.testRes||{};S.lsName=res.lsName||"Полине"}
@@ -459,6 +479,8 @@ function route(){
   else if(h.startsWith("test/")){const l=findLes(h.slice(5));if(l){view=testView(l);title="Тест";back=true}}
   else if(h.startsWith("hw/new")){view=wizardView(h.slice(7));title="Сдать работу";back=true}
   else if(h.startsWith("mat/pk")&&isAuthor()){const r=window.PK?PK.view(h.slice(6)):(loadPack(),null);view=r?r.v:`<p class="sub">Загружаю пак…</p>`;title=r?r.t:"Пак";back=true}
+  else if(h==="up"){view=updListView();title="Апдейты мира контента";back=true}
+  else if(h.startsWith("up/")){const u=(S.upd||[]).find(x=>x.id===h.slice(3));if(u){view=updCardView(u);title=u.area||"Апдейт";back=true}else{view=updListView();title="Апдейты мира контента";back=true}}
   else if(h==="mat")view=matView();
   else if(h==="hw")view=hwListView();
   else if(h==="st"&&S.user.a)view=studentsView();
@@ -486,6 +508,7 @@ function route(){
 function goBack(){const h=decodeURIComponent(location.hash.slice(1));
   if(h.startsWith("l/")){const l=findLes(h.slice(2));location.hash=l&&!wide()?"m/"+l.m.n:""}
   else if(h.startsWith("hw/rv/")&&history.length>1)history.back();
+  else if(h.startsWith("up/"))location.hash="up";
   else if(h.startsWith("mat/pk")){const p=h.split("/").slice(2);location.hash=!p.length?"mat":p[0]==="list"?"mat/pk/svc":p[0]==="style"?"mat/pk/styles":p[0]==="cheat"?"mat/pk/cheats":"mat/pk"}
   else if(h.startsWith("hw/"))location.hash=S.user.a&&/^hw\/(check|s\/|rv\/)/.test(h)?"st":"hw";
   else location.hash=""}
@@ -517,6 +540,7 @@ function homeView(){
     <div class="notif"></div>
     <input type="search" id="kbq" enterkeyhint="search" placeholder="Найти урок: шрифты, цвет, портфолио…" value="${esc(S.q)}" autocomplete="off">
     <div id="kbres"></div>
+    ${updBtn()}
     <div class="sec-t">Модули</div>
     <div class="covers">${S.mods.map(m=>{const d=modDone(m),t=m.les.length,pc=Math.round(d/t*100);return `
       <button class="cover" onclick="location.hash='m/${esc(m.n)}'"><img src="${modCover(m.n)}" alt="${esc(m.t)}" loading="lazy">
@@ -889,7 +913,7 @@ function studentsView(){
       <span style="display:flex;flex-direction:column;gap:5px;min-width:0"><b style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(x.name)}</b>
         <span style="display:flex;align-items:center;gap:8px"><span class="bar y" style="flex:1;height:6px"><i style="width:${x.pct}%"></i></span><small style="font-family:var(--f-mono);min-width:34px">${x.pct}%</small></span>
         <small>${x.nick?"@"+esc(x.nick):"без ника"}${x.opened?"":" · ещё не заходила"}${/отчисл/i.test(x.status)?" · отчислена":""}</small></span>
-      <span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">${x.ssb?`<span class="chip ok">ССБ ✓</span>`:""}${x.wait?`<span class="chip sent">ДЗ: ${x.wait}</span>`:""}${x.pay&&!x.pay.full&&x.pay.debt?`<span class="chip redo">${rub(x.pay.debt)}</span>`:""}</span></button>`).join("")||`<div class="empty">Никого не нашли</div>`}</div>`;
+      <span style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">${x.ssb?`<span class="chip ok">ССБ ✓</span>`:""}${x.upd?`<span class="chip y">🆕 ${x.upd}</span>`:""}${x.wait?`<span class="chip sent">ДЗ: ${x.wait}</span>`:""}${x.pay&&!x.pay.full&&x.pay.debt?`<span class="chip redo">${rub(x.pay.debt)}</span>`:""}</span></button>`).join("")||`<div class="empty">Никого не нашли</div>`}</div>`;
 }
 function studentView(i){
   if(!SV.list){loadStudents();return `<div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}
@@ -1067,6 +1091,73 @@ async function ssbJoin(brand,v){
     if(TG)try{TG.HapticFeedback.notificationOccurred("success")}catch(e){}
     toast(v?"Отметили: ты участвуешь ✓ Удачи!":"Отметка снята");rerenderMe()}
   catch(e){if(e.message!=="auth")toast("Не сохранилось: "+(e.message||"нет связи"))}
+}
+
+/* ---------- апдейты мира контента: программы, нейросети, Claude, соцсети, сайты, анимация ---------- */
+// Ученицы видят только опубликованное; автор — ещё и черновики (публикует кнопкой в карточке). Новое = ещё не открывала.
+const UP_AREAS=["Программы","Нейросети","Claude","Соцсети","Сайты и фишки","Анимация"];
+const UP_IC={"Программы":"🎬","Нейросети":"🤖","Claude":"✳️","Соцсети":"📱","Сайты и фишки":"🌐","Анимация":"✨"};
+const UP={f:"",q:{}};
+let updLoading=null;
+function updSeen(){try{return new Set(JSON.parse(load("kk_upd_seen")||"[]"))}catch(e){return new Set()}}
+function updNew(){const s=updSeen();return (S.upd||[]).filter(u=>!s.has(u.id)&&!u.done)}
+function loadUpd(){
+  if(!S.upd){try{const c=JSON.parse(load("kk_upd")||"null");if(Array.isArray(c))S.upd=c}catch(e){}}
+  if(updLoading)return updLoading;
+  updLoading=(async()=>{try{const r=await api({api:"updates"});if(!r.ok)return;S.upd=r.items;store("kk_upd",JSON.stringify(r.items));
+    const h=location.hash.slice(1);if(h===""||h==="up"||h.startsWith("up/"))route()}catch(e){}finally{updLoading=null}})();
+  return updLoading;
+}
+function updBtn(){
+  if(!S.upd)loadUpd();
+  const all=S.upd||[];if(!all.length)return "";
+  const n=updNew().length,last=all[0];
+  return `<button class="upbtn ${n?"new":""}" onclick="location.hash='up'"><span>🆕</span><span class="tx">Апдейты мира контента<small>${n?esc(last.t):"Программы, нейросети, соцсети — что нового"}</small></span>${n?`<span class="upbadge">${n} ${plural(n,"новый","новых","новых")}</span>`:`<span class="chip">${all.length}</span>`}</button>`;
+}
+function upMd(t){return esc(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>")}
+function upMeta(u,big){const isNew=!updSeen().has(u.id)&&!u.done;
+  return `<span class="meta">${!u.pub?`<span class="chip dr">черновик</span>`:u.done?`<span class="chip ok">✓ разобралась</span>`:isNew?`<span class="chip y">НОВОЕ</span>`:""}<span>${esc(fmtDate(u.date))}</span><span class="chip">${UP_IC[u.area]||"🆕"} ${esc((u.area||"").toLowerCase())}</span>${u.where&&!/везде/i.test(u.where)?`<span class="chip">${/телефон/i.test(u.where)?"📱":"💻"} ${big?"только ":""}${esc(u.where)}</span>`:""}</span>`}
+function updListView(){
+  if(!S.upd){loadUpd();return `<div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}
+  const areas=UP_AREAS.filter(a=>S.upd.some(u=>u.area===a));
+  const list=S.upd.filter(u=>!UP.f||u.area===UP.f),done=S.upd.filter(u=>u.done).length,drafts=S.upd.filter(u=>!u.pub).length;
+  return `<h1 class="h">Апдейты мира контента</h1>
+    <p class="sub" style="margin:0">Всё новое, что пригодится креатору: программы, нейросети, соцсети, сайты и фишки. Раз в неделю — свежие новости с подробной инструкцией.</p>
+    ${isAuthor()&&drafts?`<div class="updraft">👀 Режим автора: черновиков ${drafts}. Ученицы их не видят, пока ты не нажмёшь «Опубликовать» в карточке.</div>`:""}
+    <div class="chips"><button class="chipbtn ${!UP.f?"on":""}" onclick="UP.f='';route()">Все</button>${areas.map(a=>`<button class="chipbtn ${UP.f===a?"on":""}" onclick="UP.f='${esc(a)}';route()">${UP_IC[a]} ${esc(a)}</button>`).join("")}</div>
+    <div style="display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted)">Разобралась в ${done} из ${S.upd.length}<span class="bar y" style="flex:1;height:6px"><i style="width:${S.upd.length?Math.round(done/S.upd.length*100):0}%"></i></span></div>
+    ${list.map(u=>`<button class="upd ${!updSeen().has(u.id)&&!u.done?"new":""}" onclick="location.hash='up/${esc(u.id)}'">${upMeta(u)}<b>${esc(u.t)}</b><p>${esc(u.short)}</p><span class="go">${esc((u.card&&u.card.go)||"Подробнее")} →</span></button>`).join("")||`<div class="empty">Пока пусто</div>`}`;
+}
+function updCardView(u){
+  const c=u.card||{};
+  {const s=updSeen();if(!s.has(u.id)){s.add(u.id);store("kk_upd_seen",JSON.stringify([...s]))}}
+  const sec=x=>`<div class="box upbox ${x.kind||""}"><b>${esc(x.h)}</b>${x.p?`<p>${upMd(x.p)}</p>`:""}${x.ol?`<ol>${x.ol.map(i=>`<li>${upMd(i)}</li>`).join("")}</ol>`:""}${x.ul?`<ul>${x.ul.map(i=>`<li>${upMd(i)}</li>`).join("")}</ul>`:""}${x.img?`<figure class="upfig"><img src="${esc(x.img)}" alt="" loading="lazy">${x.cap?`<figcaption>${esc(x.cap)}</figcaption>`:""}</figure>`:""}</div>`;
+  return `<div class="uphero">${upMeta(u,1)}<h1>${esc(u.t)}</h1>${c.lead?`<p>${upMd(c.lead)}</p>`:""}</div>
+    ${isAuthor()?`<div class="updraft">${u.pub?"✅ Опубликовано — ученицы видят эту карточку.":"👀 Черновик — ученицы не видят. Проверь текст и опубликуй."}
+      <button class="btn ${u.pub?"g":"y"}" onclick="updPub('${esc(u.id)}',${u.pub?"false":"true"})">${u.pub?"Снять с публикации":"Опубликовать ученицам"}</button></div>`:""}
+    ${(c.media||[]).map(m=>`<figure class="upfig"><img src="${esc(m.img)}" alt="${esc(m.cap||"")}" loading="lazy">${m.cap?`<figcaption>${esc(m.cap)}</figcaption>`:""}</figure>`).join("")}
+    ${c.why?sec({h:"💡 Зачем это креатору",p:c.why,kind:"why"}):""}
+    ${(c.sections||[]).map(sec).join("")}
+    ${c.link?`<a class="btn g" href="${esc(c.link.u)}" target="_blank" rel="noopener">${esc(c.link.t)} ↗</a>`:""}
+    ${c.quiz?`<div class="box upbox"><b>🎮 ${esc(c.quiz.title||"Проверь себя")}</b><p>${upMd(c.quiz.q)}</p><div class="upq" id="upq">${c.quiz.opts.map((o,i)=>`<button onclick="updQuiz(${i})">${upMd(o.t)}</button>`).join("")}<div class="res" id="upqr"></div></div></div>`:""}
+    ${c.warn?sec({...c.warn,kind:"warn"}):""}
+    <button class="btn ${u.done?"done":"y"}" onclick="updMark('${esc(u.id)}',${u.done?"false":"true"})">${u.done?"✓ Разобралась":"Разобралась ✓"}</button>
+    ${(c.src||[]).length?`<div class="upsrc">Источники:${c.src.map(x=>`<a href="${esc(x.u)}" target="_blank" rel="noopener">${esc(x.t)}</a>`).join("")}</div>`:""}`;
+}
+function updQuiz(i){
+  const u=(S.upd||[]).find(x=>x.id===decodeURIComponent(location.hash.slice(4)));if(!u||!u.card.quiz)return;
+  const o=u.card.quiz.opts[i],bs=[...document.querySelectorAll("#upq button")],r=document.getElementById("upqr");
+  bs.forEach(b=>b.classList.remove("no"));bs[i].classList.add(o.ok?"ok":"no");r.className="res "+(o.ok?"ok":"no");r.innerHTML=upMd(o.a||(o.ok?"Верно!":"Не совсем, попробуй ещё"));
+  if(o.ok&&TG)try{TG.HapticFeedback.notificationOccurred("success")}catch(e){}
+}
+async function updMark(id,v){
+  const u=(S.upd||[]).find(x=>x.id===id);if(!u)return;u.done=v;store("kk_upd",JSON.stringify(S.upd));route();
+  try{const r=await api({api:"updmark",id,value:v});if(!r.ok)throw new Error(r.error);toast(v?"Отмечено ✓":"Отметка снята")}
+  catch(e){u.done=!v;store("kk_upd",JSON.stringify(S.upd));route();if(e.message!=="auth")toast("Не сохранилось: "+(e.message||"нет связи"))}
+}
+async function updPub(id,v){
+  try{toast(v?"Публикую…":"Снимаю…");const r=await api({api:"updpub",id,value:v});if(!r.ok)throw new Error(r.error);S.upd=r.items;store("kk_upd",JSON.stringify(r.items));route();toast(v?"Опубликовано — ученицы видят ✓":"Снято с публикации")}
+  catch(e){if(e.message!=="auth")toast("Не получилось: "+(e.message||"нет связи"))}
 }
 
 /* ---------- тесты (перенесены из ГК) ---------- */
@@ -1270,7 +1361,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1793103005";
+const BUILD="1793112595";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
