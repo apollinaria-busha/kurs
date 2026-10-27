@@ -479,8 +479,8 @@ function route(){
   else if(h.startsWith("test/")){const l=findLes(h.slice(5));if(l){view=testView(l);title="Тест";back=true}}
   else if(h.startsWith("hw/new")){view=wizardView(h.slice(7));title="Сдать работу";back=true}
   else if(h.startsWith("mat/pk")&&isAuthor()){const r=window.PK?PK.view(h.slice(6)):(loadPack(),null);view=r?r.v:`<p class="sub">Загружаю пак…</p>`;title=r?r.t:"Пак";back=true}
-  else if(h==="up"){view=updListView();title="Апдейты мира контента";back=true}
-  else if(h.startsWith("up/")){const u=(S.upd||[]).find(x=>x.id===h.slice(3));if(u){view=updCardView(u);title=u.area||"Апдейт";back=true}else{view=updListView();title="Апдейты мира контента";back=true}}
+  else if(h==="up"){view=updListView();title="Апдейты";back=true}
+  else if(h.startsWith("up/")){const u=(S.upd||[]).find(x=>x.id===h.slice(3));if(u){view=updCardView(u);title=u.area||"Апдейт";back=true}else{view=updListView();title="Апдейты";back=true}}
   else if(h==="mat")view=matView();
   else if(h==="hw")view=hwListView();
   else if(h==="st"&&S.user.a)view=studentsView();
@@ -1361,7 +1361,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1793112595";
+const BUILD="1793112741";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
