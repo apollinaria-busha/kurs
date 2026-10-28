@@ -231,6 +231,8 @@ mark{background:color-mix(in srgb,var(--sun) 35%,transparent);color:inherit;bord
 .chipbtn{border:1.5px solid var(--line);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:700;white-space:nowrap;background:var(--panel);color:var(--text)}
 .chipbtn.on{background:var(--sun);color:var(--sun-ink);border-color:var(--sun)}
 .chipbtn.has{border-color:color-mix(in srgb,var(--ok) 55%,transparent)}
+.les.redo{border-color:color-mix(in srgb,var(--bad) 55%,transparent)}
+.redobox{border-color:color-mix(in srgb,var(--bad) 60%,transparent);background:color-mix(in srgb,var(--bad) 7%,var(--card,transparent))}
 .chipbtn.redo{border-color:color-mix(in srgb,var(--bad) 60%,transparent)}
 .les.pick{outline:2px solid var(--sun)}
 /* портфолио */
@@ -734,17 +736,23 @@ function hwChip(id){const l=findLes(id),n=parts(l).length,d=partsDone(l);
   return `<span class="chip ${d===n?"ok":"sent"}">${d}/${n}</span>`}
 
 let hwAll=false;
+function subBtn(s){const l=findLes(s.lesson);return l?`<button class="les th redo" onclick='openSub(${esc(JSON.stringify(s.lesson))},${esc(JSON.stringify(s.part||""))})'>
+  <span class="thumb">${l.cover?`<img src="${esc(l.cover)}" alt="" loading="lazy">`:""}</span>
+  <span><b>${esc(hwTitle(l))}${s.part&&parts(l).length>1?" · "+esc(s.part):""}</b><small style="white-space:normal">${s.reply?"💬 "+esc(s.reply.length>90?s.reply.slice(0,90)+"…":s.reply):"Открой, чтобы посмотреть"}</small><small style="color:var(--bad);font-weight:700">Открыть и исправить →</small></span></button>`:""}
 function hwListView(){
   const subs=[...S.subs].reverse(),cnt=s=>S.subs.filter(x=>x.status===s).length;
   const shown=hwAll?subs:subs.slice(0,6);
+  // последняя сдача по каждому заданию/части, если она «доработать»
+  const redo=subs.filter((s,i)=>s.status==="доработать"&&subs.findIndex(x=>x.lesson===s.lesson&&x.part===s.part)===i);
   return `<h1 class="h">Сдать ДЗ</h1>
     <button class="cont" onclick="location.hash='hw/new'"><span class="k">Домашнее задание</span><b>＋ Сдать работу</b><span style="font-size:12.5px;font-weight:600;opacity:.75">Выбери модуль → задание → какой ролик или пункт</span></button>
     <div class="stats" style="grid-template-columns:repeat(3,1fr)">
       <div class="stat"><b>${S.subs.length}</b><small>сдано работ</small></div>
       <div class="stat"><b style="color:var(--ok)">${cnt("принято")}</b><small>принято</small></div>
       <div class="stat"><b style="color:${cnt("доработать")?"var(--bad)":"var(--text)"}">${cnt("доработать")}</b><small>доработать</small></div></div>
+    ${redo.length?`<div class="sec-t" style="color:var(--bad)">✏️ Нужно доработать · ${redo.length}</div><div class="lessons">${redo.map(s=>subBtn(s,1)).join("")}</div>`:""}
     <div class="sec-t">Мои работы</div>
-    ${subs.length?`<div class="lessons">${shown.map(s=>{const l=findLes(s.lesson);return l?`<button class="les th" onclick="location.hash='hw/new/${esc(l.id)}'">
+    ${subs.length?`<div class="lessons">${shown.map(s=>{const l=findLes(s.lesson);return l?`<button class="les th" onclick='openSub(${esc(JSON.stringify(s.lesson))},${esc(JSON.stringify(s.part||""))})'>
       <span class="thumb">${l.cover?`<img src="${esc(l.cover)}" alt="" loading="lazy">`:""}</span>
       <span><b>${esc(hwTitle(l))}${s.part&&parts(l).length>1?" · "+esc(s.part):""}</b><small>${esc(s.when)}${s.how==="из ГетКурса"?" · из ГетКурса":""}${s.reply?" · есть ответ Буши":""}</small></span>${stChip(s)}</button>`:""}).join("")}</div>
       ${subs.length>6?`<button class="btn g" onclick="hwAll=!hwAll;route()">${hwAll?"Свернуть":"Показать все ("+subs.length+")"}</button>`:""}`
@@ -775,9 +783,26 @@ function wizardView(pre){
     ${l&&WZ.part?hwForm(l,kind):""}
     ${l?qBox(l):""}`;
 }
+// сданная работа глазами ученицы: сам ролик + ответ Буши; на доработке — крупно и с подсказкой, что делать дальше
+function subWork(s){
+  const fl=fileList(s.file),ids=fl.map(driveId).filter(Boolean),lid=ids.length?"":driveId(s.link);
+  return `${(ids.length?ids:lid?[lid]:[]).map((id,i)=>`<div class="video" style="aspect-ratio:9/12;max-height:60vh"><iframe src="https://drive.google.com/file/d/${esc(id)}/preview" allow="autoplay; fullscreen" allowfullscreen loading="lazy"></iframe></div>`).join("")}
+    ${s.link&&!driveId(s.link)?`<div>${pill(s.link,"Открыть мою работу")}</div>`:""}
+    ${fl.length>1?`<div class="chips">${fl.map((u,i)=>pill(u,"Файл "+(i+1))).join("")}</div>`:""}
+    ${s.comment?`<small class="hint" style="white-space:pre-line">Мой комментарий: ${esc(s.comment)}</small>`:""}`}
+function subBox(s){
+  const redo=s.status==="доработать";
+  return `<div class="box ${redo?"redobox":""}" id="hwprev" style="gap:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="font-size:${redo?16:14}px">${redo?"✏️ Нужно доработать":"Уже сдано"}</b>${stChip(s)}</div>
+    <small class="hint">${redo?"Эту работу ты сдала "+esc(s.when.slice(0,16))+" — вот она:":"Сдано "+esc(s.when.slice(0,16))}</small>
+    ${subWork(s)}
+    ${s.reply?`<div class="reply"><b style="display:block;font-size:12px;color:var(--sun);margin-bottom:4px">${redo?"✏️ Что поправить":"💬 Комментарий к работе"}</b><span style="white-space:pre-line">${esc(s.reply)}</span></div>`:""}
+    ${redo?`<p class="hint" style="margin:0">Исправь по комментарию и загрузи новую версию ниже 👇 — она уйдёт на проверку заново.</p>`:""}</div>`}
+function openSub(lesson,part){const l=findLes(lesson);if(!l)return;WZ.mod=l.m.n;WZ.les=l.id;WZ.part=part||parts(l)[0];WZ.how=null;
+  if(location.hash==="#hw/new/"+l.id)route();else location.hash="hw/new/"+l.id;setTimeout(()=>document.getElementById("hwprev")?.scrollIntoView({behavior:"smooth",block:"start"}),80)}
 function hwForm(l,kind){
   const s=lastSub(l.id,WZ.part);
-  const prev=s?`<div class="box" style="gap:6px"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b style="font-size:14px">Уже сдано · ${esc(s.when)}</b>${stChip(s)}</div>${s.reply?`<div class="reply">${esc(s.reply)}</div>`:""}</div>`:"";
+  const prev=s?subBox(s):"";
   if(kind==="confirm")return prev+`<form class="box" id="hwf" data-mode="done"><button class="btn y" type="submit">${esc(String(l.hw).split(":")[1]||"Готово")} ✓</button></form>`;
   const how=WZ.how;
   return prev+`<form class="box" id="hwf" data-mode="${how}">
@@ -1419,7 +1444,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1793196926";
+const BUILD="202610282229";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
