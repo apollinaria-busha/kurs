@@ -13,7 +13,9 @@
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap">
+<link rel="preconnect" href="https://script.google.com"><link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+<!-- шрифт не держит показ страницы: в России Google Fonts иногда грузится секундами -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500&display=swap" media="print" onload="this.media='all'">
 <style>
 :root{
   --ink:#0d0d0d;--panel:#161512;--panel2:#201e19;--line:#2e2b24;--text:#f3efe6;--muted:#a29b8c;
@@ -449,7 +451,7 @@ function doLoginResult(res){
 
 async function loadCourse(){
   const cached=load("kk_course");
-  if(cached){try{apply(JSON.parse(cached));route();loadAccount();loadUpd()}catch(e){}}
+  if(cached){try{apply(JSON.parse(cached));loadAccount();loadUpd();route()}catch(e){}} // профиль и апдейты сразу из памяти, свежие — фоном
   else screen(`${logo()}<div class="spinner"></div><p>Загружаем программу…</p>`);
   let res;
   try{res=await api({api:"course"})}catch(e){if(e.message==="auth")return;if(!cached)screen(`${logo()}<p>Нет связи с сервером. Обнови страницу чуть позже.</p>`);return}
@@ -1388,7 +1390,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1793170138";
+const BUILD="1793170193";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
