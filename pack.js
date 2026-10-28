@@ -70,7 +70,6 @@ const CSS=`
 .pk-ctabs{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
 .pk-cnt{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:4px 0 14px}.pk-cnt span{background:var(--card,rgba(127,127,127,.08));border-radius:12px;padding:8px 6px;text-align:center;font-size:11.5px;line-height:1.2;color:var(--muted,#888)}.pk-cnt b{display:block;font-size:20px;color:var(--text);margin-bottom:2px}
 .pk-stn{display:block;margin-top:3px;font-size:11px;opacity:.75}
-.pk-cut{display:flex;align-items:center;gap:12px;margin:14px 0 8px;padding:18px;border-radius:18px;text-decoration:none;color:var(--text);border:1px solid color-mix(in srgb,var(--sun) 40%,var(--line));background:radial-gradient(120% 140% at 100% 0%,color-mix(in srgb,var(--sun) 18%,transparent),transparent 60%),var(--panel)}.pk-cut .tx{display:grid;gap:4px;flex:1}.pk-cut small{font:600 10.5px var(--f-mono);letter-spacing:.08em;color:var(--sun)}.pk-cut b{font-size:17px}.pk-cut span span{color:var(--muted);font-size:12.5px}.pk-cut .arr{color:var(--sun);font-size:18px}
 .pk-pin .ic{background:#E60023;color:#fff;font-weight:800;border-radius:50%}
 .pk-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .pk-tile{aspect-ratio:1;border-radius:12px;display:grid;place-items:center;font-size:10.5px;text-align:center;padding:6px;position:relative;overflow:hidden;border:1px solid var(--line);color:var(--text);background:var(--panel2)}
@@ -114,8 +113,6 @@ const CSS=`
 .pk-lut{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.pk-lut .l{display:grid;gap:5px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px}
 .pk-lut img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px}.pk-lut b{font-size:13px}.pk-lut small{font-size:11.5px;color:var(--muted);line-height:1.35}
 .pk-lut a{font:500 11px var(--f-mono);color:var(--sun);text-decoration:none;justify-self:start;border:1px solid var(--line);border-radius:6px;padding:3px 7px}
-.pk-ba{position:relative;border-radius:12px;overflow:hidden;aspect-ratio:16/9}.pk-ba img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}.pk-ba .a{clip-path:inset(0 0 0 var(--x,50%))}
-.pk-ba input{position:absolute;inset:auto 0 8px;width:calc(100% - 24px);margin:0 12px}.pk-ba span{position:absolute;top:8px;font:600 11px var(--f-mono);background:rgba(0,0,0,.55);color:#fff;padding:2px 6px;border-radius:6px}
 .pk-tbl{display:grid;gap:8px}.pk-tbl .r{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px}.pk-tbl .r b{display:block;margin-bottom:4px}.pk-tbl .r p{margin:2px 0;font-size:13px}
 @media(min-width:700px){.pk-lut{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .pk-easy{margin:0;padding-left:18px;display:grid;gap:6px;font-size:14px;line-height:1.4}
@@ -168,8 +165,8 @@ const CNT0={png:100,pin:50,bg:10,ov:10,an:50,tr:10,tx:10,sfx:10,mu:10};
 const cnt=(id,k)=>{const r=MAN&&MAN.styles&&MAN.styles[id];const v=r&&r[k==="mu"?"mus":k];return Array.isArray(v)&&v.length?v.length:CNT0[k]};
 const PIN="https://www.pinterest.com/apollinaria_busha/%D0%BF%D0%B0%D0%BA-%D0%BF%D0%BD%D0%B3-%D1%8D%D0%BB%D0%B5%D0%BC%D0%B5%D0%BD%D1%82%D0%BE%D0%B2-%D0%BE%D1%82-%D0%B1%D1%83%D1%88%D0%B8/";
 const CONTENT=[
- ["png","PNG без фона","стикеры, иконки, слова, печати, ленты, стрелки, рамки — разных форматов",{pc:"PNG",ph:"PNG"}],
- ["pin","Тренд из Pinterest","трендовые PNG без фона — нашла и отобрала под этот стиль",{pc:"PNG",ph:"PNG"}],
+ ["png","PNG классические","стикеры, иконки, слова, печати, ленты, стрелки, рамки — разных форматов",{pc:"PNG",ph:"PNG"}],
+ ["pin","PNG из Pinterest","трендовые PNG без фона — нашла в Pinterest и отобрала под этот стиль",{pc:"PNG",ph:"PNG"}],
  ["bg","Фоны","фоны под стиль: бумага, градиенты, паттерны",{pc:"JPG · 9:16 и 16:9",ph:"JPG · 9:16 и 16:9"}],
  ["ov","Оверлеи","наложения поверх видео: блики, пыль, плёнка, частицы",{pc:"MOV · прозрачный · 9:16 и 16:9",ph:"MP4 · на чёрном · 9:16 и 16:9"}],
  ["an","Анимированные","стикеры, слова, печати, ленты и стрелки в движении",{pc:"MOV · прозрачный",ph:"MP4 · на зелёном"}],
@@ -233,7 +230,7 @@ home(){const pc=dev==="pc";
  return {t:"Пак режиссёра монтажа",v:`<div class="pk-author">ВИДИШЬ ТОЛЬКО ТЫ (АВТОР) · ученицы пока не видят этот раздел</div>
  <h1 class="h">Пак режиссёра монтажа</h1><p class="sub">Сначала руками, теперь быстрее. Выбери, где монтируешь: покажу только нужное.</p>
  ${seg()}
- <div class="pk-news"><b>Что нового</b><span class="pk-muted">Новый плагин «КК · Adobe Хиты» (107 луков, 80 переходов, легенды After Effects) · автосубтитры на русском и 60 стилей · LUT-пак из 50 грейдов и гайд по цвету на экранах · в каждом стиле 100 PNG, 50–110 трендовых PNG из Pinterest, 50 анимаций, 10 звуков и 10 треков · «Вырезки от Буши» — 281 PNG для коллажей · текстуры: 51 фактура и 52 живые.</span></div>
+ <div class="pk-news"><b>Что нового</b><span class="pk-muted">Новый плагин «КК · Adobe Хиты» (107 луков, 80 переходов, легенды After Effects) · автосубтитры на русском и 60 стилей · LUT-пак из 50 грейдов и гайд по цвету на экранах · в каждом стиле 100 классических PNG и 100 PNG из Pinterest, 50 анимаций, 10 звуков и 10 треков · текстуры: 51 фактура и 52 живые.</span></div>
  <div class="pk-grid">${cards.map(c=>`<a class="pk-card${c[5]?" wide":""}" href="${H(c[0])}"><span class="top"><span class="ic">${c[1]}</span>${c[4]?`<span class="pk-badge">${e(c[4])}</span>`:""}</span><b>${e(c[2])}</b><small>${e(c[3])}</small></a>`).join("")}</div>
  <div class="sec-t">Уже есть в программе · ${pc?"для компьютера":"для телефона"}</div>
  <div class="pk-list">${ex.map(x=>{const m=mat(x[0]);return `<a class="pk-row" ${m?`href="${e(m.u)}" target="_blank" rel="noopener"`:`href="#mat"`}><span class="ic">${m&&/PDF/.test(m.d)?"PDF":"↓"}</span><span class="tx"><b>${e(x[0])}</b><small>${e(x[2]||(m&&m.d)||"")}${m?"":" · не нашла в материалах"}</small></span><span class="arr">↗</span></a>`}).join("")}</div>
@@ -257,8 +254,7 @@ styles(){loadMan();const pc=dev==="pc";const clients=[...new Set(STYLES.flatMap(
  <div class="sec-t">Подобрать под клиента</div>
  <div class="pk-chips"><button class="pk-chip" onclick="PK.client('')" aria-pressed="${!client}">Все</button>${clients.map(c=>`<button class="pk-chip" onclick="PK.client('${e(c)}')" aria-pressed="${client===c}">${e(c)}</button>`).join("")}</div>
  <div class="pk-styles">${list.map(s=>{const so=!READY.includes(s.id);return `<a class="pk-st" href="${H("style/"+s.id)}"><span class="sw" style="background:${s.bg};color:${s.fg};font-family:${fam(s.f[0])}">Аа Aa ${s.em}</span><span class="meta"><b>${e(s.n)} ${so?'<span class="pk-badge soon">СКОРО</span>':""}</b><small>${e(s.for.join(", "))}</small><small class="pk-stn"><b>${CONTENT.reduce((a,x)=>a+cnt(s.id,x[0]),0)} файлов</b> · ${cnt(s.id,"png")} PNG · ${cnt(s.id,"pin")} из Pinterest · ${cnt(s.id,"an")} анимаций</small></span></a>`}).join("")}</div>
- <a class="pk-cut" href="${H("cut")}"><span class="tx"><small>НАБОР ДЛЯ ЛЮБОГО СТИЛЯ</small><b>Вырезки от Буши · ${(MAN&&MAN.styles&&MAN.styles.cut&&MAN.styles.cut.pin||[]).length||281} PNG</b><span>техника, еда, билеты, рамки, скотч, предметы для коллажей — всё без фона</span></span><span class="arr">→</span></a>
- <a class="pk-row pk-pin" href="${PIN}" target="_blank" rel="noopener"><span class="ic">P</span><span class="tx"><b>Моя доска в Pinterest</b><small>«Пак пнг-элементов от Буши» — заходи за новыми вырезками, сохраняй себе</small></span><span class="arr">↗</span></a>`}},
+ <a class="pk-row pk-pin" href="${PIN}" target="_blank" rel="noopener"><span class="ic">P</span><span class="tx"><b>Моя доска в Pinterest</b><small>«Пак пнг-элементов от Буши» — я регулярно пополняю её новыми PNG без фона: заходи и сохраняй себе</small></span><span class="arr">↗</span></a>`}},
 
 style(id){const s=STYLES.find(x=>x.id===id);if(!s)return null;loadMan();const pc=dev==="pc",so=!READY.includes(id),c=CONTENT.find(x=>x[0]===ct)||CONTENT[0];
  const real=MAN&&MAN.styles&&MAN.styles[id];
@@ -305,12 +301,6 @@ cheats(){const arr=CHEATS.filter(c=>dev==="pc"?c.pc:c.ph);
  return {t:"Шпаргалки",v:`<h1 class="h">Шпаргалки</h1><p class="sub">Коротко, по шагам, простыми словами. Непонятное слово — загляни в словарик.</p>${seg()}
  <a class="pk-row" href="${H("gloss")}"><span class="ic">Аа</span><span class="tx"><b>Словарик режиссёра монтажа</b><small>оверлей, хромакей, ключ, битрейт… — простыми словами</small></span><span class="arr">→</span></a>
  ${G.map(g=>{const its=g[1].map(id=>arr.find(c=>c.id===id)).filter(Boolean);return its.length?`<div class="sec-t">${e(g[0])}</div><div class="pk-list">${its.map(row).join("")}</div>`:""}).join("")}`}},
-cut(){loadMan();const pc=dev==="pc",real=MAN&&MAN.styles&&MAN.styles.cut;
- return {t:"Вырезки от Буши",v:`<h1 class="h">Вырезки от Буши</h1><p class="sub">PNG без фона для коллажей, сторис и рилсов: техника, еда, билеты, рамки, скотч, предметы. Подходят к любому стилю.</p>
- ${seg()}
- ${real?`<div class="pk-btns"><a class="pk-btn" href="${e(real.zip[pc?"premiere":"capcut"])}" target="_blank" rel="noopener">Скачать все · ${real.pin.length} PNG${real.size?` · ${mb(real.size[pc?"premiere":"capcut"])}`:""}</a><a class="pk-btn ghost" href="${PIN}" target="_blank" rel="noopener">Доска в Pinterest ↗</a></div>
- <p class="pk-muted" style="margin:-8px 0 0;font-size:12px">${pc?"Перетащи PNG на дорожку над видео — фон уже прозрачный.":"«Наложение» → «Добавить наложение» → выбери PNG — фон уже прозрачный."}</p>
- ${realTiles("cut","pin")}`:MAN&&MAN.loading?`<p class="pk-muted">Загружаю…</p>`:`<div class="pk-empty">Набор загружается — появится здесь в ближайшие часы.</div>`}`}},
 tex(){loadMan();const pc=dev==="pc",real=MAN&&MAN.styles&&MAN.styles.tex;
  const how=pc?["Перетащи текстуру на дорожку НАД видео (или нажми её в плагине «КК · Моушн» → «Наборы» → «Текстуры»).","«Элементы управления эффектами» → «Непрозрачность» → «Режим наложения»: бумага, крафт, ткань, бетон — «Умножение» или «Перекрытие»; зерно, пыль, царапины, VHS, блёстки, прожиг — «Экран».","Подкрути «Непрозрачность» до 20–60 %: текстура должна чувствоваться, а не закрывать картинку.","Хочешь фон, а не наложение? Положи текстуру на нижнюю дорожку без режима — это готовый фон под текст и PNG."]
   :["Видео в CapCut → «Наложение» → «Добавить наложение» → выбери текстуру и растяни на весь кадр.","Выдели её → «Смешивание»: бумага, крафт, ткань, бетон — «Умножение» или «Наложение»; зерно, пыль, царапины, VHS, блёстки, прожиг — «Экран».","Убавь непрозрачность до 20–60 %.","Как фон: добавь текстуру основным клипом, а видео/PNG — наложением сверху."];
@@ -326,12 +316,10 @@ luts(){loadLuts();const pc=dev==="pc",L=LUTS&&LUTS.luts;
  return {t:"LUT-пак",v:`<h1 class="h">LUT-пак для цветокоррекции</h1><p class="sub">${L&&L.length?L.length:50} творческих грейдов в формате .cube для Premiere Pro (и CapCut на компьютере). Rec.709, вертикаль и горизонталь — без разницы.</p>
  ${seg()}
  ${L&&L.length?`<div class="pk-btns"><a class="pk-btn" href="${e(LUTS.zip)}" target="_blank" rel="noopener">Скачать все LUT-ы${LUTS.size?" · "+mb(LUTS.size):""}</a></div>
- <div class="sec-t">Сравни до и после</div>
- <div class="pk-ba" style="--x:50%"><img src="${e(LUTS.base+LUTS.before)}" alt="до"><img class="a" id="pk-ba-a" src="${e(LUTS.base+L[0].prev)}" alt="после"><span style="left:8px">ДО</span><span style="right:8px">ПОСЛЕ</span><input type="range" min="0" max="100" value="50" oninput="this.parentNode.style.setProperty('--x',this.value+'%')" aria-label="Сравнение до и после"></div>
  <div class="pk-box"><h3>Как применить</h3><ol class="pk-steps">${how.map(x=>`<li>${e(x)}</li>`).join("")}</ol></div>
  <div class="sec-t">Все грейды · ${L.length}</div>
- <div class="pk-lut">${L.map(l=>`<div class="l"><img src="${e(LUTS.base+l.prev)}" loading="lazy" alt="" onclick="document.getElementById('pk-ba-a').src=this.src;scrollTo({top:0,behavior:'smooth'})"><b>${e(l.name)}</b><small>${e(l.desc)}</small><a href="${e(l.file)}" target="_blank" rel="noopener">.cube ↓</a></div>`).join("")}</div>
- <p class="pk-muted" style="font-size:12px">Нажми на превью — оно встанет в сравнение «до/после» наверху. Можно использовать в своих и клиентских роликах, нельзя перепродавать и раздавать пак.</p>`:`<p class="pk-muted">Загружаю…</p>`}
+ <div class="pk-lut">${L.map(l=>`<div class="l"><img src="${e(LUTS.base+l.prev)}" loading="lazy" alt=""><b>${e(l.name)}</b><small>${e(l.desc)}</small><a href="${e(l.file)}" target="_blank" rel="noopener">.cube ↓</a></div>`).join("")}</div>
+ <p class="pk-muted" style="font-size:12px">Можно использовать в своих и клиентских роликах, нельзя перепродавать и раздавать пак.</p>`:`<p class="pk-muted">Загружаю…</p>`}
  <a class="pk-row" href="${H("screens")}"><span class="ic">◑</span><span class="tx"><b>Цвет на разных экранах</b><small>почему на телефоне выглядит иначе и что с этим делать</small></span><span class="arr">→</span></a>`}},
 screens(){return {t:"Цвет на разных экранах",v:`<h1 class="h">Цвет на разных экранах</h1><p class="sub">Смонтировала на ноутбуке — на телефоне другой цвет. На Windows бледно, на iPhone кислотно. Разбираемся, почему так, и как монтировать, чтобы потом не переделывать.</p>
  <div class="pk-box" style="border-color:color-mix(in srgb,var(--sun) 45%,transparent)"><h3>Если совсем просто</h3><ul class="pk-easy">${SCREENS_SIMPLE.map(x=>`<li>${e(x)}</li>`).join("")}</ul></div>
@@ -379,13 +367,15 @@ howto(){const pc=dev==="pc";const G=pc?[
 };
 
 /* ---------- публичное ---------- */
+function keepTabs(sl,y0){const n=document.querySelector(".pk-ctabs");if(!n)return;n.scrollLeft=sl;const a=n.querySelector('[aria-pressed="true"]');if(a){const L=a.offsetLeft-n.offsetLeft,W=a.offsetWidth;if(L<n.scrollLeft||L+W>n.scrollLeft+n.clientWidth)n.scrollLeft=L-16}
+ if(y0==null)return;const d=n.getBoundingClientRect().top-y0;if(!d)return;const m=document.getElementById("main");if(m&&m.scrollHeight>m.clientHeight+1)m.scrollTop+=d;else scrollBy(0,d)}
 window.PK={
  view(path){const [k,...rest]=(path||"").replace(/^\//,"").split("/");const fn=V[k||"home"];const r=fn&&fn(decodeURIComponent(rest.join("/")));
   return r?{t:r.t,v:`<div class="pk">${r.v}</div>`}:null},
  hero(){return `<a class="pk-hero" href="#mat/pk"><span class="pk-stk" aria-hidden="true">${[["w-1",96,0,14,-7,".3s"],["i-crown",44,118,4,14,"1.8s"],["i-camera",66,98,50,8,"0s"],["i-clapper",58,14,62,-9,".6s"],["st-1",66,84,112,-12,"1.2s"],["i-play",44,22,128,6,".9s"]].map(x=>`<img src="pack/kk/prev/png-${x[0]}.png" alt="" style="--w:${x[1]}px;left:${x[2]}px;top:${x[3]}px;--r:${x[4]}deg;--d:${x[5]}">`).join("")}</span><span class="pk-new">NEW · ВИДИШЬ ТОЛЬКО ТЫ</span><b>Пак режиссёра монтажа</b><small>Плагины для Премьера, стилевые наборы, справочник сервисов, шпаргалки и чек-листы. Для компьютера и телефона.</small></a>`},
  dev(d){dev=d;store("kk_pk_dev",d);route()},
  client(c){client=c;route()},
- ct(c){ct=c;route()},
+ ct(c){const r=document.querySelector(".pk-ctabs"),sl=r?r.scrollLeft:0,y0=r?r.getBoundingClientRect().top:null;ct=c;route();keepTabs(sl,y0)},
  mode(m){mode=m;route()},
  ck(i,v){store("kk_pk_ck"+i,v?"1":undefined)},
  reset(){for(let i=0;i<60;i++)store("kk_pk_ck"+i,undefined);route()},
