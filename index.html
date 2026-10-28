@@ -310,7 +310,9 @@ mark{background:color-mix(in srgb,var(--sun) 35%,transparent);color:inherit;bord
 .upth .vplay.sm{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:38px;height:38px;border-radius:50%;background:var(--sun);display:grid;place-items:center}
 .upfig figcaption{font-size:12px;color:var(--muted)}
 .upbox ol,.upbox ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:7px;font-size:14px}.upbox p{margin:0;font-size:14px}
-.upbox.warn{border-color:color-mix(in srgb,var(--bad) 45%,transparent)}.upbox.why{border-color:color-mix(in srgb,var(--sun) 45%,transparent)}
+.upbox.warn{border-color:color-mix(in srgb,var(--bad) 45%,transparent)}.upbox.simple{background:color-mix(in srgb,var(--sun) 9%,transparent);border-color:color-mix(in srgb,var(--sun) 35%,transparent)}.upbox.simple p{font-size:15px}
+.term{border-bottom:1.5px dotted var(--sun);cursor:help}.termtip{display:block;margin:6px 0 2px;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,var(--sun) 13%,transparent);font-size:13.5px;line-height:1.4;font-weight:400}
+.upgl{display:flex;flex-direction:column;gap:7px;font-size:14px}.upgl b{color:var(--sun);font-weight:600}.upbox.why{border-color:color-mix(in srgb,var(--sun) 45%,transparent)}
 .upq{display:flex;flex-direction:column;gap:6px}.upq button{border:1px solid var(--line);border-radius:11px;padding:10px 12px;text-align:left;font-size:13.5px;background:var(--panel2);color:var(--text)}
 .upq button.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 15%,transparent)}.upq button.no{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,transparent)}
 .upq .res{font-size:13px;color:var(--muted);min-height:18px}.upq .res.ok{color:var(--ok)}.upq .res.no{color:var(--bad)}
@@ -447,12 +449,12 @@ function doLoginResult(res){
 
 async function loadCourse(){
   const cached=load("kk_course");
-  if(cached){try{apply(JSON.parse(cached));route()}catch(e){}}
+  if(cached){try{apply(JSON.parse(cached));route();loadAccount();loadUpd()}catch(e){}}
   else screen(`${logo()}<div class="spinner"></div><p>Загружаем программу…</p>`);
   let res;
   try{res=await api({api:"course"})}catch(e){if(e.message==="auth")return;if(!cached)screen(`${logo()}<p>Нет связи с сервером. Обнови страницу чуть позже.</p>`);return}
   if(!res.ok){if(!cached)screen(`${logo()}<p>Ошибка: ${esc(res.error)}</p>`);return}
-  store("kk_course",JSON.stringify(res));apply(res);handoffUrl();if(!S.acc)setTimeout(loadAccount,300);setTimeout(loadUpd,600);
+  store("kk_course",JSON.stringify(res));apply(res);handoffUrl();if(!S.acc&&!accLoading)loadAccount();if(!S.upd&&!updLoading)loadUpd();
   if(!document.querySelector("#hwf"))route(); // не сбрасываем форму ДЗ, если ученица её заполняет
 }
 function apply(res){S.user=res.user;S.mods=res.mods;S.mats=res.mats||[];S.done=new Set(res.done);setHw(res.hw);S.tests=res.tests||{};S.testRes=res.testRes||{};S.lsName=res.lsName||"Полине"}
@@ -1117,7 +1119,25 @@ function updBtn(){
   const n=updNew().length,last=all[0];
   return `<button class="upbtn ${n?"new":""}" onclick="location.hash='up'"><span>🆕</span><span class="tx">Апдейты мира контента<small>${n?esc(last.t):"Программы, нейросети, соцсети — что нового"}</small></span>${n?`<span class="upbadge">${n} ${plural(n,"новый","новых","новых")}</span>`:`<span class="chip">${all.length}</span>`}</button>`;
 }
-function upMd(t){return esc(t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>")}
+// «Простыми словами»: сложные слова из card.terms подчёркнуты (первое упоминание в карточке), тап — объяснение.
+// Русские окончания ловим основой слова: «маска» найдётся и в «маску», «маски».
+let UP_T=null;
+function upTerms(terms){
+  const ks=Object.keys(terms||{});if(!ks.length)return null;
+  const rx=k=>{let e=esc(k).replace(/[.*+?^${}()|[\]\\]/g,"\\$&");if(/^[а-яё]{5,}$/i.test(k))e=(/[аяоеыиуюьй]$/i.test(k)?e.slice(0,-1):e)+"[а-яё]{0,3}";return e};
+  return {list:ks.sort((a,b)=>b.length-a.length).map(k=>({k,d:terms[k],re:new RegExp("(?<![а-яёa-z0-9])"+rx(k)+"(?![а-яёa-z0-9])","iu")})),used:new Set()};
+}
+function upMd(t){
+  let s=esc(t);const hit=[];
+  if(UP_T)UP_T.list.forEach((x,i)=>{if(UP_T.used.has(i))return;s=s.replace(x.re,m=>{UP_T.used.add(i);hit.push(`<span class="term" data-d="${esc(x.d)}" onclick="upTerm(this,event)">${m}</span>`);return "\u0001"+(hit.length-1)+"\u0002"})});
+  return s.replace(/\u0001(\d+)\u0002/g,(_,i)=>hit[i]).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>");
+}
+function upTerm(el,ev){
+  ev.stopPropagation();const open=el.nextElementSibling&&el.nextElementSibling.classList.contains("termtip");
+  document.querySelectorAll(".termtip").forEach(x=>x.remove());if(open)return;
+  el.insertAdjacentHTML("afterend",`<span class="termtip">💬 <b>${esc(el.textContent)}</b> — ${esc(el.dataset.d)}</span>`);
+}
+document.addEventListener("click",e=>{if(!e.target.closest||!e.target.closest(".termtip"))document.querySelectorAll(".termtip").forEach(x=>x.remove())});
 function upMeta(u,big){const isNew=!updSeen().has(u.id)&&!u.done;
   return `<span class="meta">${!u.pub?`<span class="chip dr">черновик</span>`:u.done?`<span class="chip ok">✓ разобралась</span>`:isNew?`<span class="chip y">НОВОЕ</span>`:""}<span>${esc(fmtDate(u.date))}</span><span class="chip">${UP_IC[u.area]||"🆕"} ${esc((u.area||"").toLowerCase())}</span>${u.where&&!/везде/i.test(u.where)?`<span class="chip">${/телефон/i.test(u.where)?"📱":"💻"} ${big?"только ":""}${esc(u.where)}</span>`:""}</span>`}
 function updThumb(u){const m=((u.card&&u.card.media)||[])[0];if(!m)return "";const src=m.video?m.poster:m.img;return src?`<span class="upth"><img src="${esc(src)}" alt="" loading="lazy">${m.video?`<span class="vplay sm"><svg width="14" height="16" viewBox="0 0 22 24"><path d="M3 2l17 10L3 22z" fill="#1a1200"/></svg></span>`:""}</span>`:""}
@@ -1133,20 +1153,23 @@ function updListView(){
     ${list.map(u=>`<button class="upd ${!updSeen().has(u.id)&&!u.done?"new":""}" onclick="location.hash='up/${esc(u.id)}'">${updThumb(u)}${upMeta(u)}<b>${esc(u.t)}</b><p>${esc(u.short)}</p><span class="go">${esc((u.card&&u.card.go)||"Подробнее")} →</span></button>`).join("")||`<div class="empty">Пока пусто</div>`}`;
 }
 function updCardView(u){
-  const c=u.card||{};
+  const c=u.card||{};UP_T=upTerms(c.terms);
   {const s=updSeen();if(!s.has(u.id)){s.add(u.id);store("kk_upd_seen",JSON.stringify([...s]))}}
   const sec=x=>`<div class="box upbox ${x.kind||""}"><b>${esc(x.h)}</b>${x.p?`<p>${upMd(x.p)}</p>`:""}${x.ol?`<ol>${x.ol.map(i=>`<li>${upMd(i)}</li>`).join("")}</ol>`:""}${x.ul?`<ul>${x.ul.map(i=>`<li>${upMd(i)}</li>`).join("")}</ul>`:""}${x.img?`<figure class="upfig"><img src="${esc(x.img)}" alt="" loading="lazy">${x.cap?`<figcaption>${esc(x.cap)}</figcaption>`:""}</figure>`:""}</div>`;
-  return `<div class="uphero">${upMeta(u,1)}<h1>${esc(u.t)}</h1>${c.lead?`<p>${upMd(c.lead)}</p>`:""}</div>
+  const simple=c.simple?`<div class="box upbox simple"><b>🧸 Простыми словами</b><p>${esc(c.simple)}</p>${UP_T?`<p class="hint" style="margin:0">Слова с пунктиром можно нажать — появится объяснение.</p>`:""}</div>`:"";
+  const out=`<div class="uphero">${upMeta(u,1)}<h1>${esc(u.t)}</h1>${c.lead?`<p>${upMd(c.lead)}</p>`:""}</div>${simple}
     ${isAuthor()?`<div class="updraft">${u.pub?"✅ Опубликовано — ученицы видят эту карточку.":"👀 Черновик — ученицы не видят. Проверь текст и опубликуй."}
       <button class="btn ${u.pub?"g":"y"}" onclick="updPub('${esc(u.id)}',${u.pub?"false":"true"})">${u.pub?"Снять с публикации":"Опубликовать ученицам"}</button></div>`:""}
     ${(c.media||[]).map(m=>`<figure class="upfig">${m.video?`<video src="${esc(m.video)}" poster="${esc(m.poster||"")}" controls playsinline preload="none"></video>`:`<img src="${esc(m.img)}" alt="${esc(m.cap||"")}" loading="lazy">`}${m.cap?`<figcaption>${esc(m.cap)}</figcaption>`:""}</figure>`).join("")}
     ${c.why?sec({h:"💡 Зачем это креатору",p:c.why,kind:"why"}):""}
     ${(c.sections||[]).map(sec).join("")}
     ${c.link?`<a class="btn g" href="${esc(c.link.u)}" target="_blank" rel="noopener">${esc(c.link.t)} ↗</a>`:""}
-    ${c.quiz?`<div class="box upbox"><b>🎮 ${esc(c.quiz.title||"Проверь себя")}</b><p>${upMd(c.quiz.q)}</p><div class="upq" id="upq">${c.quiz.opts.map((o,i)=>`<button onclick="updQuiz(${i})">${upMd(o.t)}</button>`).join("")}<div class="res" id="upqr"></div></div></div>`:""}
+    ${c.quiz?`<div class="box upbox"><b>🎮 ${esc(c.quiz.title||"Проверь себя")}</b><p>${upMd(c.quiz.q)}</p><div class="upq" id="upq">${c.quiz.opts.map((o,i)=>`<button onclick="updQuiz(${i})">${esc(o.t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>")}</button>`).join("")}<div class="res" id="upqr"></div></div></div>`:""}
     ${c.warn?sec({...c.warn,kind:"warn"}):""}
+    ${c.terms&&Object.keys(c.terms).length?`<details class="box upbox"><summary><b>📖 Словарик: непонятные слова</b></summary><div class="upgl">${Object.entries(c.terms).map(([k,d])=>`<span><b>${esc(k)}</b> — ${esc(d)}</span>`).join("")}</div></details>`:""}
     <button class="btn ${u.done?"done":"y"}" onclick="updMark('${esc(u.id)}',${u.done?"false":"true"})">${u.done?"✓ Разобралась":"Разобралась ✓"}</button>
     ${(c.src||[]).length?`<div class="upsrc">Источники:${c.src.map(x=>`<a href="${esc(x.u)}" target="_blank" rel="noopener">${esc(x.t)}</a>`).join("")}</div>`:""}`;
+  UP_T=null;return out;
 }
 function updQuiz(i){
   const u=(S.upd||[]).find(x=>x.id===decodeURIComponent(location.hash.slice(4)));if(!u||!u.card.quiz)return;
@@ -1365,7 +1388,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1793169778";
+const BUILD="1793170066";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();

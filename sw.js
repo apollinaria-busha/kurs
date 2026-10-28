@@ -1,12 +1,23 @@
 // Кэшируем только оболочку приложения: страница открывается даже при плохой связи.
 // Уроки и прогресс всегда берутся с сервера (последняя версия уроков хранится в localStorage).
-const C = "kk-shell-1793169778";
+const C = "kk-shell-1793170066", IMG = "kk-img-v1"; // картинки живут между выкладками, оболочка — обновляется
 const SHELL = ["./", "index.html", "manifest.json", "icon-192.png", "icon-512.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(C).then(c => c.addAll(SHELL))); self.skipWaiting(); });
-self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== C).map(k => caches.delete(k))))); self.clients.claim(); });
+self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== C && k !== IMG).map(k => caches.delete(k))))); self.clients.claim(); });
 self.addEventListener("fetch", e => {
   const u = new URL(e.request.url);
   if (e.request.method !== "GET" || u.origin !== location.origin) return;
+  // видео не трогаем: браузер сам качает его кусками (через воркер на iPhone оно тормозит и не перематывается)
+  if (/\.(mp4|mov|webm|m4v)$/i.test(u.pathname) || e.request.headers.has("range")) return;
+  // картинки: сразу из памяти телефона, а свежую версию тихо докачиваем на следующий раз
+  if (/\.(jpe?g|png|webp|gif|svg)$/i.test(u.pathname)) {
+    e.respondWith(caches.open(IMG).then(c => c.match(e.request).then(hit => {
+      const net = fetch(e.request).then(r => { if (r.ok) c.put(e.request, r.clone()); return r; });
+      if (hit) { e.waitUntil(net.catch(() => {})); return hit; }
+      return net;
+    })));
+    return;
+  }
   e.respondWith(fetch(e.request).then(r => { const cp = r.clone(); caches.open(C).then(c => c.put(e.request, cp)); return r; })
     .catch(() => caches.match(e.request).then(r => r || caches.match("index.html"))));
 });
