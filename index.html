@@ -1157,7 +1157,8 @@ function updListView(){
   const empty=UP.prev?"За прошлую неделю в этом разделе новостей не было.":(UP.f==="Сервисы"?"🧰 Здесь будут сайты и сервисы для монтажа, которые завирусились в интернете. ":"")+"В этом разделе пока нет новостей — загляни на следующей неделе: как появятся обновления, мы обязательно их здесь выпустим 💛";
   return `<h1 class="h">Апдейты мира контента</h1>
     <p class="sub" style="margin:0">Всё новое в мире контента: тренды, программы, нейросети, сервисы для монтажа, соцсети, кино и анимация — со всего мира. Каждый понедельник — свежий выпуск с подробными инструкциями.</p>
-    ${isAuthor()&&drafts?`<div class="updraft">👀 Режим автора: черновиков ${drafts}. Ученицы их не видят, пока ты не нажмёшь «Опубликовать» в карточке.</div>`:""}
+    ${isAuthor()&&drafts?`<div class="updraft">👀 Режим автора: в выпуске ${drafts} ${plural(drafts,"новость","новости","новостей")} — ученицы их пока не видят. Пролистай, и если всё ок — одна кнопка опубликует всё сразу, а девочкам уйдёт одно уведомление.
+      <button class="btn y" onclick="updRelease(${drafts})">✅ Всё ок — опубликовать выпуск (${drafts})</button></div>`:""}
     <div class="chips"><button class="chipbtn ${!UP.f?"on":""}" onclick="UP.f='';route()">Все</button>${areas.map(a=>`<button class="chipbtn ${UP.f===a?"on":""}" onclick="UP.f='${esc(a)}';route()">${UP_IC[a]} ${esc(a)}</button>`).join("")}</div>
     ${UP.prev?`<button class="btn g" onclick="UP.prev=0;route()">← К свежим новостям</button><p class="sub" style="margin:0">📚 Новости прошлой недели — лежат здесь ещё неделю.</p>`
       :`<div style="display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted)">Разобралась в ${done} из ${cur.length}<span class="bar y" style="flex:1;height:6px"><i style="width:${cur.length?Math.round(done/cur.length*100):0}%"></i></span></div>`}
@@ -1205,6 +1206,12 @@ async function updMark(id,v){
   const u=(S.upd||[]).find(x=>x.id===id);if(!u)return;u.done=v;store("kk_upd",JSON.stringify(S.upd));route();
   try{const r=await api({api:"updmark",id,value:v});if(!r.ok)throw new Error(r.error);toast(v?"Отмечено ✓":"Отметка снята")}
   catch(e){u.done=!v;store("kk_upd",JSON.stringify(S.upd));route();if(e.message!=="auth")toast("Не сохранилось: "+(e.message||"нет связи"))}
+}
+async function updRelease(n){
+  if(!confirm(`Опубликовать ${n} ${plural(n,"новость","новости","новостей")} ученицам? Прошлый выпуск переедет под кнопку «Новости прошлой недели», девочкам уйдёт одно уведомление.`))return;
+  try{toast("Публикую выпуск…");const r=await api({api:"updrelease"});if(!r.ok)throw new Error(r.error);
+    if(r.items){S.upd=r.items;store("kk_upd",JSON.stringify(r.items))}route();toast(r.n?`Опубликовано ${r.n} ✓ Девочкам ушло уведомление`:"Нечего публиковать")}
+  catch(e){if(e.message!=="auth")toast("Не получилось: "+(e.message||"нет связи"))}
 }
 async function updPub(id,v){
   try{toast(v?"Публикую…":"Снимаю…");const r=await api({api:"updpub",id,value:v});if(!r.ok)throw new Error(r.error);S.upd=r.items;store("kk_upd",JSON.stringify(r.items));route();toast(v?"Опубликовано — ученицы видят ✓":"Снято с публикации")}
@@ -1412,7 +1419,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1793177645";
+const BUILD="1793179737";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
