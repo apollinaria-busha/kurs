@@ -1,31 +1,58 @@
 WEBVTT
 
-00:00:00.000 --> 00:00:03.240
-This is how to create single word captions in Premiere Pro.
+00:00:00.000 --> 00:00:01.564
+This is how to create single
 
-00:00:03.240 --> 00:00:07.680
-Start by heading to the Workspaces options and selecting Captions and Graphics.
+00:00:01.564 --> 00:00:03.240
+word captions in Premiere Pro.
 
-00:00:09.840 --> 00:00:14.240
-Come up to Text, make sure your audio is selected and then choose Transcribe.
+00:00:03.240 --> 00:00:05.631
+Start by heading to the Workspaces options
 
-00:00:14.240 --> 00:00:18.080
-Premiere will transcribe your audio and generate the transcript.
+00:00:05.631 --> 00:00:07.680
+and selecting Captions and Graphics.
 
-00:00:18.080 --> 00:00:21.880
-Check that everything is correct, then click the CC button.
+00:00:09.840 --> 00:00:11.982
+Come up to Text, make sure your audio
+
+00:00:11.982 --> 00:00:14.240
+is selected and then choose Transcribe.
+
+00:00:14.240 --> 00:00:16.008
+Premiere will transcribe your
+
+00:00:16.008 --> 00:00:18.080
+audio and generate the transcript.
+
+00:00:18.080 --> 00:00:20.242
+Check that everything is correct,
+
+00:00:20.242 --> 00:00:21.880
+then click the CC button.
 
 00:00:21.880 --> 00:00:23.920
 This will open up this window.
 
-00:00:23.920 --> 00:00:28.560
-Under Layout, click Single Word and then click Create Captions.
+00:00:23.920 --> 00:00:26.240
+Under Layout, click Single Word
 
-00:00:28.560 --> 00:00:31.760
-And now you have single word captions in your video.
+00:00:26.240 --> 00:00:28.560
+and then click Create Captions.
 
-00:00:31.760 --> 00:00:36.160
-To customise your text, select all the captions, head to the Properties panel,
+00:00:28.560 --> 00:00:30.317
+And now you have single word
 
-00:00:36.160 --> 00:00:40.240
-where you'll find controls for the Transform, Font, Size and Colour.
+00:00:30.317 --> 00:00:31.760
+captions in your video.
+
+00:00:31.760 --> 00:00:34.503
+To customise your text, select all the captions,
+
+00:00:34.503 --> 00:00:36.160
+head to the Properties panel,
+
+00:00:36.160 --> 00:00:38.900
+where you'll find controls for the Transform,
+
+00:00:38.900 --> 00:00:40.240
+Font, Size and Colour.

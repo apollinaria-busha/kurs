@@ -317,7 +317,9 @@ mark{background:color-mix(in srgb,var(--sun) 35%,transparent);color:inherit;bord
 .upbox.warn{border-color:color-mix(in srgb,var(--bad) 45%,transparent)}.upbox.simple{background:color-mix(in srgb,var(--sun) 9%,transparent);border-color:color-mix(in srgb,var(--sun) 35%,transparent)}.upbox.simple p{font-size:15px}
 .term{border-bottom:1.5px dotted var(--sun);cursor:help}.termtip{display:block;margin:6px 0 2px;padding:8px 10px;border-radius:10px;background:color-mix(in srgb,var(--sun) 13%,transparent);font-size:13.5px;line-height:1.4;font-weight:400}
 .upsub{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);margin-top:8px}.upsub button{border:1px solid var(--line,#333);background:none;color:var(--text);border-radius:99px;padding:4px 11px;font:inherit;font-size:12.5px;cursor:pointer}.upsub button.on{background:var(--sun);border-color:var(--sun);color:#1a1200;font-weight:600}
-.upfig video::cue{font-size:15px;background:rgba(0,0,0,.72);color:#fff;line-height:1.35}
+.upvw{position:relative}.upcue{position:absolute;left:6%;right:6%;bottom:12px;text-align:center;pointer-events:none;transition:bottom .2s}.upvw.paused .upcue{bottom:48px}
+.upcue span{background:rgba(0,0,0,.75);color:#fff;font-size:13px;line-height:1.45;padding:2px 7px;border-radius:5px;-webkit-box-decoration-break:clone;box-decoration-break:clone}
+.upfig video::cue{font-size:14px;background:rgba(0,0,0,.75);color:#fff}
 .upgl{display:flex;flex-direction:column;gap:7px;font-size:14px}.upgl b{color:var(--sun);font-weight:600}.upbox.why{border-color:color-mix(in srgb,var(--sun) 45%,transparent)}
 .upq{display:flex;flex-direction:column;gap:6px}.upq button{border:1px solid var(--line);border-radius:11px;padding:10px 12px;text-align:left;font-size:13.5px;background:var(--panel2);color:var(--text)}
 .upq button.ok{border-color:var(--ok);background:color-mix(in srgb,var(--ok) 15%,transparent)}.upq button.no{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 12%,transparent)}
@@ -1212,13 +1214,22 @@ function updCardView(u){
 // видео на английском: русские субтитры включены сразу, можно переключить на английские или убрать
 function upVid(m,i){
   const tr=m.subs?`<track kind="subtitles" srclang="ru" label="Русский" src="${esc(m.subs)}.ru.vtt" default><track kind="subtitles" srclang="en" label="English" src="${esc(m.subs)}.en.vtt">`:"";
-  return `<video id="upv${i}" src="${esc(m.video)}" poster="${esc(m.poster||"")}" controls playsinline preload="none">${tr}</video>`+
+  return (m.subs?`<div class="upvw paused">`:"")+`<video id="upv${i}" src="${esc(m.video)}" poster="${esc(m.poster||"")}" controls playsinline preload="none"${m.subs?` onloadedmetadata="upCue(this)" onplay="this.parentNode.classList.remove('paused')" onpause="this.parentNode.classList.add('paused')"`:""}>${tr}</video>`+(m.subs?`<div class="upcue" hidden></div></div>`:"")+
     (m.subs?`<div class="upsub" data-v="upv${i}">Субтитры:<button class="on" onclick="upSub(this,'ru')">Русские</button><button onclick="upSub(this,'en')">English</button><button onclick="upSub(this,'')">Без</button></div>`
       :m.music?`<div class="upsub">🎵 Без слов — только музыка, перевод не нужен</div>`:"");
 }
+// субтитры рисуем сами — всегда внизу кадра, коротко (встроенные плеер поднимает к центру); в полноэкранном режиме — встроенные
+function upFs(v){return document.fullscreenElement===v||document.webkitFullscreenElement===v||!!v.webkitDisplayingFullscreen}
+function upCueMode(v){const l=v.dataset.sub??"ru";[...v.textTracks].forEach(t=>t.mode=t.language!==l?"disabled":upFs(v)?"showing":"hidden");upCueDraw(v)}
+function upCueDraw(v){const box=v.parentNode.querySelector(".upcue");if(!box)return;const t=[...v.textTracks].find(t=>t.mode==="hidden"),c=t&&t.activeCues&&t.activeCues[0];
+  box.hidden=!c;box.innerHTML=c?`<span>${esc(c.text).replace(/\n/g,"<br>")}</span>`:""}
+function upCue(v){if(v._cue)return;v._cue=1;
+  [...v.textTracks].forEach(t=>t.addEventListener("cuechange",()=>upCueDraw(v)));
+  ["webkitbeginfullscreen","webkitendfullscreen","fullscreenchange","webkitfullscreenchange"].forEach(e=>v.addEventListener(e,()=>setTimeout(()=>upCueMode(v),50)));
+  upCueMode(v)}
 function upSub(b,l){
   const w=b.parentNode,v=document.getElementById(w.dataset.v);if(!v)return;
-  [...v.textTracks].forEach(t=>t.mode=t.language===l?"showing":"disabled");
+  v.dataset.sub=l;upCueMode(v);
   w.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));
 }
 function updQuiz(i){
@@ -1444,7 +1455,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="202610281829";
+const BUILD="202610281856";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
