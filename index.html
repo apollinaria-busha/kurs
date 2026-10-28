@@ -474,11 +474,11 @@ function nextAfter(id){const a=allLes(),i=a.findIndex(l=>l.id===id);return a.sli
 
 /* ---------- каркас ---------- */
 function section(){const h=location.hash.slice(1);if(h==="st"||/^hw\/(check|s\/|rv\/)/.test(h))return "st";for(const k of ["mat","hw","jobs","me"])if(h.startsWith(k))return k;return ""}
-let LAST_H=null;const KEEP={t:0,y:0};
+let LAST_H=null;const KEEP={t:0,y:0},POS={}; // POS — где была прокрутка на каждом экране: «Назад» возвращает туда же
 function route(){
   {const a=document.activeElement;if(!a||!/INPUT|TEXTAREA/.test(a.tagName))document.body.classList.remove("kb")} // меню снизу не должно остаться спрятанным после входа
   if(!S.user)return;
-  {const m=document.getElementById("main");KEEP.t=m?m.scrollTop:0;KEEP.y=window.scrollY}
+  {const m=document.getElementById("main");KEEP.t=m?m.scrollTop:0;KEEP.y=window.scrollY;if(LAST_H!=null)POS[LAST_H]={t:KEEP.t,y:KEEP.y}}
   const h=decodeURIComponent(location.hash.slice(1));
   let view,title="",back=false;
   S.cur=null;
@@ -509,7 +509,10 @@ function route(){
     <div class="wrap"><aside class="side">${sideView(sec)}</aside><main class="main" id="main"><div class="inner">${view}</div></main></div>
     <nav class="tabs">${tabs().map(([k,_,ic,t])=>`<button class="tab ${k==="hw"?"hw":""} ${sec===k?"on":""}" onclick="location.hash='${k}'">${k==="hw"&&!S.user.a?`<span class="ic">${IC[ic]}</span>`:IC[ic]}<span>${t}</span></button>`).join("")}</nav>`;
   const m0=document.getElementById("main");
-  if(h===LAST_H){m0.scrollTop=KEEP.t;window.scrollTo(0,KEEP.y)}else{m0.scrollTop=0;window.scrollTo(0,0)}
+  const back2=LAST_H!=null&&h!==LAST_H&&POS[h]&&(LAST_H.startsWith(h+"/")||(/^l\//.test(LAST_H)&&/^m\//.test(h))); // вернулась из карточки/урока в список
+  if(h===LAST_H){m0.scrollTop=KEEP.t;window.scrollTo(0,KEEP.y)}
+  else if(back2){const p=POS[h];m0.scrollTop=p.t;window.scrollTo(0,p.y);requestAnimationFrame(()=>{m0.scrollTop=p.t;window.scrollTo(0,p.y)})}
+  else{m0.scrollTop=0;window.scrollTo(0,0)}
   LAST_H=h;
   if(TG){back?TG.BackButton.show():TG.BackButton.hide()}
   bindView(h);
@@ -1409,7 +1412,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1793176268";
+const BUILD="1793177645";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
