@@ -1,0 +1,73 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:04.000
+Today we'll learn how to use object masking in Adobe Premiere.
+
+00:00:04.000 --> 00:00:06.000
+Select your clip in the timeline.
+
+00:00:06.000 --> 00:00:09.000
+All of Premiere's masking tools are available in the toolbar.
+
+00:00:09.000 --> 00:00:14.000
+Select the Object Mask tool, then move your cursor over the program monitor.
+
+00:00:14.000 --> 00:00:19.000
+Premiere will automatically detect and highlight objects or people in the frame.
+
+00:00:19.000 --> 00:00:23.000
+Click on the object you want to isolate to create the object mask.
+
+00:00:23.000 --> 00:00:26.000
+The first time you use this feature, Premiere will give you a helpful tip
+
+00:00:26.000 --> 00:00:29.000
+about where your mask data is stored on your computer.
+
+00:00:29.000 --> 00:00:35.000
+When the plus icon is active, you can select additional objects to include them in the same mask.
+
+00:00:35.000 --> 00:00:41.000
+When the minus icon is active, you can click on highlighted objects to remove them from the object mask.
+
+00:00:41.000 --> 00:00:48.000
+If your subject is not automatically detected, you can draw a rough rectangle or lasso around it to add it to the mask.
+
+00:00:48.000 --> 00:00:51.000
+Make sure the plus icon is selected when doing this.
+
+00:00:51.000 --> 00:00:58.000
+Depending on your footage, changing the mask overlay color can make the object mask easier to see against the background.
+
+00:00:58.000 --> 00:01:02.000
+Tracking controls for the object mask are located in the Effect Controls panel.
+
+00:01:02.000 --> 00:01:07.000
+When tracking, it's best to start from a frame where the subject is completely visible.
+
+00:01:07.000 --> 00:01:17.000
+Once tracking is complete, you can refine the object mask using options such as feathering, expansion, opacity, or invert, depending on your needs.
+
+00:01:17.000 --> 00:01:21.000
+For this demo, we chose a clip where the subject disappears and reappears.
+
+00:01:21.000 --> 00:01:25.000
+The object masking tool may need help following complex movement.
+
+00:01:25.000 --> 00:01:30.000
+Fine-tune your mask selection by moving the playhead to the moment where your mask is incomplete,
+
+00:01:30.000 --> 00:01:34.000
+and use the plus icon to add the missing assets back to your mask.
+
+00:01:34.000 --> 00:01:44.000
+Track the mask again to solidify your changes.
+
+00:01:44.000 --> 00:01:49.000
+Keep in mind that object mask data is saved externally in a masks folder located next to your project file.
+
+00:01:49.000 --> 00:01:55.000
+If you move or share your project, be sure to include this folder so the object masking data remains intact.
+
+00:01:55.000 --> 00:02:02.000
+Subscribe for more Adobe Tips.

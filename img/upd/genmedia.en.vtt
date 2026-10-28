@@ -1,0 +1,82 @@
+WEBVTT
+
+00:00:00.800 --> 00:00:05.040
+Hey, this is Anton from the Adobe Premiere team and I'm excited to show you our new
+
+00:00:05.040 --> 00:00:11.120
+generative media tool in Premiere. Let's jump right into a real edit. This commercial is almost done
+
+00:00:11.120 --> 00:00:15.840
+but still has a few gaps. Let me show you how to fill them without ever leaving the edit.
+
+00:00:16.400 --> 00:00:21.360
+With the new generative media tool you can generate videos and sound effects right in your timeline.
+
+00:00:22.000 --> 00:00:27.920
+First up is this visual gap. The edit is missing an area shot that the crew couldn't get on location.
+
+00:00:27.920 --> 00:00:32.560
+Here's how it works. Pick the tool then click and drag to create a range selection.
+
+00:00:33.120 --> 00:00:38.720
+That range can be on any video track, audio track or both if the model supports it. It works similar
+
+00:00:38.720 --> 00:00:44.640
+to a clip. You can trim it, move it and it'll snap into place. You can also simply double click on a
+
+00:00:44.640 --> 00:00:49.680
+gap in the timeline. The new generative taskbar is your hub for everything that comes next.
+
+00:00:50.320 --> 00:00:55.760
+Firstly, you can choose between a variety of Adobe Firefly and partner models like Google Vio,
+
+00:00:55.760 --> 00:01:00.640
+Kling or Luma. I'll use Vio for this shot and already prepared a prompt.
+
+00:01:00.640 --> 00:01:05.760
+A prompt alone won't match my project though. To get a production ready output, the model needs the
+
+00:01:05.760 --> 00:01:11.440
+visual context of my project. In Premiere, I can now natively sample reference frames straight from my
+
+00:01:11.440 --> 00:01:16.960
+own footage. You can pick the frames left and right to the selected range, sample any frame in the
+
+00:01:16.960 --> 00:01:22.480
+project or use one from your device. We are bringing the models to the footage instead of taking the
+
+00:01:22.480 --> 00:01:27.600
+footage to the model. So there is no context switching and no exporting. The feature detects
+
+00:01:27.600 --> 00:01:32.640
+your sequence specs like aspect ratio and resolution and auto matches them to the model's nearest
+
+00:01:32.640 --> 00:01:38.160
+available option. For this drone shot, the only thing I need to do is find a good frame like this
+
+00:01:38.160 --> 00:01:43.840
+one and sample it with one click using the built-in eyedropper. If you ever need to go back and fine
+
+00:01:43.840 --> 00:01:49.440
+tune or double check the reference you used, simply click the new AI badge and get back to the taskbar.
+
+00:01:50.160 --> 00:01:54.960
+For the intro, I also want a desert ambient sound effect, but I don't have one in my library.
+
+00:01:55.760 --> 00:02:01.200
+Same idea, I draw a range on my audio track and describe the sound I want. I can even use my voice
+
+00:02:01.200 --> 00:02:07.120
+to guide the timing and intensity so it lands exactly how I need it. Let's add a few final tweaks like
+
+00:02:07.120 --> 00:02:10.000
+these smooth audio fades, then give it a look and a listen.
+
+00:02:10.000 --> 00:02:22.240
+Everything you just saw happened all without ever leaving the edit. This is the new generative media
+
+00:02:22.240 --> 00:02:27.200
+tool in Premiere, the first step of AI generation that lives where your video project already is.
+
+00:02:27.200 --> 00:02:32.720
+Thanks for watching, I can't wait to see what you create.

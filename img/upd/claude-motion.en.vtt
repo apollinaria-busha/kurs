@@ -1,0 +1,73 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:03.000
+This is a short animation about empty bike docks.
+
+00:00:03.000 --> 00:00:06.000
+It started as a dashboard.
+
+00:00:06.000 --> 00:00:10.000
+Today I want to show you two new artifact types.
+
+00:00:10.000 --> 00:00:13.000
+Claude dashboards and Claude motion.
+
+00:00:13.000 --> 00:00:17.000
+Pretend that I run the operations team at a bike share.
+
+00:00:17.000 --> 00:00:21.000
+Every weekday, the docks on the hill are empty by 8.15.
+
+00:00:21.000 --> 00:00:23.000
+We need to get to the bottom of it.
+
+00:00:23.000 --> 00:00:27.000
+We let Claude pull a year of ride data from our data warehouse
+
+00:00:27.000 --> 00:00:30.000
+and lay it out as a nice dashboard.
+
+00:00:30.000 --> 00:00:33.000
+As we look at the dashboard, a story takes shape.
+
+00:00:33.000 --> 00:00:36.000
+And we'll need to tell this story to the whole team
+
+00:00:36.000 --> 00:00:39.000
+at our next all-hands meeting to get them on board.
+
+00:00:39.000 --> 00:00:42.000
+So we asked Claude to turn this dashboard into an animation
+
+00:00:42.000 --> 00:00:44.000
+using Claude motion.
+
+00:00:44.000 --> 00:00:47.000
+Claude turns it into an animated narrative.
+
+00:00:53.000 --> 00:00:56.000
+Claude usually does a pretty good job right away.
+
+00:00:56.000 --> 00:00:59.000
+But I can continue to tweak it and steer it with comments if I want to.
+
+00:00:59.000 --> 00:01:01.000
+Right there on the video.
+
+00:01:01.000 --> 00:01:03.000
+I can send it to colleagues and they can comment too.
+
+00:01:03.000 --> 00:01:05.000
+We can build the story together.
+
+00:01:05.000 --> 00:01:07.000
+And if the team wants to take it further,
+
+00:01:07.000 --> 00:01:10.000
+we can export it straight into their design tools.
+
+00:01:10.000 --> 00:01:13.000
+So that's Claude dashboards and Claude motion.
+
+00:01:13.000 --> 00:01:15.000
+And you can try them out today.
