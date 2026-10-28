@@ -1147,14 +1147,14 @@ function upMeta(u,big){const isNew=!updSeen().has(u.id)&&!u.done;
 function updThumb(u){const m=((u.card&&u.card.media)||[])[0];if(!m)return "";const src=m.video?m.poster:m.img;return src?`<span class="upth"><img src="${esc(src)}" alt="" loading="lazy">${m.video?`<span class="vplay sm"><svg width="14" height="16" viewBox="0 0 22 24"><path d="M3 2l17 10L3 22z" fill="#1a1200"/></svg></span>`:""}</span>`:""}
 function updListView(){
   if(!S.upd){loadUpd();return `<div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}
-  const areas=UP_AREAS.filter(a=>S.upd.some(u=>u.area===a));
+  const areas=UP_AREAS; // все сферы видны всегда, даже пока в них пусто
   const list=S.upd.filter(u=>!UP.f||u.area===UP.f),done=S.upd.filter(u=>u.done).length,drafts=S.upd.filter(u=>!u.pub).length;
   return `<h1 class="h">Апдейты мира контента</h1>
     <p class="sub" style="margin:0">Всё новое в мире контента: тренды, программы, нейросети, сервисы для монтажа, соцсети, кино и анимация — со всего мира. Раз в неделю — свежие новости с подробной инструкцией.</p>
     ${isAuthor()&&drafts?`<div class="updraft">👀 Режим автора: черновиков ${drafts}. Ученицы их не видят, пока ты не нажмёшь «Опубликовать» в карточке.</div>`:""}
     <div class="chips"><button class="chipbtn ${!UP.f?"on":""}" onclick="UP.f='';route()">Все</button>${areas.map(a=>`<button class="chipbtn ${UP.f===a?"on":""}" onclick="UP.f='${esc(a)}';route()">${UP_IC[a]} ${esc(a)}</button>`).join("")}</div>
     <div style="display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--muted)">Разобралась в ${done} из ${S.upd.length}<span class="bar y" style="flex:1;height:6px"><i style="width:${S.upd.length?Math.round(done/S.upd.length*100):0}%"></i></span></div>
-    ${list.map(u=>`<button class="upd ${!updSeen().has(u.id)&&!u.done?"new":""}" onclick="location.hash='up/${esc(u.id)}'">${updThumb(u)}${upMeta(u)}<b>${esc(u.t)}</b><p>${esc(u.short)}</p><span class="go">${esc((u.card&&u.card.go)||"Подробнее")} →</span></button>`).join("")||`<div class="empty">Пока пусто</div>`}`;
+    ${list.map(u=>`<button class="upd ${!updSeen().has(u.id)&&!u.done?"new":""}" onclick="location.hash='up/${esc(u.id)}'">${updThumb(u)}${upMeta(u)}<b>${esc(u.t)}</b><p>${esc(u.short)}</p><span class="go">${esc((u.card&&u.card.go)||"Подробнее")} →</span></button>`).join("")||`<div class="empty">${UP.f==="Сервисы"?"🧰 Здесь будут сайты и сервисы для монтажа, которые завирусились в интернете. Как только появится такой — добавим.":UP.f?"В этой сфере пока нет свежих новостей — загляни после следующего выпуска 💛":"Пока пусто"}</div>`}`;
 }
 function updCardView(u){
   const c=u.card||{};UP_T=upTerms(c.terms);
@@ -1404,7 +1404,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1793175443";
+const BUILD="1793175500";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
