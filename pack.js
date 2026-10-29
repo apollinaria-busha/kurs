@@ -111,7 +111,7 @@ const CSS=`
 .pk-snd .r b{font-size:13.5px}.pk-snd .r small{color:var(--muted);font-size:11.5px}.pk-snd audio{grid-column:1/-1;width:100%;height:34px}
 .pk-snd .r a.d{font:500 11px var(--f-mono);color:var(--sun);text-decoration:none;border:1px solid var(--line);border-radius:6px;padding:3px 7px;white-space:nowrap}
 .pk-lut{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.pk-lut .l{display:grid;gap:5px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:8px}
-.pk-lut img{width:100%;aspect-ratio:16/9;object-fit:cover;border-radius:8px}.pk-lut b{font-size:13px}.pk-lut small{font-size:11.5px;color:var(--muted);line-height:1.35}
+.pk-lut img{width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:8px}.pk-lut b{font-size:13px}.pk-lut small{font-size:11.5px;color:var(--muted);line-height:1.35}
 .pk-lut a{font:500 11px var(--f-mono);color:var(--sun);text-decoration:none;justify-self:start;border:1px solid var(--line);border-radius:6px;padding:3px 7px}
 .pk-tbl{display:grid;gap:8px}.pk-tbl .r{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px}.pk-tbl .r b{display:block;margin-bottom:4px}.pk-tbl .r p{margin:2px 0;font-size:13px}
 @media(min-width:700px){.pk-lut{grid-template-columns:repeat(3,minmax(0,1fr))}}
