@@ -187,6 +187,8 @@ mark{background:color-mix(in srgb,var(--sun) 35%,transparent);color:inherit;bord
 .covers{display:grid;grid-template-columns:1fr;gap:14px}
 .cover{display:flex;flex-direction:column;gap:8px;text-align:left;width:100%}
 .cover img{width:100%;aspect-ratio:930/418;object-fit:cover;border-radius:16px;display:block;background:var(--panel)}
+.upbtn.off{opacity:.45;cursor:default}
+.cover[disabled]{cursor:default}
 .cover .cv{position:relative;display:block}
 .cover.shut img{filter:grayscale(1) brightness(.45)}
 .cover .lockb{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(13,13,13,.88);color:var(--text);border:1px solid var(--sun);border-radius:12px;padding:9px 14px;font-weight:700;font-size:14.5px;white-space:nowrap}
@@ -483,14 +485,15 @@ function demoView(){
     <button class="cont" style="background:var(--panel2);color:var(--text);border:1px solid var(--line)" onclick="demo('pre')"><span class="k">Отсек 2</span><b>🔒 До старта обучения · бронь</b><span style="font-size:12.5px;font-weight:600;opacity:.75">Открыт только вводный модуль «Погружение», остальное закрыто до старта потока</span></button>`;
 }
 async function demo(mode){
-  if(!mode){DEMO=null;location.hash="hw";return loadCourse()}
+  if(!mode){DEMO=null;S.acc=null;location.hash="hw";return loadCourse()}
   screen(`${logo()}<div class="spinner"></div><p>Открываем демо…</p>`);
   let res;try{res=await api({api:"course",as:mode})}catch(e){return loadCourse()}
   if(!res.ok){toast(res.error||"Не получилось");return loadCourse()}
   apply(res);S.user={...res.user,a:0};DEMO=mode;
+  try{const ac=await api({api:"account",as:mode});if(ac.ok)S.acc=ac}catch(e){}
   if(location.hash)location.hash="";else route();
 }
-function apply(res){S.user=res.user;S.mods=res.mods;S.mats=res.mats||[];S.done=new Set(res.done);setHw(res.hw);S.tests=res.tests||{};S.testRes=res.testRes||{};S.lsName=res.lsName||"Полине"}
+function apply(res){S.bron=res.bron||null;S.user=res.user;S.mods=res.mods;S.mats=res.mats||[];S.done=new Set(res.done);setHw(res.hw);S.tests=res.tests||{};S.testRes=res.testRes||{};S.lsName=res.lsName||"Полине"}
 function saveCache(){try{const c=JSON.parse(load("kk_course")||"{}");c.done=[...S.done];c.hw=[...S.subs,...S.qs];store("kk_course",JSON.stringify(c))}catch(e){}}
 
 /* ---------- данные ---------- */
@@ -517,6 +520,7 @@ function route(){
   else if(h.startsWith("test/")){const l=findLes(h.slice(5));if(l){view=testView(l);title="Тест";back=true}}
   else if(h.startsWith("hw/new")){view=wizardView(h.slice(7));title="Сдать работу";back=true}
   else if(h.startsWith("mat/pk")&&isAuthor()){const r=window.PK?PK.view(h.slice(6)):(loadPack(),null);view=r?r.v:`<p class="sub">Загружаю пак…</p>`;title=r?r.t:"Пак";back=true}
+  else if(S.bron&&(h==="up"||h.startsWith("up/")||h.startsWith("m/")&&(S.mods.find(m=>m.n===h.slice(2))||{les:[]}).les.every(l=>l.locked)))view=homeView();
   else if(h==="up"){view=updListView();title="Апдейты";back=true}
   else if(h.startsWith("up/")){const u=(S.upd||[]).find(x=>x.id===h.slice(3));if(u){view=updCardView(u);title=u.area||"Апдейт";back=true}else{view=updListView();title="Апдейты";back=true}}
   else if(h==="mat")view=matView();
@@ -573,7 +577,7 @@ function homeView(){
   const p=pct(),last=findLes(load("kk_last"));
   const n=last?(S.done.has(last.id)?(nextAfter(last.id)||last):last):nextLes();
   const lk=allLes().filter(l=>l.locked&&l.open).map(l=>l.open).sort()[0];
-  const pre=lk?`<div class="box" style="gap:6px;border-color:var(--sun)"><b style="font-size:16px">🎬 Старт программы — ${esc(fmtDate(lk))}</b><p class="hint" style="margin:0">До старта тебе уже открыт вводный модуль «Погружение в мир режиссёра монтажа» — начинай с него 💛 В день старта откроется вся программа сразу.</p></div>`:"";
+  const B=S.bron,pre=B?`<div class="box" style="gap:6px;border-color:var(--sun)"><b style="font-size:16px">🎬 ${B.pre?"Старт предобучения":"Старт программы"} — ${esc(fmtDate(B.open))}</b><p class="hint" style="margin:0">${B.pre?`Ты идёшь на предобучение: оно начинается за неделю до старта программы (${esc(fmtDate(B.start))}). `:""}Пока тебе открыт вводный модуль «Погружение в мир режиссёра монтажа» — начинай с него 💛 ${esc(fmtDate(B.open))} откроется вся программа и полезные материалы.</p></div>`:lk?`<div class="box" style="gap:6px;border-color:var(--sun)"><b style="font-size:16px">🎬 Старт программы — ${esc(fmtDate(lk))}</b><p class="hint" style="margin:0">В день старта откроется вся программа сразу.</p></div>`:"";
   return `<img class="banner" src="img/banner.jpg" alt="КОД КРЕАТОРА — программа обучения профессии режиссёра монтажа">${pre}
     <div class="hello"><h1>Привет, ${esc(S.user.n||"креатор")}</h1><p>${S.user.a?(S.user.s||"автор"):"ученица"} · пройдено ${p}% программы</p></div>
     ${n?`<button class="cont" onclick="openLes('${esc(n.id)}')"><span class="k">${last?"Продолжить":"Начать"} · урок ${esc(n.id)}</span><b>${esc(n.t)}</b><span class="bar"><i style="width:${p}%"></i></span></button>`:""}
@@ -584,7 +588,7 @@ function homeView(){
     ${updBtn()}
     <div class="sec-t">Модули</div>
     <div class="covers">${S.mods.map(m=>{const d=modDone(m),t=m.les.length,pc=Math.round(d/t*100),lo=t&&m.les.every(l=>l.locked)?m.les[0].open:"";return `
-      <button class="cover ${lo?"shut":""}" onclick="location.hash='m/${esc(m.n)}'"><span class="cv"><img src="${modCover(m.n)}" alt="${esc(m.t)}" loading="lazy">${lo?`<span class="lockb">🔒 Откроется ${esc(fmtDate(lo))}</span>`:""}</span>
+      <button class="cover ${lo?"shut":""}" ${lo?"disabled":`onclick="location.hash='m/${esc(m.n)}'"`}><span class="cv"><img src="${modCover(m.n)}" alt="${esc(m.t)}" loading="lazy">${lo?`<span class="lockb">🔒 Откроется ${esc(fmtDate(lo))}</span>`:""}</span>
         <span class="meta"><span>${t} ${plural(t,"урок","урока","уроков")}</span><span class="bar y"><i style="width:${pc}%"></i></span><span class="pr ${d===t?"full":""}">${d}/${t}</span></span></button>`}).join("")}</div>
     ${matchMedia("(display-mode: standalone)").matches||navigator.standalone||TG?"":`<button class="file" onclick="installSheet()"><span class="ext"><img src="icon-192.png" alt="" style="width:100%;border-radius:9px"></span><span><b>Поставить иконку на ${wide()?"компьютер или телефон":"телефон"}</b><small>Открывать программу как приложение</small></span></button>`}`;
 }
@@ -724,6 +728,7 @@ function kbSearch(q){
 
 /* ---------- полезные материалы ---------- */
 function matView(){
+  if(S.bron)return `<h1 class="h">Полезные материалы</h1><div class="box" style="gap:8px;border-color:var(--sun);text-align:center;padding:26px 18px"><span style="font-size:34px">🔒</span><b style="font-size:17px">Откроются ${esc(fmtDate(S.bron.open))}</b><p class="hint" style="margin:0">Все гайды и подборки программы станут доступны в день старта ${S.bron.pre?"предобучения":"программы"}. А пока — вводный модуль «Погружение» в Базе знаний 💛</p></div>`;
   const mats=S.mats.filter(x=>!/база/i.test(x.s)),groups=[...new Set(mats.map(x=>x.g))];
   if(isAuthor()&&!window.PK)loadPack();
   return `<h1 class="h">Полезные материалы</h1><p class="sub">Все гайды и подборки программы в одном месте — без поиска по урокам.</p>
@@ -739,7 +744,7 @@ function loadPack(){if(loadPack.on)return;loadPack.on=1;const sc=document.create
 // «тип ДЗ»: confirm:<надпись> | file|часть;часть | text|часть;… | text+test|… | test
 function hwKind(l){return String(l.hw||"").split(/[|:]/)[0]}
 function isTest(l){return /test/.test(hwKind(l))}
-function hasHw(l){return ["confirm","text","text+test","file"].includes(hwKind(l))}
+function hasHw(l){return !l.locked&&["confirm","text","text+test","file"].includes(hwKind(l))}
 function parts(l){const p=String(l.hw||"").split("|")[1];return p?p.split(";"):[hwKind(l)==="confirm"?"Задание":"Всё задание"]}
 // название задания: если обложка ГК делилась на несколько уроков — её общее название
 function hwTitle(l){return shortT(String(l.hw||"").split("|")[2]||l.t)}
@@ -1142,6 +1147,7 @@ function ssbHtml(list){
 
 // на главной — карточка идущего ССБ (ведёт в профиль), пока ученица не отметила участие
 function ssbHome(){
+  if(S.bron)return ""; // бронь: клиент потока станет известен на программе
   if(!S.acc&&!S.user.a){try{const c=JSON.parse(load("kk_acc")||"null");if(c&&c.ok)S.acc=c}catch(e){}}
   const b=((S.acc&&S.acc.ssb)||[]).find(x=>x.status==="идёт");if(!b||S.user.a)return "";
   const done=b.me&&b.me.took;
@@ -1176,6 +1182,7 @@ function updBtn(){
   if(!S.upd)loadUpd();
   const all=S.upd||[];if(!all.length)return "";
   const n=updNew().length,last=all[0];
+  if(S.bron)return `<div class="upbtn off"><span>🆕</span><span class="tx">Апдейты мира контента<small>🔒 Откроются ${esc(fmtDate(S.bron.open))}</small></span></div>`;
   return `<button class="upbtn ${n?"new":""}" onclick="location.hash='up'"><span>🆕</span><span class="tx">Апдейты мира контента<small>${n?esc(last.t):"Программы, нейросети, соцсети — что нового"}</small></span>${n?`<span class="upbadge">${n} ${plural(n,"новый","новых","новых")}</span>`:`<span class="chip">${all.length}</span>`}</button>`;
 }
 // «Простыми словами»: сложные слова из card.terms подчёркнуты (первое упоминание в карточке), тап — объяснение.
@@ -1339,9 +1346,9 @@ function meView(){
     ${boardSt?`<p class="hint" style="margin-top:-6px">Средний прогресс ${boardSt.n} ${plural(boardSt.n,"ученицы","учениц","учениц")} текущего потока · начали проходить уроки: ${boardSt.active} из ${boardSt.n}</p>`:""}
     <div class="sec-t">${a&&a.board?"Портфолио учениц":"Моё портфолио"}</div>
     ${a&&a.board?boardPf(a.board):a?pfHtml(a.portfolio):`<div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}
-    ${a?ssbHtml(a.ssb):""}
+    ${S.bron?`<div class="sec-t">🤝 Сотрудничество с брендами</div><div class="box"><p class="hint" style="margin:0">На каждом потоке — свой клиент. Кто будет у твоего потока, расскажем на программе 💛</p></div>`:a?ssbHtml(a.ssb):""}
     <div class="sec-t">${a&&a.board?"Мои планерки":"Планерки с Бушей"}</div>
-    ${a&&a.board?boardPlan(a.board):a?planHtml(a.planerki):`<div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}
+    ${S.bron?`<div class="box"><p class="hint" style="margin:0">Записаться на планерку с Бушей можно будет с ${esc(fmtDate(S.bron.open))} — со старта ${S.bron.pre?"предобучения":"программы"}.</p></div>`:a&&a.board?boardPlan(a.board):a?planHtml(a.planerki):`<div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}
     <div class="sec-t">${a&&a.board?"Оплаты учениц":"Оплата"}</div>
     <div id="pay">${a&&a.board?boardPay(a.board):a?payHtml(a.pay):`<div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}</div>
     <div class="notif" data-full="1"></div>
@@ -1406,7 +1413,8 @@ function streamHtml(p){
   const left=Math.ceil((e-now)/day),pc=Math.min(100,Math.max(0,Math.round((now-s)/(e-s)*100)));
   const total=Math.round((e-s)/day),toStart=Math.ceil((s-now)/day);
   // предобучение: пока программа не стартовала, отсчёт стоит на полном сроке
-  const txt=now<s?`До старта программы <b style="color:var(--sun)">${toStart} ${plural(toStart,"день","дня","дней")}</b> · дальше ${total} ${plural(total,"день","дня","дней")} программы`:left>0?`До конца программы<br><b style="color:var(--sun)">${left} ${plural(left,"день","дня","дней")}</b>`:"Программа завершена — ты молодец!";
+  const pr=p.pre?new Date(p.pre+"T00:00:00+03:00"):null,toPre=pr?Math.ceil((pr-now)/day):0;
+  const txt=pr&&now<pr?`До старта предобучения <b style="color:var(--sun)">${toPre} ${plural(toPre,"день","дня","дней")}</b> · ${fmtDate(p.pre)}<br><span class="hint" style="font-size:12.5px">Программа стартует ${fmtDate(p.start)}, предобучение — за неделю до неё</span>`:pr&&now<s?`Идёт предобучение 🔥 До старта программы <b style="color:var(--sun)">${toStart} ${plural(toStart,"день","дня","дней")}</b>`:now<s?`До старта программы <b style="color:var(--sun)">${toStart} ${plural(toStart,"день","дня","дней")}</b> · дальше ${total} ${plural(total,"день","дня","дней")} программы`:left>0?`До конца программы<br><b style="color:var(--sun)">${left} ${plural(left,"день","дня","дней")}</b>`:"Программа завершена — ты молодец!";
   return `<div class="box"><div style="display:flex;justify-content:space-between;gap:10px;font-size:14px"><span>${txt}</span><span class="hint" style="font-size:12px;white-space:nowrap;align-self:flex-start;padding-top:2px">${fmtDate(p.start)} – ${fmtDate(p.end)}</span></div><span class="bar y"><i style="width:${pc}%"></i></span></div>`;
 }
 function planHtml(list){
@@ -1435,6 +1443,7 @@ function payHtml(p){
 // профиль: показываем сохранённый на телефоне сразу, свежий подтягиваем в фоне (сервер отвечает 3–10 секунд)
 let accLoading=null;
 function loadAccount(){
+  if(DEMO)return; // в демо профиль ученицы уже загружен — не подменяем профилем автора
   if(!S.acc){try{const c=JSON.parse(load("kk_acc")||"null");if(c&&c.ok)S.acc=c}catch(e){}}
   if(accLoading)return accLoading;
   accLoading=(async()=>{try{const r=await api({api:"account"});if(!r.ok)return;S.acc=r;store("kk_acc",JSON.stringify(r));
@@ -1480,7 +1489,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="202610302144";
+const BUILD="202610302149";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
