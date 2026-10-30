@@ -485,11 +485,12 @@ function demoView(){
     <button class="cont" style="background:var(--panel2);color:var(--text);border:1px solid var(--line)" onclick="demo('pre')"><span class="k">Отсек 2</span><b>🔒 До старта обучения · бронь</b><span style="font-size:12.5px;font-weight:600;opacity:.75">Открыт только вводный модуль «Погружение», остальное закрыто до старта потока</span></button>`;
 }
 async function demo(mode){
+  JB.data=null;S.upd=null; // биржа и апдейты в демо — свои, как у ученицы
   if(!mode){DEMO=null;S.acc=null;location.hash="hw";return loadCourse()}
   screen(`${logo()}<div class="spinner"></div><p>Открываем демо…</p>`);
   let res;try{res=await api({api:"course",as:mode})}catch(e){return loadCourse()}
   if(!res.ok){toast(res.error||"Не получилось");return loadCourse()}
-  apply(res);S.user={...res.user,a:0};DEMO=mode;
+  apply(res);S.user={...res.user,a:0};DEMO=mode;loadUpd();
   try{const ac=await api({api:"account",as:mode});if(ac.ok)S.acc=ac}catch(e){}
   if(location.hash)location.hash="";else route();
 }
@@ -1008,7 +1009,7 @@ function act0(){return JB.country!=="Все"||JB.level!=="Все"||JB.cur!=="В�
 const JOB_GOAL=25;
 async function loadJobs(force){
   if(JB.data&&!force)return;
-  try{const r=await api({api:"jobs"});if(r.ok){JB.data=r;if(location.hash.slice(1)==="jobs")route()}}catch(e){}
+  try{const r=await api({api:"jobs",as:DEMO||undefined});if(r.ok){JB.data=r;if(location.hash.slice(1)==="jobs")route()}}catch(e){}
 }
 // перерисовать биржу, не прыгая наверх (фильтры, отметки)
 function rerJobs(){const m=document.getElementById("main"),y=window.scrollY,t=m?m.scrollTop:0,inner=document.querySelector(".inner");if(!inner||location.hash.slice(1)!=="jobs")return route();inner.innerHTML=jobsView();if(m)m.scrollTop=t;window.scrollTo(0,y)}
@@ -1174,9 +1175,9 @@ let updLoading=null;
 function updSeen(){try{return new Set(JSON.parse(load("kk_upd_seen")||"[]"))}catch(e){return new Set()}}
 function updNew(){const s=updSeen();return (S.upd||[]).filter(u=>!u.prev&&!s.has(u.id)&&!u.done)}
 function loadUpd(){
-  if(!S.upd){try{const c=JSON.parse(load("kk_upd")||"null");if(Array.isArray(c))S.upd=c}catch(e){}}
+  if(!S.upd&&!DEMO){try{const c=JSON.parse(load("kk_upd")||"null");if(Array.isArray(c))S.upd=c}catch(e){}}
   if(updLoading)return updLoading;
-  updLoading=(async()=>{try{const r=await api({api:"updates"});if(!r.ok)return;S.upd=r.items;store("kk_upd",JSON.stringify(r.items));
+  updLoading=(async()=>{try{const r=await api({api:"updates",as:DEMO||undefined});if(!r.ok)return;S.upd=r.items;if(!DEMO)store("kk_upd",JSON.stringify(r.items));
     const h=location.hash.slice(1);if(h===""||h==="up"||h.startsWith("up/"))route()}catch(e){}finally{updLoading=null}})();
   return updLoading;
 }
@@ -1491,7 +1492,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="202610302210";
+const BUILD="202610302216";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
