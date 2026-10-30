@@ -83,6 +83,8 @@ h1.h{margin:0;font-size:clamp(22px,4vw,30px);font-weight:900;line-height:1.12;le
 .hello h1{font-size:clamp(24px,4vw,32px);font-weight:900;line-height:1.1;margin:0;letter-spacing:-.01em}
 .hello p{margin:4px 0 0;color:var(--muted);font-size:13.5px}
 
+.demo-bar{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#3b2a00;color:#ffd77a;border:1px solid var(--sun);border-radius:14px;padding:8px 8px 8px 14px;margin-bottom:12px;font-size:13.5px}
+.demo-bar button{background:var(--sun);color:var(--sun-ink);border-radius:10px;padding:7px 12px;font-weight:700;font-size:13px}
 .cont{background:var(--sun);color:var(--sun-ink);border-radius:20px;padding:16px;text-align:left;display:flex;flex-direction:column;gap:6px;width:100%}
 .cont .k{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;opacity:.7}
 .cont b{font-size:17px;line-height:1.2;font-weight:800}
@@ -356,7 +358,7 @@ const IC = {
 };
 const TABS = [["", "База знаний", "les", "База<br>знаний"], ["mat", "Полезные материалы", "mat", "Полезные<br>материалы"], ["hw", "Сдать ДЗ", "hw", "Сдать ДЗ"], ["jobs", "Биржа заказов", "job", "Биржа<br>заказов"], ["me", "Профиль", "me", "Профиль"]];
 
-function tabs(){if(!(S.user&&S.user.a))return TABS;const t=[...TABS];t.splice(3,0,["st","Ученики","st","Ученики"]);return t}
+function tabs(){if(!(S.user&&S.user.a))return TABS;const t=[...TABS];t[2]=["hw","Демонстрация","hw","Демо"];t.splice(3,0,["st","Ученики","st","Ученики"]);return t}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function store(k,v){try{v===undefined?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
 function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
@@ -394,6 +396,9 @@ async function start(){
   const qs=new URLSearchParams(location.search),ho=qs.get("login");
   if(ho){qs.delete("login");history.replaceState(null,"",location.pathname+(qs.toString()?"?"+qs:"")+location.hash);
     if(!S.session){try{const r=await call({api:"handin",token:ho});if(r.ok){S.session=r.session;store("kk_session",r.session)}}catch(e){}}}
+  const mi=qs.get("in"); // личная ссылка из письма о брони
+  if(mi){qs.delete("in");history.replaceState(null,"",location.pathname+(qs.toString()?"?"+qs:"")+location.hash);
+    if(!S.session){try{const r=await call({api:"magicin",token:mi});if(r.ok){S.session=r.session;store("kk_session",r.session)}else if(r.error==="expired"||r.error==="soon")return doLoginResult(r);else{showLogin(r.error==="expired_link"?"Ссылка из письма устарела. Введи свою почту — пришлём код для входа.":undefined);return}}catch(e){}}}
   if(TG && !S.session){ screen(`${logo()}<div class="spinner"></div><p>Проверяем доступ к программе…</p>`); return doLogin({initData:TG.initData}); }
   if(S.session) return loadCourse();
   showLogin();
@@ -456,6 +461,7 @@ function doLoginResult(res){
 }
 
 async function loadCourse(){
+  DEMO=null;
   const cached=load("kk_course");
   if(cached){try{apply(JSON.parse(cached));loadAccount();loadUpd();route()}catch(e){}} // профиль и апдейты сразу из памяти, свежие — фоном
   else screen(`${logo()}<div class="spinner"></div><p>Загружаем программу…</p>`);
@@ -464,6 +470,22 @@ async function loadCourse(){
   if(!res.ok){if(!cached)screen(`${logo()}<p>Ошибка: ${esc(res.error)}</p>`);return}
   store("kk_course",JSON.stringify(res));apply(res);handoffUrl();if(!S.acc&&!accLoading)loadAccount();if(!S.upd&&!updLoading)loadUpd();
   if(!document.querySelector("#hwf"))route(); // не сбрасываем форму ДЗ, если ученица её заполняет
+}
+/* ---------- демонстрация для автора: приложение глазами учениц ---------- */
+let DEMO=null; // "student" — как видят ученицы потока, "pre" — бронь до старта (открыто только «Погружение»)
+function demoView(){
+  return `<h1 class="h">Демонстрация приложения</h1>
+    <p class="hint">Смотри приложение так, как его видят девочки, и лови баги. Твой прогресс и доступы не меняются. Выйти из демо — кнопка «Выйти» сверху.</p>
+    <button class="cont" onclick="demo('student')"><span class="k">Отсек 1</span><b>👩‍🎓 Как видят ученицы</b><span style="font-size:12.5px;font-weight:600;opacity:.75">Ученица потока после старта: вся программа, «Сдать ДЗ» вместо демо, без раздела «Ученики»</span></button>
+    <button class="cont" style="background:var(--panel2);color:var(--text);border:1px solid var(--line)" onclick="demo('pre')"><span class="k">Отсек 2</span><b>🔒 До старта обучения · бронь</b><span style="font-size:12.5px;font-weight:600;opacity:.75">Открыт только вводный модуль «Погружение», остальное закрыто до старта потока</span></button>`;
+}
+async function demo(mode){
+  if(!mode){DEMO=null;location.hash="hw";return loadCourse()}
+  screen(`${logo()}<div class="spinner"></div><p>Открываем демо…</p>`);
+  let res;try{res=await api({api:"course",as:mode})}catch(e){return loadCourse()}
+  if(!res.ok){toast(res.error||"Не получилось");return loadCourse()}
+  apply(res);S.user={...res.user,a:0};DEMO=mode;
+  if(location.hash)location.hash="";else route();
 }
 function apply(res){S.user=res.user;S.mods=res.mods;S.mats=res.mats||[];S.done=new Set(res.done);setHw(res.hw);S.tests=res.tests||{};S.testRes=res.testRes||{};S.lsName=res.lsName||"Полине"}
 function saveCache(){try{const c=JSON.parse(load("kk_course")||"{}");c.done=[...S.done];c.hw=[...S.subs,...S.qs];store("kk_course",JSON.stringify(c))}catch(e){}}
@@ -495,7 +517,7 @@ function route(){
   else if(h==="up"){view=updListView();title="Апдейты";back=true}
   else if(h.startsWith("up/")){const u=(S.upd||[]).find(x=>x.id===h.slice(3));if(u){view=updCardView(u);title=u.area||"Апдейт";back=true}else{view=updListView();title="Апдейты";back=true}}
   else if(h==="mat")view=matView();
-  else if(h==="hw")view=hwListView();
+  else if(h==="hw")view=S.user.a?demoView():hwListView();
   else if(h==="st"&&S.user.a)view=studentsView();
   else if(h==="hw/check"){view=reviewView();title="Проверка ДЗ";back=true}
   else if(h.startsWith("hw/s/")){view=studentView(h.slice(5));title="Ученица";back=true}
@@ -510,7 +532,7 @@ function route(){
       ${wide()?`<span class="user"><b>${esc(S.user.n)}</b> · @${esc(S.user.u)}</span>`:back&&!TG?`<span class="sp"></span>`:""}
       ${wide()?"":`<button class="rf" onclick="refreshAll()" aria-label="Обновить">↻</button>`}
     </header>
-    <div class="wrap"><aside class="side">${sideView(sec)}</aside><main class="main" id="main"><div class="inner">${view}</div></main></div>
+    <div class="wrap"><aside class="side">${sideView(sec)}</aside><main class="main" id="main"><div class="inner">${DEMO?`<div class="demo-bar"><span>👀 Демо: <b>${DEMO==="pre"?"до старта · бронь":"как видят ученицы"}</b></span><button onclick="demo()">Выйти</button></div>`:""}${view}</div></main></div>
     <nav class="tabs">${tabs().map(([k,_,ic,t])=>`<button class="tab ${k==="hw"?"hw":""} ${sec===k?"on":""}" onclick="location.hash='${k}'">${k==="hw"&&!S.user.a?`<span class="ic">${IC[ic]}</span>`:IC[ic]}<span>${t}</span></button>`).join("")}</nav>`;
   const m0=document.getElementById("main");
   const back2=LAST_H!=null&&h!==LAST_H&&POS[h]&&(LAST_H.startsWith(h+"/")||(/^l\//.test(LAST_H)&&/^m\//.test(h))); // вернулась из карточки/урока в список
@@ -546,9 +568,9 @@ function openLes(id){const l=findLes(id);if(l&&l.locked)return toast("Урок �
 const modCover=n=>`img/mod${esc(n)}.jpg`;
 function homeView(){
   const p=pct(),last=findLes(load("kk_last"));
-  const n=last?(S.done.has(last.id)?(nextAfter(last.id)||last):last):allLes()[0];
+  const n=last?(S.done.has(last.id)?(nextAfter(last.id)||last):last):nextLes();
   const lk=allLes().filter(l=>l.locked&&l.open).map(l=>l.open).sort()[0];
-  const pre=lk?`<div class="box" style="gap:6px;border-color:var(--sun)"><b style="font-size:16px">🎬 Старт программы — ${esc(fmtDate(lk))}</b><p class="hint" style="margin:0">До старта тебе уже открыты организационный модуль и вводный модуль «Погружение в мир режиссёра монтажа» — начинай с них 💛 В день старта откроется вся программа сразу.</p></div>`:"";
+  const pre=lk?`<div class="box" style="gap:6px;border-color:var(--sun)"><b style="font-size:16px">🎬 Старт программы — ${esc(fmtDate(lk))}</b><p class="hint" style="margin:0">До старта тебе уже открыт вводный модуль «Погружение в мир режиссёра монтажа» — начинай с него 💛 В день старта откроется вся программа сразу.</p></div>`:"";
   return `<img class="banner" src="img/banner.jpg" alt="КОД КРЕАТОРА — программа обучения профессии режиссёра монтажа">${pre}
     <div class="hello"><h1>Привет, ${esc(S.user.n||"креатор")}</h1><p>${S.user.a?(S.user.s||"автор"):"ученица"} · пройдено ${p}% программы</p></div>
     ${n?`<button class="cont" onclick="openLes('${esc(n.id)}')"><span class="k">${last?"Продолжить":"Начать"} · урок ${esc(n.id)}</span><b>${esc(n.t)}</b><span class="bar"><i style="width:${p}%"></i></span></button>`:""}
@@ -1455,7 +1477,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="202610302030";
+const BUILD="202610302139";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
