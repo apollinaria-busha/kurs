@@ -163,6 +163,8 @@ const READY=["ios","romance","tech","anime","retro","kk","y2k","doodle","future"
 // сколько штук в каждом виде (если манифест ещё не загружен — плановое число)
 const CNT0={png:100,pin:50,bg:10,ov:10,an:50,tr:10,tx:10,sfx:10,mu:10};
 const cnt=(id,k)=>{const r=MAN&&MAN.styles&&MAN.styles[id];const v=r&&r[k==="mu"?"mus":k];return Array.isArray(v)&&v.length?v.length:CNT0[k]};
+/* поиск в Pinterest под стиль — ссылка под «PNG из Pinterest», чтобы брать ещё, кроме пака */
+const PQ={ios:"ios core png",retro:"retro aesthetic png",anime:"anime stickers png",doodle:"doodle stickers png",tech:"tech core png",future:"chrome 3d png",y2k:"y2k png stickers",romance:"coquette png",scrap:"scrapbook png",lux:"old money aesthetic png",cinema:"cinema aesthetic png",expert:"3d business icons png",grunge:"grunge png",eco:"nature aesthetic png",kk:"editing aesthetic png",season:"seasonal stickers png"};
 const PIN="https://www.pinterest.com/apollinaria_busha/%D0%BF%D0%B0%D0%BA-%D0%BF%D0%BD%D0%B3-%D1%8D%D0%BB%D0%B5%D0%BC%D0%B5%D0%BD%D1%82%D0%BE%D0%B2-%D0%BE%D1%82-%D0%B1%D1%83%D1%88%D0%B8/";
 const CONTENT=[
  ["png","PNG дефолт","стикеры, иконки, слова, печати, ленты, стрелки, рамки — разных форматов",{pc:"PNG",ph:"PNG"}],
@@ -280,6 +282,7 @@ style(id){const s=STYLES.find(x=>x.id===id);if(!s)return null;loadMan();const pc
  <div class="sec-t">Что внутри</div>
  <div class="pk-ctabs">${CONTENT.map(x=>`<button class="pk-chip" onclick="PK.ct('${x[0]}')" aria-pressed="${c[0]===x[0]}">${e(x[1])} · ${cnt(id,x[0])}</button>`).join("")}</div>
  <p class="pk-muted" style="margin:-6px 0 0;font-size:12.5px"><b style="color:var(--text)">${cnt(id,c[0])} шт.</b> — ${e(c[2])} · формат: <b style="color:var(--text)">${e(fmt)}</b></p>
+ ${c[0]==="pin"&&PQ[id]?`<a class="pk-row" href="https://www.pinterest.com/search/pins/?q=${encodeURIComponent(PQ[id])}" target="_blank" rel="noopener"><span class="ic">P</span><span class="tx"><b>Ещё больше в Pinterest</b><small>поиск «${e(PQ[id])}» — трендовые PNG без фона, сохраняй себе</small></span><span class="arr">↗</span></a>`:""}
  ${c[0]==="mu"?musicView(id):real?realTiles(id,c[0]):`<div class="pk-tiles">${items.map(t=>`<button class="pk-tile ${cls}" onclick="PK.soon('Этот набор выйдет в обновлении')" style="${c[0]==="bg"?`background:${s.bg};color:${s.fg}`:""}"><span style="font-family:${fam(s.f[0])};color:${s.fg}">${e(t)}</span><span class="fmt">${e(fmt)}</span></button>`).join("")}</div>`}
  ${!pc&&["ov","an","tr"].includes(c[0])?`<a class="pk-row" href="${H("cheat/"+(c[0]==="ov"?"black":"green"))}"><span class="ic">✎</span><span class="tx"><b>Как вставить в CapCut</b><small>${c[0]==="ov"?"Режим смешивания «Экран»":"Хромакей: пипеткой по "+(keyw==="розовом"?"розовому":"зелёному")+" фону"}</small></span><span class="arr">→</span></a>`:""}`}},
 
