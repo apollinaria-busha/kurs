@@ -777,7 +777,7 @@ function hwListView(){
   // последняя сдача по каждому заданию/части, если она «доработать»
   const redo=subs.filter((s,i)=>s.status==="доработать"&&subs.findIndex(x=>x.lesson===s.lesson&&x.part===s.part)===i);
   return `<h1 class="h">Сдать ДЗ</h1>
-    ${S.bron?`<div class="box" style="border-color:var(--sun)"><p class="hint" style="margin:0">🔒 Сдавать домашние работы можно будет с ${esc(fmtDate(S.bron.open))}. А тесты вводного модуля «Погружение» проходи прямо в уроках — они уже открыты 💛</p></div>`:""}<button class="cont" ${S.bron?"hidden":""} onclick="location.hash='hw/new'"><span class="k">Домашнее задание</span><b>＋ Сдать работу</b><span style="font-size:12.5px;font-weight:600;opacity:.75">Выбери модуль → задание → какой ролик или пункт</span></button>
+    ${S.bron?`<div class="box" style="border-color:var(--sun)"><p class="hint" style="margin:0">🔒 Сдавать домашние работы можно будет с ${esc(fmtDate(S.bron.open))}. А тесты вводного модуля «Погружение» проходи прямо в уроках — они уже открыты 💛</p></div>`:""}<button class="cont" ${S.bron?`style="display:none"`:""} onclick="location.hash='hw/new'"><span class="k">Домашнее задание</span><b>＋ Сдать работу</b><span style="font-size:12.5px;font-weight:600;opacity:.75">Выбери модуль → задание → какой ролик или пункт</span></button>
     <div class="stats" style="grid-template-columns:repeat(3,1fr)">
       <div class="stat"><b>${S.subs.length}</b><small>сдано работ</small></div>
       <div class="stat"><b style="color:var(--ok)">${cnt("принято")}</b><small>принято</small></div>
@@ -1490,7 +1490,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="202610302152";
+const BUILD="202610302155";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
