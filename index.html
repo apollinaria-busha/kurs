@@ -1356,7 +1356,7 @@ function meView(){
     <div class="sec-t">Связь</div>
     <button class="file" onclick="openTg(HELP)"><span class="ext" style="background:var(--sun);color:var(--sun-ink)">💛</span><span><b>Написать в отдел заботы</b><small>Busha’s team — вопросы по программе, доступу, оплате</small></span></button>
     <button class="file" onclick="openTg(BUSHA_TG)"><span class="ext">✍️</span><span><b>Написать Буше</b><small>Лично Аполлинарии · @apollinaria_busha</small></span></button>
-    <button class="file" onclick="openTg(TGK)"><span class="ext">📣</span><span><b>Telegram-канал программы</b><small>Анонсы, эфиры и новости потока</small></span></button>
+    ${S.bron?`<div class="file" style="opacity:.5;cursor:default"><span class="ext">📣</span><span><b>Telegram-канал программы</b><small>🔒 У каждого потока свой канал — откроется ${esc(fmtDate(S.bron.open))}</small></span></div>`:`<button class="file" onclick="openTg(TGK)"><span class="ext">📣</span><span><b>Telegram-канал программы</b><small>Анонсы, эфиры и новости потока</small></span></button>`}
     <button class="file" onclick="installSheet()"><span class="ext"><img src="icon-192.png" alt="" style="width:100%;border-radius:9px"></span><span><b>Установить приложение</b><small>Иконка на телефоне или компьютере — открывается без Telegram</small></span></button>
     ${TG?"":`<button class="btn g" style="color:var(--muted)" onclick="logout()">Выйти</button>`}`;
 }
@@ -1490,7 +1490,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="202610302155";
+const BUILD="202610302201";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
