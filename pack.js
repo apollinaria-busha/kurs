@@ -165,7 +165,7 @@ const CNT0={png:100,pin:50,bg:10,ov:10,an:50,tr:10,tx:10,sfx:10,mu:10};
 const cnt=(id,k)=>{const r=MAN&&MAN.styles&&MAN.styles[id];const v=r&&r[k==="mu"?"mus":k];return Array.isArray(v)&&v.length?v.length:CNT0[k]};
 const PIN="https://www.pinterest.com/apollinaria_busha/%D0%BF%D0%B0%D0%BA-%D0%BF%D0%BD%D0%B3-%D1%8D%D0%BB%D0%B5%D0%BC%D0%B5%D0%BD%D1%82%D0%BE%D0%B2-%D0%BE%D1%82-%D0%B1%D1%83%D1%88%D0%B8/";
 const CONTENT=[
- ["png","PNG классические","стикеры, иконки, слова, печати, ленты, стрелки, рамки — разных форматов",{pc:"PNG",ph:"PNG"}],
+ ["png","PNG дефолт","стикеры, иконки, слова, печати, ленты, стрелки, рамки — разных форматов",{pc:"PNG",ph:"PNG"}],
  ["pin","PNG из Pinterest","трендовые PNG без фона — нашла в Pinterest и отобрала под этот стиль",{pc:"PNG",ph:"PNG"}],
  ["bg","Фоны","фоны под стиль: бумага, градиенты, паттерны",{pc:"JPG · 9:16 и 16:9",ph:"JPG · 9:16 и 16:9"}],
  ["ov","Оверлеи","наложения поверх видео: блики, пыль, плёнка, частицы",{pc:"MOV · прозрачный · 9:16 и 16:9",ph:"MP4 · на чёрном · 9:16 и 16:9"}],
@@ -230,7 +230,7 @@ home(){const pc=dev==="pc";
  return {t:"Пак режиссёра монтажа",v:`<div class="pk-author">ВИДИШЬ ТОЛЬКО ТЫ (АВТОР) · ученицы пока не видят этот раздел</div>
  <h1 class="h">Пак режиссёра монтажа</h1><p class="sub">Сначала руками, теперь быстрее. Выбери, где монтируешь: покажу только нужное.</p>
  ${seg()}
- <div class="pk-news"><b>Что нового</b><span class="pk-muted">Новый плагин «КК · Adobe Хиты» (107 луков, 80 переходов, легенды After Effects) · автосубтитры на русском и 60 стилей · LUT-пак из 50 грейдов и гайд по цвету на экранах · в каждом стиле 100 классических PNG и 100 PNG из Pinterest, 50 анимаций, 10 звуков и 10 треков · текстуры: 51 фактура и 52 живые.</span></div>
+ <div class="pk-news"><b>Что нового</b><span class="pk-muted">Новый плагин «КК · Adobe Хиты» (107 луков, 80 переходов, легенды After Effects) · автосубтитры на русском и 60 стилей · LUT-пак из 50 грейдов и гайд по цвету на экранах · в каждом стиле 100 PNG дефолт и 100 PNG из Pinterest, 50 анимаций, 10 звуков и 10 треков · текстуры: 51 фактура и 52 живые.</span></div>
  <div class="pk-grid">${cards.map(c=>`<a class="pk-card${c[5]?" wide":""}" href="${H(c[0])}"><span class="top"><span class="ic">${c[1]}</span>${c[4]?`<span class="pk-badge">${e(c[4])}</span>`:""}</span><b>${e(c[2])}</b><small>${e(c[3])}</small></a>`).join("")}</div>
  <div class="sec-t">Уже есть в программе · ${pc?"для компьютера":"для телефона"}</div>
  <div class="pk-list">${ex.map(x=>{const m=mat(x[0]);return `<a class="pk-row" ${m?`href="${e(m.u)}" target="_blank" rel="noopener"`:`href="#mat"`}><span class="ic">${m&&/PDF/.test(m.d)?"PDF":"↓"}</span><span class="tx"><b>${e(x[0])}</b><small>${e(x[2]||(m&&m.d)||"")}${m?"":" · не нашла в материалах"}</small></span><span class="arr">↗</span></a>`}).join("")}</div>
