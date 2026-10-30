@@ -574,7 +574,7 @@ function openLes(id){const l=findLes(id);if(l&&l.locked)return toast("Урок �
 /* ---------- уроки (база знаний) ---------- */
 const modCover=n=>`img/mod${esc(n)}.jpg`;
 function homeView(){
-  const p=pct(),last=findLes(load("kk_last"));
+  const p=pct(),last0=findLes(load("kk_last")),last=last0&&!last0.locked?last0:null; // закрытый урок (бронь) не предлагаем продолжить
   const n=last?(S.done.has(last.id)?(nextAfter(last.id)||last):last):nextLes();
   const lk=allLes().filter(l=>l.locked&&l.open).map(l=>l.open).sort()[0];
   const B=S.bron,pre=B?`<div class="box" style="gap:6px;border-color:var(--sun)"><b style="font-size:16px">🎬 ${B.pre?"Старт предобучения":"Старт программы"} — ${esc(fmtDate(B.open))}</b><p class="hint" style="margin:0">${B.pre?`Ты идёшь на предобучение: оно начинается за неделю до старта программы (${esc(fmtDate(B.start))}). `:""}Пока тебе открыт вводный модуль «Погружение в мир режиссёра монтажа» — начинай с него 💛 ${esc(fmtDate(B.open))} откроется вся программа и полезные материалы.</p></div>`:lk?`<div class="box" style="gap:6px;border-color:var(--sun)"><b style="font-size:16px">🎬 Старт программы — ${esc(fmtDate(lk))}</b><p class="hint" style="margin:0">В день старта откроется вся программа сразу.</p></div>`:"";
@@ -1013,6 +1013,7 @@ async function loadJobs(force){
 // перерисовать биржу, не прыгая наверх (фильтры, отметки)
 function rerJobs(){const m=document.getElementById("main"),y=window.scrollY,t=m?m.scrollTop:0,inner=document.querySelector(".inner");if(!inner||location.hash.slice(1)!=="jobs")return route();inner.innerHTML=jobsView();if(m)m.scrollTop=t;window.scrollTo(0,y)}
 function jobsView(){
+  if(S.bron)return `<h1 class="h">Биржа заказов</h1><div class="box" style="gap:8px;border-color:var(--sun);text-align:center;padding:26px 18px"><span style="font-size:34px">🔒</span><b style="font-size:17px">Откроется во время программы</b><p class="hint" style="margin:0">Здесь будут свежие заказы на монтаж со всего мира. Доступ к бирже откроем, когда начнётся обучение 💛</p></div>`;
   if(!JB.data){loadJobs();return `<h1 class="h">Биржа заказов</h1><div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}
   const d=JB.data;
   if(!d.jobs.length)return `<h1 class="h">Биржа заказов</h1>
@@ -1356,7 +1357,7 @@ function meView(){
     <div class="sec-t">Связь</div>
     <button class="file" onclick="openTg(HELP)"><span class="ext" style="background:var(--sun);color:var(--sun-ink)">💛</span><span><b>Написать в отдел заботы</b><small>Busha’s team — вопросы по программе, доступу, оплате</small></span></button>
     <button class="file" onclick="openTg(BUSHA_TG)"><span class="ext">✍️</span><span><b>Написать Буше</b><small>Лично Аполлинарии · @apollinaria_busha</small></span></button>
-    ${S.bron?`<div class="file" style="opacity:.5;cursor:default"><span class="ext">📣</span><span><b>Telegram-канал программы</b><small>🔒 У каждого потока свой канал — откроется ${esc(fmtDate(S.bron.open))}</small></span></div>`:`<button class="file" onclick="openTg(TGK)"><span class="ext">📣</span><span><b>Telegram-канал программы</b><small>Анонсы, эфиры и новости потока</small></span></button>`}
+    ${S.bron?`<div class="file" style="opacity:.5;cursor:default"><span class="ext">📣</span><span><b>Telegram-канал программы</b><small>🔒 Доступ к общему чату откроется ${esc(fmtDate(S.bron.open))}</small></span></div>`:`<button class="file" onclick="openTg(TGK)"><span class="ext">📣</span><span><b>Telegram-канал программы</b><small>Анонсы, эфиры и новости потока</small></span></button>`}
     <button class="file" onclick="installSheet()"><span class="ext"><img src="icon-192.png" alt="" style="width:100%;border-radius:9px"></span><span><b>Установить приложение</b><small>Иконка на телефоне или компьютере — открывается без Telegram</small></span></button>
     ${TG?"":`<button class="btn g" style="color:var(--muted)" onclick="logout()">Выйти</button>`}`;
 }
@@ -1490,7 +1491,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="202610302201";
+const BUILD="202610302210";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
