@@ -187,6 +187,9 @@ mark{background:color-mix(in srgb,var(--sun) 35%,transparent);color:inherit;bord
 .covers{display:grid;grid-template-columns:1fr;gap:14px}
 .cover{display:flex;flex-direction:column;gap:8px;text-align:left;width:100%}
 .cover img{width:100%;aspect-ratio:930/418;object-fit:cover;border-radius:16px;display:block;background:var(--panel)}
+.cover .cv{position:relative;display:block}
+.cover.shut img{filter:grayscale(1) brightness(.45)}
+.cover .lockb{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:rgba(13,13,13,.88);color:var(--text);border:1px solid var(--sun);border-radius:12px;padding:9px 14px;font-weight:700;font-size:14.5px;white-space:nowrap}
 .cover .meta{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:0 4px;font-size:13px;color:var(--muted)}
 .cover .meta .bar{flex:1;max-width:160px}
 .mod-cover{width:100%;aspect-ratio:930/418;object-fit:cover;border-radius:18px;display:block}
@@ -580,8 +583,8 @@ function homeView(){
     <div id="kbres"></div>
     ${updBtn()}
     <div class="sec-t">Модули</div>
-    <div class="covers">${S.mods.map(m=>{const d=modDone(m),t=m.les.length,pc=Math.round(d/t*100);return `
-      <button class="cover" onclick="location.hash='m/${esc(m.n)}'"><img src="${modCover(m.n)}" alt="${esc(m.t)}" loading="lazy">
+    <div class="covers">${S.mods.map(m=>{const d=modDone(m),t=m.les.length,pc=Math.round(d/t*100),lo=t&&m.les.every(l=>l.locked)?m.les[0].open:"";return `
+      <button class="cover ${lo?"shut":""}" onclick="location.hash='m/${esc(m.n)}'"><span class="cv"><img src="${modCover(m.n)}" alt="${esc(m.t)}" loading="lazy">${lo?`<span class="lockb">🔒 Откроется ${esc(fmtDate(lo))}</span>`:""}</span>
         <span class="meta"><span>${t} ${plural(t,"урок","урока","уроков")}</span><span class="bar y"><i style="width:${pc}%"></i></span><span class="pr ${d===t?"full":""}">${d}/${t}</span></span></button>`}).join("")}</div>
     ${matchMedia("(display-mode: standalone)").matches||navigator.standalone||TG?"":`<button class="file" onclick="installSheet()"><span class="ext"><img src="icon-192.png" alt="" style="width:100%;border-radius:9px"></span><span><b>Поставить иконку на ${wide()?"компьютер или телефон":"телефон"}</b><small>Открывать программу как приложение</small></span></button>`}`;
 }
@@ -594,7 +597,7 @@ function lesRow(l){
   const d=S.done.has(l.id);
   return `<button class="les th ${d?"done":""} ${l.locked?"lock":""}" onclick="openLes('${esc(l.id)}')">
     <span class="thumb">${l.cover?`<img src="${esc(l.cover)}" alt="" loading="lazy">`:""}<span class="ck">${l.locked?"🔒":d?"✓":""}</span></span>
-    <span><b>${esc(l.t)}</b><small>Урок ${esc(l.id)}${isTest(l)&&!hasHw(l)?" · тест":hasHw(l)?" · задание":""}</small></span>
+    <span><b>${esc(l.t)}</b><small>Урок ${esc(l.id)}${l.locked&&l.open?" · 🔒 откроется "+esc(fmtDate(l.open)):""}${isTest(l)&&!hasHw(l)?" · тест":hasHw(l)?" · задание":""}</small></span>
     ${hasHw(l)&&partsDone(l)?hwChip(l.id):"<span></span>"}</button>`;
 }
 
@@ -1477,7 +1480,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="202610302139";
+const BUILD="202610302144";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
