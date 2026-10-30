@@ -43,6 +43,7 @@ const CSS=`
 .pk-row .arr{color:var(--muted);flex:none}
 .pk-chips{display:flex;flex-wrap:wrap;gap:6px}
 .pk-chip{border:1px solid var(--line);background:var(--panel);border-radius:999px;padding:6px 12px;font-weight:700;font-size:12px;cursor:pointer;color:var(--text);font-family:inherit;white-space:nowrap}
+.pk-back{display:inline-block;margin:0 0 6px;color:var(--muted);font-size:13px;font-weight:600;text-decoration:none}a.pk-chip{text-decoration:none;display:inline-block}
 .pk-chip[aria-pressed="true"]{background:var(--sun);border-color:var(--sun);color:var(--sun-ink)}
 .pk-box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;display:grid;gap:10px}
 .pk-box h3{margin:0;font-size:15px;font-weight:800}
@@ -232,7 +233,7 @@ home(){const pc=dev==="pc";
  return {t:"Пак режиссёра монтажа",v:`<div class="pk-author">ВИДИШЬ ТОЛЬКО ТЫ (АВТОР) · ученицы пока не видят этот раздел</div>
  <h1 class="h">Пак режиссёра монтажа</h1><p class="sub">Сначала руками, теперь быстрее. Выбери, где монтируешь: покажу только нужное.</p>
  ${seg()}
- <div class="pk-news"><b>Что нового</b><span class="pk-muted">Новый плагин «КК · Adobe Хиты» (107 луков, 80 переходов, легенды After Effects) · автосубтитры на русском и 60 стилей · LUT-пак из 50 грейдов и гайд по цвету на экранах · в каждом стиле 100 PNG дефолт и 100 PNG из Pinterest, 50 анимаций, 20 настоящих звуков и 10 треков · новый набор «Футажи» · текстуры: 51 фактура и 51 живая (настоящие съёмки).</span></div>
+ <div class="pk-news"><b>Что нового</b><span class="pk-muted">Новый плагин «КК · Adobe Хиты» (107 луков, 80 переходов, легенды After Effects) · автосубтитры на русском и 60 стилей · LUT-пак из 50 грейдов и гайд по цвету на экранах · в каждом стиле 100 PNG дефолт и 100 PNG из Pinterest, 50 анимаций, 20 настоящих звуков и 10 треков · набор «Футажи»: 280 анимаций в 14 категориях · текстуры: 51 фактура и 51 живая (настоящие съёмки).</span></div>
  <div class="pk-grid">${cards.map(c=>`<a class="pk-card${c[5]?" wide":""}" href="${H(c[0])}"><span class="top"><span class="ic">${c[1]}</span>${c[4]?`<span class="pk-badge">${e(c[4])}</span>`:""}</span><b>${e(c[2])}</b><small>${e(c[3])}</small></a>`).join("")}</div>
  <div class="sec-t">Уже есть в программе · ${pc?"для компьютера":"для телефона"}</div>
  <div class="pk-list">${ex.map(x=>{const m=mat(x[0]);return `<a class="pk-row" ${m?`href="${e(m.u)}" target="_blank" rel="noopener"`:`href="#mat"`}><span class="ic">${m&&/PDF/.test(m.d)?"PDF":"↓"}</span><span class="tx"><b>${e(x[0])}</b><small>${e(x[2]||(m&&m.d)||"")}${m?"":" · не нашла в материалах"}</small></span><span class="arr">↗</span></a>`}).join("")}</div>
@@ -313,15 +314,21 @@ tex(){loadMan();const pc=dev==="pc",real=MAN&&MAN.styles&&MAN.styles.tex;
  ${real?`<div class="pk-btns"><a class="pk-btn" href="${e(real.zip[pc?"premiere":"capcut"])}" target="_blank" rel="noopener">Скачать все текстуры${real.size?` · ${mb(real.size[pc?"premiere":"capcut"])}`:""}</a></div>
  <div class="sec-t">Фактуры · ${real.bg.length}</div>${realTiles("tex","bg")}
  <div class="sec-t">Живые текстуры · ${real.ov.length} · режим «Экран»</div>${realTiles("tex","ov")}`:`<p class="pk-muted">Загружаю…</p>`}`}},
-foot(){loadMan();const pc=dev==="pc",real=MAN&&MAN.styles&&MAN.styles.foot;
- const how=pc?["Нажми футаж в плагине «КК · Моушн» или «КК · Монтаж» → «Наборы» → «Футажи» — он встанет на дорожку над видео с прозрачным фоном.","Или скачай MOV с прозрачностью и перетащи на дорожку над видео.","Телефон и окно браузера — с зелёным экраном: положи своё видео на дорожку НИЖЕ и убери зелёный эффектом «Ключ Ultra»."]
+foot(g){loadMan();const pc=dev==="pc",real=MAN&&MAN.styles&&MAN.styles.foot;
+ const how=pc?["Нажми футаж в плагине «КК · Моушн» или «КК · Монтаж» → «Наборы» → «Футажи» → категория — он встанет на дорожку над видео с прозрачным фоном.","Или скачай MOV с прозрачностью и перетащи на дорожку над видео.","Телефон и окно браузера — с зелёным экраном: положи своё видео на дорожку НИЖЕ и убери зелёный эффектом «Ключ Ultra»."]
   :["Видео в CapCut → «Наложение» → «Добавить наложение» → выбери футаж (MP4 на зелёном фоне).","Выдели его → «Удалить фон» → «Хромакей» → пипеткой по зелёному.","У телефона и окна браузера зелёный и есть экран: твоё видео окажется внутри."];
- const G=real?[...new Set(real.an.map(x=>x.group||"Футажи"))]:[];
- return {t:"Футажи",v:`<h1 class="h">Футажи</h1><p class="sub">Подходят к любому стилю: кнопки подписки под каждую соцсеть, вопросы и опросы, экраны телефона и браузера, счётчики, пиксель-арт и указатели — готовые анимации с прозрачным фоном.</p>
+ const G=real?[...new Set(real.an.map(x=>x.group||"Футажи"))]:[],its=k=>real.an.filter(x=>(x.group||"Футажи")===k);
+ if(g&&real&&G.includes(g))return {t:g,v:`<a class="pk-back" href="${H("foot")}">← Все категории футажей</a><h1 class="h">${e(g)}</h1><p class="sub">${its(g).length} футажей с прозрачным фоном. ${pc?"MOV для Премьера":"MP4 на зелёном для CapCut"}.</p>
  ${seg()}
- <div class="pk-box"><h3>Как вставить</h3><ol class="pk-steps">${how.map(x=>`<li>${e(x)}</li>`).join("")}</ol></div>
- ${real?`${real.zip?`<div class="pk-btns"><a class="pk-btn" href="${e(real.zip[pc?"premiere":"capcut"])}" target="_blank" rel="noopener">Скачать все футажи${real.size?` · ${mb(real.size[pc?"premiere":"capcut"])}`:""}</a></div>`:""}
- ${G.map(g=>{const its=real.an.filter(x=>(x.group||"Футажи")===g);return `<div class="sec-t">${e(g)} · ${its.length}</div>${realTiles("foot","an",its)}`}).join("")}`:`<p class="pk-muted">Загружаю…</p>`}`}},
+ <div class="pk-chips">${G.map(k=>`<a class="pk-chip" href="${H("foot/"+encodeURIComponent(k))}" aria-pressed="${k===g}">${e(k)}</a>`).join("")}</div>
+ ${realTiles("foot","an",its(g))}`};
+ // карточка категории: кадр из середины первого футажа (видео не играет — только как картинка)
+ const tile=k=>{const a=its(k),f=a[0];return `<a class="pk-st" href="${H("foot/"+encodeURIComponent(k))}"><span class="sw" style="background:#1d1b17;height:120px;overflow:hidden">${f?`<video muted playsinline preload="metadata" src="${e(MAN.base+"foot/"+f.prev)}#t=${(f.dur||2)/2}" style="width:100%;height:120px;object-fit:contain;pointer-events:none"></video>`:""}</span><span class="meta"><b>${e(k)}</b><small class="pk-stn"><b>${a.length} футажей</b></small></span></a>`};
+ return {t:"Футажи",v:`<h1 class="h">Футажи</h1><p class="sub">Подходят к любому стилю: готовые анимации с прозрачным фоном для Reels, TikTok и YouTube. Выбери категорию.</p>
+ ${seg()}
+ ${real?`${real.zip?`<div class="pk-btns"><a class="pk-btn" href="${e(real.zip[pc?"premiere":"capcut"])}" target="_blank" rel="noopener">Скачать все футажи · ${real.an.length}${real.size?` · ${mb(real.size[pc?"premiere":"capcut"])}`:""}</a></div>`:""}
+ <div class="pk-styles">${G.map(tile).join("")}</div>
+ <div class="pk-box"><h3>Как вставить</h3><ol class="pk-steps">${how.map(x=>`<li>${e(x)}</li>`).join("")}</ol></div>`:`<p class="pk-muted">Загружаю…</p>`}`}},
 luts(){loadLuts();const pc=dev==="pc",L=LUTS&&LUTS.luts;
  const how=pc?["Скачай пак и распакуй.","Премьер: выдели клип → Lumetri Color → «Творческий» (Creative) → «Образ» (Look) → «Обзор…» → выбери .cube.","Чтобы LUT-ы всегда были в списке, скопируй их в папку. Mac: /Library/Application Support/Adobe/Common/LUTs/Creative. Windows: C:\\Program Files\\Adobe\\Common\\LUTs\\Creative. Перезапусти Премьер.","Сначала выровняй экспозицию и баланс белого («Основная коррекция»), потом LUT. Слишком сильно — убавь «Интенсивность» до 50–80 %."]
   :["LUT-ы — это файлы .cube. Их понимают Премьер и CapCut для компьютера: Коррекция → LUT → Импорт.","В CapCut на телефоне загрузить свой .cube обычно нельзя — используй встроенные фильтры, а LUT-ы — когда монтируешь на компьютере.","Смотри превью ниже, чтобы выбрать настроение ролика заранее."];
