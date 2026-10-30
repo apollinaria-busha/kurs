@@ -104,7 +104,7 @@ const CSS=`
 .pk-ri.bg img,.pk-ri.tr video,.pk-ri.ov video{aspect-ratio:9/16;object-fit:cover}
 .pk-ri.tx img{aspect-ratio:8/3}
 .pk-ri b{font-size:11.5px;line-height:1.25}.pk-ri small{font-size:10.5px;color:var(--muted)}
-.pk-ri .dl{display:flex;gap:6px;flex-wrap:wrap}.pk-ri .dl a{font:500 10.5px var(--f-mono);color:var(--sun);text-decoration:none;border:1px solid var(--line);border-radius:6px;padding:2px 6px}
+.pk-ri .dl{display:flex;gap:6px;flex-wrap:wrap}.pk-ri .dl a.cfg{color:var(--text,#fff);border-color:var(--sun)}.pk-ri .dl a{font:500 10.5px var(--f-mono);color:var(--sun);text-decoration:none;border:1px solid var(--line);border-radius:6px;padding:2px 6px}
 .pk-tree{margin:0;background:var(--panel2);border-radius:12px;padding:14px;font:500 12px/1.7 var(--f-mono);color:var(--text);white-space:pre;overflow-x:auto}
 .pk-how{display:inline-block;margin-top:4px;font-size:12px;color:var(--sun);text-decoration:none}
 .pk-note{font-size:12px;color:var(--muted);border:1px dashed var(--line);border-radius:12px;padding:10px 12px}
@@ -213,7 +213,7 @@ function realTiles(id,kind,only){const st=MAN.styles[id],its=only||st[kind]||[],
   else if(kind==="an")L.push(pc?["MOV",f.mov]:["MP4",f.capcut]);
   else if(kind==="tr")L.push(pc?["9:16",f.mov_v]:["9:16",f.capcut_v],pc?["16:9",f.mov_h]:["16:9",f.capcut_h]);
   else if(kind==="ov")L.push(["9:16",pc&&f.mov_v?f.mov_v:f.black_v],["16:9",pc&&f.mov_h?f.mov_h:f.black_h]);
-  return L.filter(x=>x[1]).map(x=>`<a href="${e(x[1])}" target="_blank" rel="noopener">${x[0]} ↓</a>`).join("")};
+  return L.filter(x=>x[1]).map(x=>`<a href="${e(x[1])}" target="_blank" rel="noopener">${x[0]} ↓</a>`).join("")+(EDK[kind]&&id!=="tex"?`<a class="cfg" href="${H("edit/"+id+"/"+kind+"/"+it.id)}">⚙ Настроить</a>`:"")};
  const vid=k=>k==="an"||k==="tr"||k==="ov";
  if(!its.length)return `<div class="pk-empty">Файлы загружаются — появятся здесь в ближайшие часы.</div>`;
  return `<div class="pk-real">${its.map(it=>`<div class="pk-ri ${kind==="pin"?"png":kind}">${vid(kind)?`<video data-lz="${e(base+it.prev)}#t=0.1" muted loop playsinline preload="none"></video>`:`<img src="${e(base+it.prev)}" loading="lazy" alt="">`}<b>${e(it.name)}</b>${kind==="ov"&&it.screen?`<small>режим «Экран»</small>`:""}<span class="dl">${links(it)}</span></div>`).join("")}</div>`}
@@ -314,6 +314,11 @@ tex(){loadMan();const pc=dev==="pc",real=MAN&&MAN.styles&&MAN.styles.tex;
  ${real?`<div class="pk-btns"><a class="pk-btn" href="${e(real.zip[pc?"premiere":"capcut"])}" target="_blank" rel="noopener">Скачать все текстуры${real.size?` · ${mb(real.size[pc?"premiere":"capcut"])}`:""}</a></div>
  <div class="sec-t">Фактуры · ${real.bg.length}</div>${realTiles("tex","bg")}
  <div class="sec-t">Живые текстуры · ${real.ov.length} · режим «Экран»</div>${realTiles("tex","ov")}`:`<p class="pk-muted">Загружаю…</p>`}`}},
+edit(p){loadMan();const [id,kind,iid]=p.split("/"),st=MAN&&MAN.styles&&MAN.styles[id],it=st&&(st[kind]||[]).find(x=>x.id===iid);
+ if(!it)return {t:"Настроить",v:`<p class="pk-muted">${MAN?"Не нашла этот элемент.":"Загружаю…"}</p>`};
+ const back=id==="foot"?H("foot"+(it.group?"/"+it.group:"")):H("style/"+id),pc=dev==="pc";
+ setTimeout(()=>edOpen(id,kind,it,back),0);
+ return {t:"Настроить · "+it.name,v:`<a class="pk-back" href="${back}">← ${e(st.name||"Набор")}</a><h1 class="h">${e(it.name)}</h1><p class="sub">Свои цвета, надписи, картинка вместо значка и скорость. ${pc?"Для Премьера удобнее прямо в плагине: «Наборы» → «⚙ Настроить» — ставит на таймлайн с прозрачностью.":"Готовое видео сохранится на телефон — дальше как обычно: «Наложение» → «Удалить фон» → «Хромакей»."}</p>${kind==="tr"||kind==="ov"||kind==="bg"?seg2():""}<div id="pk-ed" class="pk-box"></div>`}},
 foot(g){loadMan();const pc=dev==="pc",real=MAN&&MAN.styles&&MAN.styles.foot;
  const how=pc?["Нажми футаж в плагине «КК · Моушн» или «КК · Монтаж» → «Наборы» → «Футажи» → категория — он встанет на дорожку над видео с прозрачным фоном.","Или скачай MOV с прозрачностью и перетащи на дорожку над видео.","Телефон и окно браузера — с зелёным экраном: положи своё видео на дорожку НИЖЕ и убери зелёный эффектом «Ключ Ultra»."]
   :["Видео в CapCut → «Наложение» → «Добавить наложение» → выбери футаж (MP4 на зелёном фоне).","Выдели его → «Удалить фон» → «Хромакей» → пипеткой по зелёному.","У телефона и окна браузера зелёный и есть экран: твоё видео окажется внутри."];
@@ -385,6 +390,42 @@ howto(){const pc=dev==="pc";const G=pc?[
  ${G.map(g=>`<div class="pk-box"><h3>${e(g[0])}</h3><ol class="pk-steps">${g[1].map(x=>`<li>${e(x)}</li>`).join("")}</ol></div>`).join("")}`}}
 };
 
+/* ---------- «Настроить»: движок наборов рисует элемент с твоими цветами/надписями, телефон собирает MP4 ---------- */
+const EDK={an:1,tr:1,ov:1,bg:1,tx:1},EDB="pack/engine/";let edFmt="v";
+function seg2(){return `<div class="pk-seg" role="group" aria-label="Формат"><button onclick="PK.edFmt('v')" aria-pressed="${edFmt==="v"}">9:16</button><button onclick="PK.edFmt('h')" aria-pressed="${edFmt==="h"}">16:9</button></div>`}
+const scr={};function js(src){return scr[src]||(scr[src]=new Promise((ok,bad)=>{const t=document.createElement("script");t.src=src;t.onload=ok;t.onerror=()=>{delete scr[src];bad(new Error("нет связи"))};document.head.appendChild(t)}))}
+function greenish(h){const c=parseInt(h.slice(1),16),r=c>>16&255,g=c>>8&255,b=c&255;return g>120&&g>r*1.35&&g>b*1.25}
+async function edOpen(id,kind,it,back){const el=document.getElementById("pk-ed");if(!el)return;
+ try{await js(EDB+"kkedit.js?v="+(typeof BUILD!=="undefined"?BUILD:Date.now()))}catch(x){el.innerHTML='<p class="pk-muted">Не получилось загрузить настройки. Проверь интернет.</p>';return}
+ const still=kind==="bg"||kind==="tx",pc=dev==="pc";
+ KKEDIT.open(el,{top:false,base:EDB,style:id,kind,id:it.id,name:it.name,fmt:edFmt,act:still?"Скачать PNG":pc?"Скачать MP4":"Сохранить видео",onBack:()=>{location.hash=back},
+  note:still?"":"Видео на "+(kind==="ov"&&it.screen?"чёрном фоне — в CapCut режим наложения «Экран».":"однотонном фоне (обычно зелёном) — в CapCut убери его: «Удалить фон» → «Хромакей», пипеткой по фону."),
+  onAct:async(st,msg)=>{const nm=(it.name||"kk").replace(/[\\/:*?"<>|«»]/g,"").trim()+(still?".png":".mp4");let blob;
+   if(still){const F=KKE.frames(id,kind,it.id,edFmt);let c;await KKEDIT.render(st,edFmt,(i,cv)=>{c=cv});blob=await new Promise(r=>c.toBlob(r,"image/png"))}
+   else{const used=Object.values(st.colors).concat(KKE.inspect(id,kind,it.id).colors.map(x=>x.hex)),bg=kind==="ov"&&it.screen?"#000000":used.some(greenish)?"#FF00FF":"#00B140";
+    blob=await mp4(st,edFmt,bg,msg)}
+   const f=new File([blob],nm,{type:blob.type}),m=el.querySelector(".kke-msg");
+   m.innerHTML="";const b=document.createElement("button");b.className="kke-go";b.textContent="⬇ "+nm+" · "+(blob.size/1048576).toFixed(1)+" МБ";m.appendChild(b);
+   b.onclick=async()=>{if(!pc&&navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f]});return}catch(x){if(x.name==="AbortError")return}}
+    const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=nm;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},5000)}}})}
+async function mp4(st,fmt,bg,msg){const F=KKE.frames(st.style,st.kind,st.id,fmt,st.speed),W=F.W,H=F.H;let codec=null;
+ if(window.VideoEncoder)for(const c of["avc1.640028","avc1.4d0028","avc1.42002a"]){try{if((await VideoEncoder.isConfigSupported({codec:c,width:W,height:H,bitrate:8e6,framerate:KKE.FPS})).supported){codec=c;break}}catch(x){}}
+ if(!codec)return rec(st,fmt,bg,msg,F);
+ await js(EDB+"mp4-muxer.min.js");
+ const mx=new Mp4Muxer.Muxer({target:new Mp4Muxer.ArrayBufferTarget(),video:{codec:"avc",width:W,height:H,frameRate:KKE.FPS},fastStart:"in-memory"});let err=null;
+ const enc=new VideoEncoder({output:(ch,me)=>mx.addVideoChunk(ch,me),error:x=>err=x});enc.configure({codec,width:W,height:H,bitrate:8e6,framerate:KKE.FPS});
+ await KKEDIT.render(st,fmt,async(i,cv)=>{if(err)throw err;const fr=new VideoFrame(cv,{timestamp:Math.round(i*1e6/KKE.FPS),duration:Math.round(1e6/KKE.FPS)});enc.encode(fr,{keyFrame:i%30===0});fr.close();
+  while(enc.encodeQueueSize>6)await new Promise(r=>setTimeout(r,15));if(i%5===0)msg("Собираю видео… "+Math.round(i*100/F.n)+"%")},bg);
+ await enc.flush();if(err)throw err;mx.finalize();return new Blob([mx.target.buffer],{type:"video/mp4"})}
+// старые браузеры: запись холста в реальном времени
+async function rec(st,fmt,bg,msg,F){const cv=document.createElement("canvas");cv.width=F.W;cv.height=F.H;const c=cv.getContext("2d"),cfg=KKE.cfgFrom(st);
+ const type=["video/mp4","video/webm;codecs=vp9","video/webm"].find(t=>window.MediaRecorder&&MediaRecorder.isTypeSupported(t));if(!type)throw new Error("этот браузер не умеет сохранять видео — открой приложение в Safari или Chrome");
+ const r=new MediaRecorder(cv.captureStream(KKE.FPS),{mimeType:type,videoBitsPerSecond:8e6}),parts=[];r.ondataavailable=x=>x.data.size&&parts.push(x.data);
+ const done=new Promise(ok=>r.onstop=ok);r.start();const t0=performance.now();
+ for(let i=0;i<F.n;i++){c.fillStyle=bg;c.fillRect(0,0,F.W,F.H);KKE.draw(c,st.style,st.kind,st.id,F.W,F.H,F.v(i),cfg);msg("Записываю… "+Math.round(i*100/F.n)+"%");
+  const w=t0+(i+1)*1000/KKE.FPS-performance.now();if(w>0)await new Promise(ok=>setTimeout(ok,w))}
+ r.stop();await done;return new Blob(parts,{type:type.split(";")[0]})}
+
 /* ---------- публичное ---------- */
 function keepTabs(sl,y0){const n=document.querySelector(".pk-ctabs");if(!n)return;n.scrollLeft=sl;const a=n.querySelector('[aria-pressed="true"]');if(a){const L=a.offsetLeft-n.offsetLeft,W=a.offsetWidth;if(L<n.scrollLeft||L+W>n.scrollLeft+n.clientWidth)n.scrollLeft=L-16}
  if(y0==null)return;const d=n.getBoundingClientRect().top-y0;if(!d)return;const m=document.getElementById("main");if(m&&m.scrollHeight>m.clientHeight+1)m.scrollTop+=d;else scrollBy(0,d)}
@@ -393,6 +434,7 @@ window.PK={
   return r?{t:r.t,v:`<div class="pk">${r.v}</div>`}:null},
  hero(){return `<a class="pk-hero" href="#mat/pk"><span class="pk-stk" aria-hidden="true">${[["w-1",96,0,14,-7,".3s"],["i-crown",44,118,4,14,"1.8s"],["i-camera",66,98,50,8,"0s"],["i-clapper",58,14,62,-9,".6s"],["st-1",66,84,112,-12,"1.2s"],["i-play",44,22,128,6,".9s"]].map(x=>`<img src="pack/kk/prev/png-${x[0]}.png" alt="" style="--w:${x[1]}px;left:${x[2]}px;top:${x[3]}px;--r:${x[4]}deg;--d:${x[5]}">`).join("")}</span><span class="pk-new">NEW · ВИДИШЬ ТОЛЬКО ТЫ</span><b>Пак режиссёра монтажа</b><small>Плагины для Премьера, стилевые наборы, справочник сервисов, шпаргалки и чек-листы. Для компьютера и телефона.</small></a>`},
  dev(d){dev=d;store("kk_pk_dev",d);route()},
+ edFmt(f){edFmt=f;route()},
  client(c){client=c;route()},
  ct(c){const r=document.querySelector(".pk-ctabs"),sl=r?r.scrollLeft:0,y0=r?r.getBoundingClientRect().top:null;ct=c;route();keepTabs(sl,y0)},
  mode(m){mode=m;route()},
