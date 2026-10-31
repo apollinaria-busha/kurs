@@ -405,7 +405,7 @@ async function edOpen(id,kind,it,back){const el=document.getElementById("pk-ed")
    else{const used=Object.values(st.colors).concat(KKE.inspect(id,kind,it.id).colors.map(x=>x.hex)),bg=kind==="ov"&&it.screen?"#000000":used.some(greenish)?"#FF00FF":"#00B140";
     blob=await mp4(st,edFmt,bg,msg)}
    const f=new File([blob],nm,{type:blob.type}),m=el.querySelector(".kke-msg");
-   m.innerHTML="";const b=document.createElement("button");b.className="kke-go";b.textContent="⬇ "+nm+" · "+(blob.size/1048576).toFixed(1)+" МБ";m.appendChild(b);
+   m.innerHTML="";const b=document.createElement("button");b.className="kke-go";b.textContent="⬇ "+nm+" · "+(blob.size<1048576?Math.max(1,Math.round(blob.size/1024))+" КБ":(blob.size/1048576).toFixed(1)+" МБ");m.appendChild(b);
    b.onclick=async()=>{if(!pc&&navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f]});return}catch(x){if(x.name==="AbortError")return}}
     const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=nm;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},5000)}}})}
 async function mp4(st,fmt,bg,msg){const F=KKE.frames(st.style,st.kind,st.id,fmt,st.speed),W=F.W,H=F.H;let codec=null;
