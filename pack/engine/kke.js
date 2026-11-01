@@ -5618,6 +5618,87 @@
   tr.splice(at(tr, 'slide'), 0, { id: 'slide-gold', name: 'Шторка с золотой звездой', draw: slide, dur: 1 });
 })(window);
 
+/* ---- styles8.js ---- */
+/* Отделка «дорого» (01.11.2026, выбор Буши по «пробник иконок.html»): поверх готового рисунка по его силуэту.
+   А — объём и стекло (свет сверху, тень по нижнему краю, блик, перелив, мягкая тень);
+   Б — металл и золото (металлический перелив, светлая кромка, искорки).
+   Рисованные от руки стили (дудлы, скрапбук, гранж) остаются плоскими — это их характер. */
+(function (G) {
+  const ST = G.KKSTYLES; if (!ST) return;
+  const FIN = { kk: 'A', ios: 'A', romance: 'A', tech: 'A', anime: 'A', retro: 'A', y2k: 'A', future: 'A', season: 'A', eco: 'A', expert: 'A', lux: 'B', cinema: 'B' };
+  const SKIP = { ios: /^ai-/ };   // в iOS это настоящие иконки Apple
+  const KINDS = ['an'];
+
+  const pool = {};
+  function get(k, W, H) {
+    let c = pool[k]; if (!c || c.width !== W || c.height !== H) { c = pool[k] = document.createElement('canvas'); c.width = W; c.height = H; }
+    const x = c.getContext('2d', { willReadFrequently: k === 'm' || k === 'src' }); x.setTransform(1, 0, 0, 1, 0, 0); x.globalCompositeOperation = 'source-over'; x.globalAlpha = 1; x.filter = 'none'; x.shadowColor = 'transparent'; x.clearRect(0, 0, W, H); return [c, x];
+  }
+  // рамка силуэта и толщина (для линий — ширина штриха, для пятна — примерно радиус)
+  function measure(src) {
+    const N = 96, [, mx] = get('m', N, N); mx.drawImage(src, 0, 0, N, N); const d = mx.getImageData(0, 0, N, N).data;
+    const on = (x, y) => x >= 0 && y >= 0 && x < N && y < N && d[(y * N + x) * 4 + 3] > 40;
+    let x0 = N, y0 = N, x1 = -1, y1 = -1, area = 0, edge = 0, tr = -1e9, gx = 0, gy = 0;
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (on(x, y)) { area++; if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; if (x - y > tr) { tr = x - y; gx = x; gy = y; } if (!on(x - 1, y) || !on(x + 1, y) || !on(x, y - 1) || !on(x, y + 1)) edge++; }
+    if (x1 < 0) return null; const k = src.width / N;
+    return { x: x0 * k, y: y0 * k, w: (x1 - x0 + 1) * k, h: (y1 - y0 + 1) * k, th: Math.max(1, 2 * area / Math.max(1, edge)) * k, gx: (gx + .5) * k, gy: (gy + .5) * k };
+  }
+  // тень внутрь силуэта: обратная маска уводится за холст, на рисунок падает только её тень
+  function inner(x, src, W, H, op, color, blur, dy) {
+    const [inv, ix] = get('inv', W, H); ix.fillStyle = '#000'; ix.fillRect(0, 0, W, H); ix.globalCompositeOperation = 'destination-out'; ix.drawImage(src, 0, 0);
+    const far = W * 3; x.save(); x.globalCompositeOperation = op; x.shadowColor = color; x.shadowBlur = blur; x.shadowOffsetX = far; x.shadowOffsetY = dy; x.drawImage(inv, -far, 0); x.restore();
+  }
+  function sparkle(x, cx, cy, s) { x.beginPath(); for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2 - Math.PI / 2, b = a + Math.PI / 4, r = i % 2 ? s * .8 : s; if (!i) x.moveTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r); const n = (i + 1) % 4, an = n * Math.PI / 2 - Math.PI / 2, rn = n % 2 ? s * .8 : s; x.quadraticCurveTo(cx + Math.cos(b) * s * .13, cy + Math.sin(b) * s * .13, cx + Math.cos(an) * rn, cy + Math.sin(an) * rn); } x.closePath(); }
+
+  function finishA(x, src, b, W, H, t) {
+    const g = x.createLinearGradient(0, b.y, 0, b.y + b.h); g.addColorStop(0, 'rgba(255,255,255,.75)'); g.addColorStop(.5, 'rgba(128,128,128,0)'); g.addColorStop(1, 'rgba(0,0,0,.45)');
+    x.globalCompositeOperation = 'soft-light'; x.fillStyle = g; x.fillRect(b.x, b.y, b.w, b.h);
+    const bl = Math.max(2, Math.min(b.th * .4, W * .045));
+    inner(x, src, W, H, 'multiply', 'rgba(70,30,0,.55)', bl, -bl * .55);
+    inner(x, src, W, H, 'screen', 'rgba(255,250,232,.85)', bl * .6, bl * .35);
+    // блик сверху
+    const cy = b.y + b.h * .2, ry = b.h * .26, sp = x.createLinearGradient(0, cy - ry, 0, cy + ry); sp.addColorStop(0, 'rgba(255,255,255,.8)'); sp.addColorStop(1, 'rgba(255,255,255,0)');
+    x.globalCompositeOperation = 'overlay'; x.fillStyle = sp; x.beginPath(); x.ellipse(b.x + b.w / 2, cy, b.w * .46, ry, 0, 0, Math.PI * 2); x.fill();
+    // перелив
+    const p = ((t || 0) * .45 % 1.5) - .25, sx = b.x + b.w * p * 1.4 - b.w * .2, sh = x.createLinearGradient(sx - b.w * .18, b.y, sx + b.w * .18, b.y + b.h);
+    sh.addColorStop(0, 'rgba(255,255,255,0)'); sh.addColorStop(.5, 'rgba(255,255,255,.4)'); sh.addColorStop(1, 'rgba(255,255,255,0)'); x.fillStyle = sh; x.fillRect(b.x, b.y, b.w, b.h);
+  }
+  function finishB(x, src, b, W, H, t) {
+    const ph = Math.sin((t || 0) * 1.5) * b.w * .45, g = x.createLinearGradient(b.x - b.w * .2 + ph, b.y, b.x + b.w * 1.2 + ph, b.y + b.h);
+    [[0, '#404040'], [.2, '#d0d0d0'], [.36, '#ffffff'], [.5, '#7a7a7a'], [.68, '#c8c8c8'], [.82, '#f2f2f2'], [1, '#505050']].forEach(([o, c]) => g.addColorStop(o, c));
+    x.globalCompositeOperation = 'overlay'; x.globalAlpha = .75; x.fillStyle = g; x.fillRect(b.x, b.y, b.w, b.h); x.globalAlpha = 1;
+    const bl = Math.max(1.5, Math.min(b.th * .22, W * .02));
+    inner(x, src, W, H, 'screen', 'rgba(255,244,214,.8)', bl, bl * .6);
+    inner(x, src, W, H, 'multiply', 'rgba(40,25,0,.45)', bl * 1.4, -bl * .8);
+  }
+  // одна искорка на верхнем правом краю силуэта, вспыхивает и гаснет
+  function glint(c, b, t, s) {
+    const k = Math.pow(Math.max(0, Math.sin((t || 0) * 2.4 - .6)), 2); if (k < .04) return;
+    c.save(); c.globalAlpha = k; c.shadowColor = 'rgba(255,230,160,.95)'; c.shadowBlur = s * 1.4; c.fillStyle = '#FFF7DC'; sparkle(c, b.gx, b.gy, s * (.5 + .5 * k)); c.fill(); c.restore();
+  }
+
+  function wrap(draw, mode) {
+    return function (c, W, H, S, t) {
+      const [src, sx] = get('src', W, H); draw(sx, W, H, S, t);
+      const b = measure(src); if (!b) return;
+      // отделка на непрозрачной копии: полупрозрачные места иначе берут цвет света и сереют; прозрачность вернёт маска
+      const [o, x] = get('o', W, H), id = sx.getImageData(0, 0, W, H), d = id.data; for (let i = 3; i < d.length; i += 4) if (d[i]) d[i] = 255; x.putImageData(id, 0, 0);
+      const [mk, mx] = get('mk', W, H); mx.drawImage(o, 0, 0);   // силуэт без полупрозрачности — для теней внутрь
+      (mode === 'A' ? finishA : finishB)(x, mk, b, W, H, t);
+      x.globalCompositeOperation = 'destination-in'; x.drawImage(src, 0, 0);
+      c.save();
+      if (mode === 'A') { c.shadowColor = 'rgba(25,14,0,.34)'; c.shadowBlur = Math.min(b.th * .9, W * .045); c.shadowOffsetY = Math.min(b.th * .35, W * .018); }
+      else { c.shadowColor = 'rgba(0,0,0,.42)'; c.shadowBlur = Math.min(b.th * .8, W * .04); c.shadowOffsetY = Math.min(b.th * .25, W * .012); }
+      c.drawImage(o, 0, 0); c.restore();
+      if (mode === 'B') glint(c, b, t, Math.min(W, H) * .03);
+    };
+  }
+
+  for (const sid in FIN) { const st = ST[sid]; if (!st) continue;
+    for (const kind of KINDS) for (const it of st[kind] || []) { if (SKIP[sid] && SKIP[sid].test(it.id) || it.flat) continue; it.raw = it.draw; it.draw = wrap(it.draw, FIN[sid]); } }
+  G.KK_FINISH = FIN;
+})(window);
+
 /* ---- engine.js ---- */
 /* Движок настроек наборов (KKE): рисует любую анимацию, переход, оверлей, фон или плашку набора со своими цветами,
    надписями, картинкой вместо значка и скоростью. Подключается после lib.js и styles*.js (сборка — make_engine.py).
