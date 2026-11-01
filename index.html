@@ -258,7 +258,8 @@ mark{background:color-mix(in srgb,var(--sun) 35%,transparent);color:inherit;bord
 .job .note{font-size:12.5px;color:var(--muted)}
 .job .jico{background:none;border:0;color:var(--muted);font-size:17px;line-height:1;padding:6px;min-width:34px;min-height:34px;border-radius:10px;cursor:pointer}
 .job .jico:hover{background:var(--panel2)}
-.job .acts{display:grid;grid-template-columns:1fr auto;gap:8px}
+.job .acts{display:grid;grid-template-columns:1fr auto auto;gap:8px}
+.job .acts .btn.g{white-space:nowrap}
 .cnt{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .cnt button{width:36px;height:36px;border-radius:10px;background:var(--panel2);font-weight:800;font-size:18px;color:var(--text)}
 .job-about{font-size:14px;line-height:1.5;white-space:pre-line;color:var(--text)}
@@ -1193,7 +1194,7 @@ function jobReply(id){
   const v=document.createElement("div");v.className="veil jobrp";
   v.innerHTML=`<div class="sheet" role="dialog" aria-label="Текст отклика" style="max-height:92vh;overflow:auto">
     <h3 style="margin:0">📝 Текст отклика</h3>
-    <p class="hint" style="margin:0">Скопируй, вставь на площадке и поправь под себя — живой отклик со ссылкой на портфолио отвечают чаще.</p>
+    <p class="hint" style="margin:0">Скопируй, вставь на площадке и поправь под себя: на живой отклик со ссылкой на портфолио отвечают чаще.</p>
     <div class="chips"><button class="chipbtn" data-l="ru">Русский</button><button class="chipbtn" data-l="en">English</button></div>
     <input type="url" id="jrl" placeholder="Ссылка на твоё портфолио (запомню для всех откликов)" value="${esc(link)}">
     <textarea id="jrt" rows="12" style="resize:vertical;line-height:1.45"></textarea>
@@ -1625,7 +1626,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1793565005";
+const BUILD="1793565391";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
