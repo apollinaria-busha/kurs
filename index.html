@@ -256,6 +256,8 @@ mark{background:color-mix(in srgb,var(--sun) 35%,transparent);color:inherit;bord
 .job p{margin:0;font-size:14px;line-height:1.5}
 .job .mot{background:color-mix(in srgb,var(--sun) 10%,transparent);border-radius:12px;padding:10px 12px;font-size:13.5px}
 .job .note{font-size:12.5px;color:var(--muted)}
+.job .jico{background:none;border:0;color:var(--muted);font-size:17px;line-height:1;padding:6px;min-width:34px;min-height:34px;border-radius:10px;cursor:pointer}
+.job .jico:hover{background:var(--panel2)}
 .job .acts{display:grid;grid-template-columns:1fr auto;gap:8px}
 .cnt{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .cnt button{width:36px;height:36px;border-radius:10px;background:var(--panel2);font-weight:800;font-size:18px;color:var(--text)}
@@ -1006,15 +1008,36 @@ function studentView(i){
 }
 
 /* ---------- биржа заказов ---------- */
-const JB={data:null,country:"Все",level:"Все",cur:"Все",min:0,open:false};
-function act0(){return JB.country!=="Все"||JB.level!=="Все"||JB.cur!=="Все"||JB.min}
+const JB={data:null,country:"Все",level:"Все",cur:"Все",min:0,spec:"Все",topic:"Все",q:"",tab:"all",open:false,asked:false};
+function act0(){return JB.country!=="Все"||JB.level!=="Все"||JB.cur!=="Все"||JB.min||JB.spec!=="Все"||JB.topic!=="Все"}
 const JOB_GOAL=25;
+const JCUR={RUB:"₽",USD:"$",EUR:"€"},JSTEPS={RUB:[15000,30000,60000,100000],USD:[100,300,600,1000],EUR:[100,300,600,1000]};
+const JFREQ=[["30m","Каждые 30 минут"],["1h","Каждый час"],["2h","Каждые 2 часа"],["morning","Раз в день · утром, в 9:00"],["day","Раз в день · днём, в 14:00"],["evening","Раз в день · вечером, в 19:00"],["off","Не присылать"]];
 async function loadJobs(force){
   if(JB.data&&!force)return;
   try{const r=await api({api:"jobs",as:DEMO||undefined});if(r.ok){JB.data=r;if(location.hash.slice(1)==="jobs")route()}}catch(e){}
 }
 // перерисовать биржу, не прыгая наверх (фильтры, отметки)
 function rerJobs(){const m=document.getElementById("main"),y=window.scrollY,t=m?m.scrollTop:0,inner=document.querySelector(".inner");if(!inner||location.hash.slice(1)!=="jobs")return route();inner.innerHTML=jobsView();if(m)m.scrollTop=t;window.scrollTo(0,y)}
+// слово «баскетбол» находит и «баскетболу», «баскетбольный» (так же ищет сервер для подписок)
+function jobRx(q){return new RegExp(q.toLowerCase().trim().split(/\s+/).map(x=>(x.length>5?x.slice(0,-2):x).replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("[^\\n]{0,20}"),"i")}
+function jobPrefs(){const d=JB.data;return d.prefs||(d.prefs={f:"morning",w:[],s:[],h:[],set:false})}
+function jobAgo(j){
+  const ms=(JB.data.now||Date.now())-(j.at||0);if(!j.at)return "";
+  if(ms<36e5)return "только что";if(ms<864e5)return Math.floor(ms/36e5)+" ч назад";
+  const d=Math.floor(ms/864e5);return d===1?"вчера":d+" "+(d<5?"дня":"дней")+" назад";
+}
+function jobIsNew(j){return (JB.data.now||Date.now())-(j.added||j.at||0)<864e5}
+// заказы под фильтры (без поиска и вкладок), затем — под поиск и вкладку
+function jobFiltered(){
+  const d=JB.data,pr=jobPrefs(),rate=c=>(d.rates||{})[c]||1;
+  const base=d.jobs.filter(j=>(JB.country==="Все"||j.country===JB.country)&&(JB.level==="Все"||j.level===JB.level)
+    &&(JB.spec==="Все"||j.spec===JB.spec)&&(JB.topic==="Все"||(j.topics||[]).includes(JB.topic))
+    &&(JB.cur==="Все"||j.cur===JB.cur)&&(!JB.min||(j.rub||0)>=JB.min*rate(JB.cur==="Все"?"RUB":JB.cur)));
+  const rx=JB.q.trim().length>1?jobRx(JB.q):null,hid=new Set(pr.h),sav=new Set(pr.s);
+  const found=rx?base.filter(j=>rx.test(j.title+" "+j.about+" "+j.site+" "+(j.topics||[]).join(" "))):base;
+  return {found,hid,sav,list:found.filter(j=>JB.tab==="saved"?sav.has(String(j.id)):JB.tab==="hidden"?hid.has(String(j.id)):!hid.has(String(j.id)))};
+}
 function jobsView(){
   if(S.bron)return `<h1 class="h">Биржа заказов</h1><div class="box" style="gap:8px;border-color:var(--sun);text-align:center;padding:26px 18px"><span style="font-size:34px">🔒</span><b style="font-size:17px">Откроется во время программы</b><p class="hint" style="margin:0">Здесь будут свежие заказы на монтаж со всего мира. Доступ к бирже откроем, когда начнётся обучение 💛</p></div>`;
   if(!JB.data){loadJobs();return `<h1 class="h">Биржа заказов</h1><div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}
@@ -1024,30 +1047,45 @@ function jobsView(){
       <img src="icon-192.png" alt="" style="width:72px;border-radius:18px">
       <b style="font-size:18px">Биржа заказов скоро<br>начнёт свою работу</b>
       <p class="hint" style="font-size:14px;max-width:34ch;text-wrap:balance">А пока расти навык, собирай портфолио и твори 💛 Здесь появятся заказы по странам и уровням сложности — откликаться можно будет прямо из приложения.</p></div>`;
-  const REG=["Россия и СНГ","Европа","США и Канада","Азия","Ближний Восток","Латинская Америка","Австралия","Весь мир"],countries=["Все",...REG],levels=["Все",...new Set(d.jobs.map(j=>j.level).filter(Boolean))];
-  const CUR={RUB:"₽",USD:"$",EUR:"€",GBP:"£",KZT:"₸",UAH:"₴",BYN:"Br",AUD:"A$",CAD:"C$",INR:"₹",AED:"AED"};
-  const curs=["Все",...Object.keys(CUR).filter(c=>d.jobs.some(j=>j.cur===c))];
-  const steps={RUB:[5000,15000,30000,60000],USD:[50,200,500,1000],EUR:[50,200,500,1000],GBP:[50,200,500,1000],KZT:[30000,100000,300000],AUD:[50,200,500],INR:[2000,10000,50000]}[JB.cur]||[];
-  const list=d.jobs.filter(j=>(JB.country==="Все"||j.country===JB.country)&&(JB.level==="Все"||j.level===JB.level)
-    &&(JB.cur==="Все"||j.cur===JB.cur)&&(!JB.min||j.amt>=JB.min));
-  const pc=Math.min(100,Math.round(d.today/JOB_GOAL*100));
-  return `<h1 class="h">Биржа заказов</h1>
+  const pr=jobPrefs(),pc=Math.min(100,Math.round(d.today/JOB_GOAL*100));
+  // в первый раз — спрашиваем, как часто присылать новые заказы
+  if(!pr.set&&!JB.asked){JB.asked=true;setTimeout(()=>{if(location.hash.slice(1)==="jobs")jobNotif(true)},450)}
+  return `<div style="display:flex;align-items:center;justify-content:space-between;gap:10px"><h1 class="h">Биржа заказов</h1>
+      <button class="chipbtn" style="flex:none" onclick="jobNotif()" aria-label="Как часто присылать новые заказы">${pr.f==="off"?"🔕":"🔔"} ${({"30m":"каждые 30 мин","1h":"раз в час","2h":"раз в 2 часа",morning:"утром",day:"днём",evening:"вечером",off:"выкл."})[pr.f]||"утром"}</button></div>
     <div class="box" style="gap:10px"><div style="display:flex;justify-content:space-between;font-weight:700"><span>Откликов сегодня</span><span>${d.today} из ${JOB_GOAL}</span></div>
       <span class="bar y" style="height:7px"><i style="width:${pc}%"></i></span>
       <div class="cnt"><span class="hint" style="flex:1;min-width:150px">Откликалась на других площадках? Добавь их сюда:</span>
         <button onclick="jobCount(-1)" aria-label="Минус отклик">−</button><button onclick="jobCount(1)" aria-label="Плюс отклик">+</button></div>
       <p class="hint">Цель — 25–35 разных откликов в день: так шансы получить заказ растут в разы. Просмотрено сегодня: ${d.viewsToday||0} · всего откликов: ${d.total}.</p></div>
-    ${(()=>{const act=[JB.country!=="Все"&&JB.country,JB.level!=="Все"&&JB.level,JB.cur!=="Все"&&(CUR[JB.cur]+" "+JB.cur),JB.min&&("от "+JB.min.toLocaleString("ru-RU"))].filter(Boolean);
-      return `<button class="box" style="flex-direction:row;align-items:center;gap:10px;width:100%;text-align:left" onclick="JB.open=!JB.open;rerJobs()">
-        <span style="font-size:18px">⚙️</span><span style="flex:1"><b>Фильтры</b><small class="hint" style="display:block">${act.length?esc(act.join(" · ")):"все заказы"} · найдено ${list.length}</small></span><span style="color:var(--sun);font-weight:800">${JB.open?"Свернуть ▴":"Открыть ▾"}</span></button>`})()}
-    ${JB.open?`<div class="sec-t">Локация</div><div class="chips">${countries.map(c=>`<button class="chipbtn ${c===JB.country?"on":""}" onclick="JB.country=${esc(JSON.stringify(c))};rerJobs()">${esc(c)}</button>`).join("")}</div>
-    ${levels.length>2?`<div class="sec-t">Уровень</div><div class="chips">${levels.map(c=>`<button class="chipbtn ${c===JB.level?"on":""}" onclick="JB.level=${esc(JSON.stringify(c))};rerJobs()">${esc(c)}</button>`).join("")}</div>`:""}
-    <div class="sec-t">Оплата</div><div class="chips">${curs.map(c=>`<button class="chipbtn ${c===JB.cur?"on":""}" onclick="JB.cur=${esc(JSON.stringify(c))};JB.min=0;rerJobs()">${c==="Все"?"Любая валюта":esc(CUR[c]+" "+c)}</button>`).join("")}</div>
-    <div class="chips">${JB.cur!=="Все"?[0,...steps].map(v=>`<button class="chipbtn ${v===JB.min?"on":""}" onclick="JB.min=${v};rerJobs()">${v?"от "+v.toLocaleString("ru-RU")+" "+CUR[JB.cur]:"любая сумма"}</button>`).join(""):""}
-      <label class="chipbtn" style="display:inline-flex;align-items:center;gap:6px;cursor:text">от <input type="number" inputmode="numeric" min="0" placeholder="своя сумма" value="${JB.min&&!steps.includes(JB.min)?JB.min:""}" style="width:100px;background:none;border:0;color:inherit;font:inherit;padding:0;outline:none" onchange="JB.min=Math.max(0,+this.value||0);rerJobs()"> ${JB.cur!=="Все"?esc(CUR[JB.cur]):""}</label></div>
-    ${JB.cur==="Все"&&JB.min?`<p class="hint">Сумма сравнивается в валюте заказа — для точного фильтра выбери валюту выше.</p>`:""}
-    ${act0()?`<button class="btn g" onclick="JB.country='Все';JB.level='Все';JB.cur='Все';JB.min=0;rerJobs()">Сбросить фильтры</button>`:""}`:""}
-    <div class="lessons">${list.map(jobCard).join("")||`<div class="empty">Под этот фильтр заказов пока нет</div>`}</div>`;
+    <input type="search" id="jq" enterkeyhint="search" placeholder="🔎 Поиск: баскетбол, YouTube, подкаст…" value="${esc(JB.q)}" oninput="JB.q=this.value;jobBody()" aria-label="Поиск по заказам">
+    <div id="jbody">${jobsBody()}</div>`;
+}
+// всё, что зависит от поиска, — отдельно, чтобы при наборе не пропадала клавиатура
+function jobBody(){const b=document.getElementById("jbody");if(b)b.innerHTML=jobsBody()}
+function jobsBody(){
+  const d=JB.data,pr=jobPrefs(),{found,hid,sav,list}=jobFiltered(),q=JB.q.trim().toLowerCase();
+  const cnt=(arr,f)=>{const m={};arr.forEach(j=>[].concat(f(j)).forEach(v=>{if(v)m[v]=(m[v]||0)+1}));return m};
+  const chips=(title,key,opts,counts,label)=>`<div class="sec-t">${title}</div><div class="chips">${["Все",...opts.filter(o=>counts[o])].map(c=>`<button class="chipbtn ${c===JB[key]?"on":""}" onclick="JB.${key}=${esc(JSON.stringify(c))};rerJobs()">${esc(c==="Все"?"Все":(label?label(c):c))}${c!=="Все"?` <small style="opacity:.6">${counts[c]}</small>`:""}</button>`).join("")}</div>`;
+  const REG=["Россия и СНГ","Европа","США и Канада","Азия","Ближний Восток","Латинская Америка","Австралия","Весь мир"];
+  const topics=Object.entries(cnt(d.jobs,j=>j.topics||[])).sort((a,b)=>(a[0]==="Другое")-(b[0]==="Другое")||b[1]-a[1]).map(x=>x[0]);
+  const act=[JB.spec!=="Все"&&JB.spec,JB.topic!=="Все"&&JB.topic,JB.country!=="Все"&&JB.country,JB.level!=="Все"&&JB.level,JB.cur!=="Все"&&JCUR[JB.cur],JB.min&&("от "+JB.min.toLocaleString("ru-RU")+" "+JCUR[JB.cur==="Все"?"RUB":JB.cur])].filter(Boolean);
+  const steps=JSTEPS[JB.cur==="Все"?"RUB":JB.cur],cs=JCUR[JB.cur==="Все"?"RUB":JB.cur];
+  const savedN=found.filter(j=>sav.has(String(j.id))).length,hidN=found.filter(j=>hid.has(String(j.id))).length;
+  return `${pr.w.length||q.length>1?`<div class="chips">${pr.w.map(w=>`<button class="chipbtn has" onclick="jobWord(${esc(JSON.stringify(w))})" title="Отписаться">🔔 ${esc(w)} ✕</button>`).join("")}
+      ${q.length>1&&!pr.w.includes(q)?`<button class="chipbtn" onclick="jobWord(${esc(JSON.stringify(q))})">🔔 Сообщать о новых заказах по «${esc(JB.q.trim())}»</button>`:""}</div>`:""}
+    <button class="box" style="flex-direction:row;align-items:center;gap:10px;width:100%;text-align:left" onclick="JB.open=!JB.open;rerJobs()">
+      <span style="font-size:18px">⚙️</span><span style="flex:1"><b>Фильтры</b><small class="hint" style="display:block">${act.length?esc(act.join(" · ")):"все заказы"} · найдено ${list.length}</small></span><span style="color:var(--sun);font-weight:800">${JB.open?"Свернуть ▴":"Открыть ▾"}</span></button>
+    ${JB.open?`${chips("Специализация","spec",["Режиссёр монтажа","Креатор","Монтаж + креатор"],cnt(d.jobs,j=>j.spec))}
+    ${chips("Тематика","topic",topics,cnt(d.jobs,j=>j.topics||[]))}
+    ${chips("Локация","country",REG,cnt(d.jobs,j=>j.country))}
+    ${chips("Уровень","level",["Без опыта","Любой уровень","С опытом"],cnt(d.jobs,j=>j.level))}
+    <div class="sec-t">Оплата</div><div class="chips">${["Все","RUB","USD","EUR"].map(c=>`<button class="chipbtn ${c===JB.cur?"on":""}" onclick="JB.cur=${esc(JSON.stringify(c))};JB.min=0;rerJobs()">${c==="Все"?"Любая валюта":JCUR[c]+" "+(c==="RUB"?"рубли":c==="USD"?"доллары":"евро")}</button>`).join("")}</div>
+    <div class="chips">${[0,...steps].map(v=>`<button class="chipbtn ${v===JB.min?"on":""}" onclick="JB.min=${v};rerJobs()">${v?"от "+v.toLocaleString("ru-RU")+" "+cs:"любая сумма"}</button>`).join("")}
+      <label class="chipbtn" style="display:inline-flex;align-items:center;gap:6px;cursor:text">от <input type="number" inputmode="numeric" min="0" placeholder="своя сумма" value="${JB.min&&!steps.includes(JB.min)?JB.min:""}" style="width:100px;background:none;border:0;color:inherit;font:inherit;padding:0;outline:none" onchange="JB.min=Math.max(0,+this.value||0);rerJobs()"> ${cs}</label></div>
+    <p class="hint">Оплату в других валютах мы пересчитали в рубли (≈). Точная сумма — на странице вакансии. Сумма «от» учитывает все валюты.</p>
+    ${act0()?`<button class="btn g" onclick="JB.country='Все';JB.level='Все';JB.cur='Все';JB.min=0;JB.spec='Все';JB.topic='Все';rerJobs()">Сбросить фильтры</button>`:""}`:""}
+    <div class="chips">${[["all","Все заказы"],["saved","⭐ Сохранённые"+(savedN?" · "+savedN:"")],...(hidN||JB.tab==="hidden"?[["hidden","Скрытые · "+hidN]]:[])].map(t=>`<button class="chipbtn ${JB.tab===t[0]?"on":""}" onclick="JB.tab='${t[0]}';rerJobs()">${esc(t[1])}</button>`).join("")}</div>
+    <div class="lessons">${list.map(jobCard).join("")||`<div class="empty">${JB.tab==="saved"?"Сохраняй заказы звёздочкой ☆ — они будут здесь":q.length>1?"По этому слову заказов пока нет — подпишись, и мы сообщим, как только появится":"Под этот фильтр заказов пока нет"}</div>`}</div>`;
 }
 // описание заказа (как в постах биржи) → разделы карточки
 function jobParts(t){
@@ -1062,20 +1100,113 @@ function jobParts(t){
   return o;
 }
 function jobCard(j){
-  const d=JB.data,done=d.clicked.includes(String(j.id)),seen=(d.viewed||[]).includes(String(j.id)),p=jobParts(j.about);
+  const d=JB.data,pr=jobPrefs(),id=String(j.id),done=d.clicked.includes(id),seen=(d.viewed||[]).includes(id),p=jobParts(j.about),saved=pr.s.includes(id),hidden=pr.h.includes(id),idj=esc(JSON.stringify(id));
   return `<div class="box job">
-    <div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span class="kind">${esc(p.kind||"Проект")} × КОД КРЕАТОРА</span>${done?`<span class="chip ok">откликнулась ✓</span>`:seen?`<span class="chip">смотрела</span>`:""}</div>
+    <div style="display:flex;justify-content:space-between;gap:8px;align-items:center"><span class="kind">${jobIsNew(j)?"🔥 ":""}${esc(p.kind||"Проект")} × КОД КРЕАТОРА</span>
+      <span style="display:flex;gap:4px;align-items:center">${done?`<span class="chip ok">откликнулась ✓</span>`:seen?`<span class="chip">смотрела</span>`:""}
+        <button class="jico" onclick="jobToggle('save',${idj})" aria-label="${saved?"Убрать из сохранённых":"Сохранить"}" title="${saved?"Убрать из сохранённых":"Сохранить"}">${saved?"⭐":"☆"}</button>
+        <button class="jico" onclick="jobToggle('hide',${idj})" aria-label="${hidden?"Вернуть в ленту":"Не интересно — скрыть"}" title="${hidden?"Вернуть в ленту":"Не интересно — скрыть"}">${hidden?"↩":"✕"}</button></span></div>
     <div class="vac">${esc(j.title)}</div>
-    <div class="meta">${[j.country,j.level,j.site,j.date&&fmtDate(j.date)].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join("")}</div>
+    <div class="meta">${[j.spec,...(j.topics||[]).filter(t=>t!=="Другое"),j.country,j.level,j.site,jobAgo(j)].filter(Boolean).map(x=>`<span>${esc(x)}</span>`).join("")}</div>
     ${j.pay?`<div class="row">💸 <b>${esc(j.pay)}</b></div>`:""}
     ${p.fmt?`<div class="row">📄 <span>${esc(p.fmt)}</span></div>`:""}
     ${p.tasks.length?`<div class="lbl">Твои задачи</div><ul>${p.tasks.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}
     ${p.about?`<div class="lbl">О проекте</div><p>${esc(p.about)}</p>`:""}
     ${p.mot.length?`<div class="mot">${p.mot.map(esc).join("<br>")}</div>`:""}
     ${p.notes.map(n=>`<div class="note">${esc(n)}</div>`).join("")}
-    <div class="acts"><button class="btn y" onclick="openJob(${esc(JSON.stringify(String(j.id)))},${esc(JSON.stringify(j.url))},${esc(JSON.stringify(j.title))})">Откликнуться →</button>
-      ${done?"":`<button class="btn g" style="width:auto;padding:0 14px" onclick="markJob(${esc(JSON.stringify(String(j.id)))})" title="Отметить, что откликнулась">✓</button>`}</div>
+    <div class="acts"><button class="btn y" onclick="openJob(${idj},${esc(JSON.stringify(j.url))},${esc(JSON.stringify(j.title))})">Откликнуться →</button>
+      <button class="btn g" style="width:auto;padding:0 14px" onclick="jobReply(${idj})" title="Готовый текст отклика">📝 Текст</button>
+      ${done?"":`<button class="btn g" style="width:auto;padding:0 14px" onclick="markJob(${idj})" title="Отметить, что откликнулась">✓</button>`}</div>
   </div>`;
+}
+// сохранить / скрыть заказ — сразу на экране, на сервер в фоне
+function jobToggle(what,id){
+  const pr=jobPrefs(),arr=what==="save"?pr.s:pr.h,i=arr.indexOf(id);
+  if(i<0)arr.push(id);else arr.splice(i,1);
+  if(what==="hide"&&i<0)toast("Скрыли — вернуть можно во вкладке «Скрытые»");
+  if(what==="save"&&i<0)toast("Сохранено ⭐");
+  rerJobs();
+  api({api:"jobprefs",[what]:id}).then(r=>{if(r&&r.ok&&JB.data)JB.data.prefs=r.prefs}).catch(()=>toast("Нет связи — попробуй ещё раз"));
+}
+// подписка на слово: как только появится заказ с этим словом — придёт уведомление
+async function jobWord(w){
+  const pr=jobPrefs(),on=pr.w.includes(w);
+  if(on&&!confirm(`Больше не присылать заказы по слову «${w}»?`))return;
+  if(!on&&pr.w.length>=10)return toast("Можно до 10 слов — убери одно из старых");
+  try{const r=await api({api:"jobprefs",word:w,tz:-new Date().getTimezoneOffset()});if(r.ok){JB.data.prefs=r.prefs;rerJobs();
+    toast(on?"Отписалась от «"+w+"»":"Готово! Сообщим, как только появится заказ про «"+w+"» 🔔");if(!on&&pushState()==="default")enablePush()}}
+  catch(e){toast("Нет связи — попробуй ещё раз")}
+}
+// как часто присылать новые заказы (first — показывается сам при первом входе на биржу)
+function jobNotif(first){
+  document.querySelectorAll(".veil.jobnf").forEach(v=>v.remove());
+  const pr=jobPrefs(),st=pushState();let pick=pr.set?pr.f:"1h";
+  const v=document.createElement("div");v.className="veil jobnf";
+  const hint=st==="tg"?"В Telegram уведомления не приходят. Открой приложение с экрана «Домой» и разреши уведомления — тогда заказы будут приходить на телефон."
+    :st==="ios-install"?"На iPhone уведомления приходят только в приложении на экране «Домой»: «Поделиться» → «На экран Домой»."
+    :st==="denied"?"Уведомления сейчас запрещены в настройках телефона — разреши их для приложения КК.":"";
+  v.innerHTML=`<div class="sheet" role="dialog" aria-label="Уведомления о заказах">
+    <h3 style="margin:0">${first?"💼 Как часто присылать новые заказы?":"🔔 Уведомления о заказах"}</h3>
+    <p class="hint" style="margin:0">Одно уведомление собирает все новые заказы. Ночью (с 22:00 до 8:00 по твоему времени) не тревожим. Поменять можно в любой момент кнопкой 🔔.</p>
+    <div style="display:grid;gap:6px">${JFREQ.map(f=>`<button class="chipbtn jf ${f[0]===pick?"on":""}" data-f="${f[0]}" style="text-align:left;white-space:normal">${esc(f[1])}</button>`).join("")}</div>
+    ${hint?`<p class="hint" style="margin:0;color:var(--sun)">${esc(hint)}</p>`:""}
+    <button class="btn y" id="jfok">${st==="default"?"Уведомлять и разрешить уведомления":"Сохранить"}</button>
+    ${first?"":`<button class="btn g" id="jfx" style="color:var(--muted)">Закрыть</button>`}</div>`;
+  v.querySelectorAll(".jf").forEach(b=>b.onclick=()=>{pick=b.dataset.f;v.querySelectorAll(".jf").forEach(x=>x.classList.toggle("on",x===b))});
+  v.querySelector("#jfok").onclick=async()=>{
+    v.remove();
+    try{const r=await api({api:"jobprefs",f:pick,tz:-new Date().getTimezoneOffset()});if(r.ok){JB.data.prefs=r.prefs;rerJobs();
+      toast(pick==="off"?"Уведомления о заказах выключены":"Готово! "+(JFREQ.find(x=>x[0]===pick)||[,""])[1]+" 🔔")}}catch(e){toast("Нет связи — попробуй ещё раз")}
+    if(pick!=="off"&&st==="default")enablePush();
+  };
+  const x=v.querySelector("#jfx");if(x)x.onclick=()=>v.remove();
+  document.body.appendChild(v);
+}
+// готовый текст отклика: под заказ, на русском или английском, со ссылкой на портфолио
+function jobTranslit(s){const m={а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"e",ж:"zh",з:"z",и:"i",й:"y",к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",х:"kh",ц:"ts",ч:"ch",ш:"sh",щ:"sch",ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya"};
+  return String(s||"").split("").map(c=>{const l=c.toLowerCase(),t=m[l];return t==null?c:c===l?t:t.charAt(0).toUpperCase()+t.slice(1)}).join("")}
+function jobReplyText(j,lang,link){
+  const p=jobParts(j.about),cr=j.spec!=="Режиссёр монтажа",long=/долгосроч/i.test(p.kind),name=(S.user&&S.user.n)||"",pf=link||(lang==="en"?"[portfolio link]":"[ссылка на портфолио]");
+  if(lang==="en")return `Hi! My name is ${jobTranslit(name)||"…"} — I'm a video editor${cr?" and content creator":""} specializing in short-form vertical videos for Reels, Shorts and TikTok.
+
+I saw your post "${j.title}" and would love to help.
+
+What I do: dynamic, retention-focused editing, captions, sound design, color grading and motion graphics${cr?", plus ideas and scripts for the videos":""}.
+
+Portfolio: ${pf}
+
+${long?"I'm open to long-term collaboration. ":""}Happy to do a short test task so you can see my style. Could you share more details and the timeline?`;
+  return `Здравствуйте! Меня зовут ${name||"…"}, я ${cr?"креатор и режиссёр монтажа: придумываю и монтирую":"режиссёр монтажа, монтирую"} короткие вертикальные видео для Reels, Shorts и TikTok.
+
+Увидела вашу вакансию «${j.title}» и хочу откликнуться.
+
+Что делаю: динамичный монтаж с удержанием внимания, субтитры, работа со звуком, цветокоррекция и графика${cr?", а ещё идеи и сценарии для роликов":""}.
+
+Портфолио: ${pf}
+
+${long?"Открыта к долгосрочному сотрудничеству. ":""}Готова сделать тестовое задание, чтобы вы увидели мой стиль. Подскажите, пожалуйста, детали и сроки?`;
+}
+function jobReply(id){
+  const j=JB.data.jobs.find(x=>String(x.id)===String(id));if(!j)return;
+  document.querySelectorAll(".veil.jobrp").forEach(v=>v.remove());
+  let lang=/английск/i.test(j.about)||(j.country!=="Россия и СНГ"&&!/[а-яё]/i.test(j.title))?"en":"ru",link=load("kk_pf_link")||"";
+  const v=document.createElement("div");v.className="veil jobrp";
+  v.innerHTML=`<div class="sheet" role="dialog" aria-label="Текст отклика" style="max-height:92vh;overflow:auto">
+    <h3 style="margin:0">📝 Текст отклика</h3>
+    <p class="hint" style="margin:0">Скопируй, вставь на площадке и поправь под себя — живой отклик со ссылкой на портфолио отвечают чаще.</p>
+    <div class="chips"><button class="chipbtn" data-l="ru">Русский</button><button class="chipbtn" data-l="en">English</button></div>
+    <input type="url" id="jrl" placeholder="Ссылка на твоё портфолио (запомню для всех откликов)" value="${esc(link)}">
+    <textarea id="jrt" rows="12" style="resize:vertical;line-height:1.45"></textarea>
+    <button class="btn y" id="jrc">Скопировать текст</button>
+    <button class="btn g" id="jrg">Открыть вакансию ↗</button>
+    <button class="btn g" id="jrx" style="color:var(--muted)">Закрыть</button></div>`;
+  const t=v.querySelector("#jrt"),fill=()=>{t.value=jobReplyText(j,lang,link);v.querySelectorAll("[data-l]").forEach(b=>b.classList.toggle("on",b.dataset.l===lang))};
+  v.querySelectorAll("[data-l]").forEach(b=>b.onclick=()=>{lang=b.dataset.l;fill()});
+  v.querySelector("#jrl").onchange=e=>{link=e.target.value.trim();store("kk_pf_link",link);fill()};
+  v.querySelector("#jrc").onclick=()=>{if(!link)toast("Добавь ссылку на портфолио — так ответят чаще");copyText(t.value,"Текст скопирован ✓")};
+  v.querySelector("#jrg").onclick=()=>{v.remove();openJob(String(j.id),j.url,j.title)};
+  v.querySelector("#jrx").onclick=()=>v.remove();
+  fill();document.body.appendChild(v);
 }
 // «Откликнуться»: окно с двумя шагами — открыть вакансию и отметить результат.
 // Не зависит от того, умеет ли браузер (Telegram, iPhone, Android) сообщить о возвращении.
@@ -1494,7 +1625,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="202611020147";
+const BUILD="1793565005";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
@@ -1558,7 +1689,7 @@ function openOutside(url,btn){const t=cachedHo();const u=url+(t?"?login="+encode
       <input readonly value="${esc(u)}" style="font-size:12px" onclick="this.select()"><button class="btn y" type="button">Скопировать ссылку</button>`;
     d.querySelector("button").onclick=()=>copyText(u);btn.after(d)},1500);
 }
-function copyText(t){const done=()=>toast("Ссылка скопирована ✓");
+function copyText(t,msg){const done=()=>toast(msg||"Ссылка скопирована ✓");
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,()=>fb());else fb();
   function fb(){const i=document.createElement("textarea");i.value=t;i.style.position="fixed";i.style.opacity="0";document.body.appendChild(i);i.focus();i.select();try{document.execCommand("copy");done()}catch(e){toast("Выдели ссылку и скопируй вручную")}i.remove()}}
 
