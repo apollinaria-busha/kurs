@@ -1,5 +1,5 @@
 /* Пак режиссёра монтажа («Полезные материалы» → #mat/pk…).
-   Загружается только автору (isAuthor) из index.html — ученицы его пока не скачивают.
+   Грузится из index.html тем, кому packOk(): автору всегда, ученицам — когда pack_open = да.
    Все классы с префиксом pk-, чтобы не пересекаться со стилями приложения. */
 (function(){
 const FONTS="Inter:wght@400;700&family=Rubik+Mono+One&family=Russo+One&family=Rubik+Bubbles&family=Pangolin&family=JetBrains+Mono:wght@500&family=Unbounded:wght@700&family=Cormorant+Infant:wght@600&family=Caveat:wght@700&family=Playfair+Display:wght@700&family=Alumni+Sans:wght@700&family=Fira+Sans+Extra+Condensed&family=Amatic+SC:wght@700&family=Lobster&family=Rubik+Spray+Paint&family=PT+Serif&family=Nunito:wght@600&family=Manrope:wght@500";

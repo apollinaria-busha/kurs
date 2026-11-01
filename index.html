@@ -494,7 +494,7 @@ async function demo(mode){
   try{const ac=await api({api:"account",as:mode});if(ac.ok)S.acc=ac}catch(e){}
   if(location.hash)location.hash="";else route();
 }
-function apply(res){S.bron=res.bron||null;S.user=res.user;S.mods=res.mods;S.mats=res.mats||[];S.done=new Set(res.done);setHw(res.hw);S.tests=res.tests||{};S.testRes=res.testRes||{};S.lsName=res.lsName||"Полине"}
+function apply(res){S.bron=res.bron||null;S.user=res.user;S.mods=res.mods;S.mats=res.mats||[];S.done=new Set(res.done);setHw(res.hw);S.tests=res.tests||{};S.testRes=res.testRes||{};S.lsName=res.lsName||"Полине";S.pack=!!res.pack}
 function saveCache(){try{const c=JSON.parse(load("kk_course")||"{}");c.done=[...S.done];c.hw=[...S.subs,...S.qs];store("kk_course",JSON.stringify(c))}catch(e){}}
 
 /* ---------- данные ---------- */
@@ -520,7 +520,7 @@ function route(){
   else if(h.startsWith("m/")){const m=S.mods.find(m=>m.n===h.slice(2));if(m){view=moduleView(m);title="Модуль "+m.n;back=true;S.open.add(m.n)}}
   else if(h.startsWith("test/")){const l=findLes(h.slice(5));if(l){view=testView(l);title="Тест";back=true}}
   else if(h.startsWith("hw/new")){view=wizardView(h.slice(7));title="Сдать работу";back=true}
-  else if(h.startsWith("mat/pk")&&isAuthor()){const r=window.PK?PK.view(h.slice(6)):(loadPack(),null);view=r?r.v:`<p class="sub">Загружаю пак…</p>`;title=r?r.t:"Пак";back=true}
+  else if(h.startsWith("mat/pk")&&packOk()){const r=window.PK?PK.view(h.slice(6)):(loadPack(),null);view=r?r.v:`<p class="sub">Загружаю пак…</p>`;title=r?r.t:"Пак";back=true}
   else if(S.bron&&(h==="up"||h.startsWith("up/")||h.startsWith("m/")&&(S.mods.find(m=>m.n===h.slice(2))||{les:[]}).les.every(l=>l.locked)))view=homeView();
   else if(h==="up"){view=updListView();title="Апдейты";back=true}
   else if(h.startsWith("up/")){const u=(S.upd||[]).find(x=>x.id===h.slice(3));if(u){view=updCardView(u);title=u.area||"Апдейт";back=true}else{view=updListView();title="Апдейты";back=true}}
@@ -669,6 +669,8 @@ function lessonView(l){
 
 // правка урока автором: название, текст, задание — сразу в таблицу, без уведомлений ученицам (история — лист «Правки уроков»)
 function isAuthor(){return !!(S.user&&S.user.a&&S.user.s==="автор")}
+// пак режиссёра монтажа: автору всегда, ученицам — когда в «Настройках» pack_open = да (бронь ждёт старта)
+function packOk(){return isAuthor()||!!(S.pack&&S.user&&!S.bron)}
 const edIn=h=>String(h||"").replace(/<div data-kv="([A-Za-z0-9]+)"><\/div>/g,'<div data-kv="$1" class="kvph" contenteditable="false">🎬 Видео урока — остаётся на этом месте</div>');
 function edOut(el){const c=el.cloneNode(true);c.querySelectorAll("[data-kv]").forEach(d=>{const id=d.dataset.kv,n=document.createElement("div");n.setAttribute("data-kv",id);d.replaceWith(n)});
   return c.innerHTML.replace(/<div data-kv="([A-Za-z0-9]+)"><\/div>/g,'<div data-kv="$1"></div>').replace(/<p>\s*<\/p>/g,"").replace(/(<br>\s*)+$/,"").trim()}
@@ -731,14 +733,14 @@ function kbSearch(q){
 function matView(){
   if(S.bron)return `<h1 class="h">Полезные материалы</h1><div class="box" style="gap:8px;border-color:var(--sun);text-align:center;padding:26px 18px"><span style="font-size:34px">🔒</span><b style="font-size:17px">Откроются ${esc(fmtDate(S.bron.open))}</b><p class="hint" style="margin:0">Все гайды и подборки программы станут доступны в день старта ${S.bron.pre?"предобучения":"программы"}. А пока — вводный модуль «Погружение» в Базе знаний 💛</p></div>`;
   const mats=S.mats.filter(x=>!/база/i.test(x.s)),groups=[...new Set(mats.map(x=>x.g))];
-  if(isAuthor()&&!window.PK)loadPack();
+  if(packOk()&&!window.PK)loadPack();
   return `<h1 class="h">Полезные материалы</h1><p class="sub">Все гайды и подборки программы в одном месте — без поиска по урокам.</p>
-    ${isAuthor()&&window.PK?PK.hero():""}
+    ${packOk()&&window.PK?PK.hero():""}
     ${groups.map(g=>`<div class="sec-t">${esc(g||"Гайды")}</div><div class="mats">${mats.filter(x=>x.g===g).map(f=>`<a class="mat" href="${esc(f.u)}" target="_blank" rel="noopener">
       <span class="pic">${f.c?`<img src="${esc(f.c)}" alt="" loading="lazy">`:esc((f.d||"").split("·").pop().trim()||"ФАЙЛ")}</span><b>${esc(f.t)}</b><small>${esc(f.d||"")}</small></a>`).join("")}</div>`).join("")}`;
 }
 
-// пак режиссёра монтажа (pack.js) — пока только автору, ученицам файл не грузится
+// пак режиссёра монтажа (pack.js) — грузится только тем, кому packOk()
 function loadPack(){if(loadPack.on)return;loadPack.on=1;const sc=document.createElement("script");let v;try{v=BUILD}catch(e){v=Date.now()}sc.src="pack.js?v="+v;sc.onload=route;sc.onerror=()=>{loadPack.on=0;toast("Не получилось загрузить пак")};document.head.appendChild(sc)}
 
 /* ---------- сдать ДЗ ---------- */
@@ -1492,7 +1494,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="202611020059";
+const BUILD="202611020147";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();

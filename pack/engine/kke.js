@@ -5627,7 +5627,7 @@
   const ST = G.KKSTYLES; if (!ST) return;
   const FIN = { kk: 'A', ios: 'A', romance: 'A', tech: 'A', anime: 'A', retro: 'A', y2k: 'A', future: 'A', season: 'A', eco: 'A', expert: 'A', lux: 'B', cinema: 'B' };
   const SKIP = { ios: /^ai-/ };   // в iOS это настоящие иконки Apple
-  const KINDS = ['an'];
+  const KINDS = ['an', 'png'];   // анимации и классические PNG (пинтерестовские — настоящие фото, их не трогаем)
 
   const pool = {};
   function get(k, W, H) {
@@ -5677,7 +5677,7 @@
     c.save(); c.globalAlpha = k; c.shadowColor = 'rgba(255,230,160,.95)'; c.shadowBlur = s * 1.4; c.fillStyle = '#FFF7DC'; sparkle(c, b.gx, b.gy, s * (.5 + .5 * k)); c.fill(); c.restore();
   }
 
-  function wrap(draw, mode) {
+  function wrap(draw, mode, live) {
     return function (c, W, H, S, t) {
       const [src, sx] = get('src', W, H); draw(sx, W, H, S, t);
       const b = measure(src); if (!b) return;
@@ -5690,12 +5690,12 @@
       if (mode === 'A') { c.shadowColor = 'rgba(25,14,0,.34)'; c.shadowBlur = Math.min(b.th * .9, W * .045); c.shadowOffsetY = Math.min(b.th * .35, W * .018); }
       else { c.shadowColor = 'rgba(0,0,0,.42)'; c.shadowBlur = Math.min(b.th * .8, W * .04); c.shadowOffsetY = Math.min(b.th * .25, W * .012); }
       c.drawImage(o, 0, 0); c.restore();
-      if (mode === 'B') glint(c, b, t, Math.min(W, H) * .03);
+      if (mode === 'B' && live) glint(c, b, t, Math.min(W, H) * .03);   // на неподвижном PNG застывшая искорка выглядит шаблонно
     };
   }
 
   for (const sid in FIN) { const st = ST[sid]; if (!st) continue;
-    for (const kind of KINDS) for (const it of st[kind] || []) { if (SKIP[sid] && SKIP[sid].test(it.id) || it.flat) continue; it.raw = it.draw; it.draw = wrap(it.draw, FIN[sid]); } }
+    for (const kind of KINDS) for (const it of st[kind] || []) { if (SKIP[sid] && SKIP[sid].test(it.id) || it.flat) continue; it.raw = it.draw; it.draw = wrap(it.draw, FIN[sid], kind === 'an'); } }
   G.KK_FINISH = FIN;
 })(window);
 
