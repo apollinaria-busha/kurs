@@ -5605,12 +5605,13 @@
   const READY = G.KK_READY = G.KK_READY || [];
   const KY = '#FFAD05', KI = '#16130C';
   const im = new Image(); if (G.KK_BASE) im.crossOrigin = 'anonymous'; im.src = (G.KK_BASE || '') + 'icons/kk/star_gold.png'; READY.push(im.decode().catch(() => {}));
-  // звезда по центру (cx, cy); s — размер картинки 720², сама звезда занимает ~половину; тень делает золото читаемым и на жёлтом
-  function star(c, cx, cy, s, shadow = .45) { if (!im.naturalWidth) return; c.save(); c.shadowColor = `rgba(22,19,12,${shadow})`; c.shadowBlur = s * .12; c.shadowOffsetY = s * .04;
-    c.imageSmoothingQuality = 'high'; c.drawImage(im, cx - s * 368 / 720, cy - s * 382 / 720, s, s); c.restore(); }
-  function tag(c, W, H, bg) { c.fillStyle = bg; c.beginPath(); c.roundRect(W * .04, H * .2, W * .92, H * .6, 18); c.fill(); star(c, W * .06 + H * .27, H * .5, H * 1.05, bg === KI ? .25 : .5); }
+  // звезда по центру (cx, cy), s — её размер по большей стороне; картинка обрезана по звезде — своя картинка из «⚙ Настроить» встанет в тот же размер
+  function star(c, cx, cy, s, shadow = .45) { if (!im.naturalWidth) return; const k = s / Math.max(im.naturalWidth, im.naturalHeight), w = im.naturalWidth * k, h = im.naturalHeight * k;
+    c.save(); c.shadowColor = `rgba(22,19,12,${shadow})`; c.shadowBlur = s * .24; c.shadowOffsetY = s * .08;
+    c.imageSmoothingQuality = 'high'; c.drawImage(im, cx - w / 2, cy - h / 2, w, h); c.restore(); }
+  function tag(c, W, H, bg) { c.fillStyle = bg; c.beginPath(); c.roundRect(W * .04, H * .2, W * .92, H * .6, 18); c.fill(); star(c, W * .06 + H * .27, H * .5, H * .53, bg === KI ? .25 : .5); }
   const slide = (ctx, W, H, S, p) => { const k = p < .5 ? (x => x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2)(p / .5) - 1 : (x => x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2)((p - .5) / .5);
-    ctx.save(); ctx.translate(k * W * 1.05, 0); ctx.fillStyle = KI; ctx.fillRect(0, 0, W, H); const s = Math.min(W, H) * .85; star(ctx, W / 2, H / 2, s, .3); ctx.restore(); };
+    ctx.save(); ctx.translate(k * W * 1.05, 0); ctx.fillStyle = KI; ctx.fillRect(0, 0, W, H); const s = Math.min(W, H) * .43; star(ctx, W / 2, H / 2, s, .3); ctx.restore(); };
   const tx = ST.kk.tx, tr = ST.kk.tr, at = (arr, id) => arr.findIndex(x => x.id === id) + 1 || arr.length;
   tx.splice(at(tx, 'tag'), 0, { id: 'tag-gold', name: 'Тег с золотой звездой', draw: (c, W, H) => tag(c, W, H, KY) },
     { id: 'tag-gold-dark', name: 'Тёмный тег с золотой звездой', draw: (c, W, H) => tag(c, W, H, KI) });
