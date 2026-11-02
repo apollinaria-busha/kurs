@@ -1,6 +1,6 @@
 // Кэшируем только оболочку приложения: страница открывается даже при плохой связи.
 // Уроки и прогресс всегда берутся с сервера (последняя версия уроков хранится в localStorage).
-const C = "kk-shell-1793601202", IMG = "kk-img-v1"; // картинки живут между выкладками, оболочка — обновляется
+const C = "kk-shell-1793607826", IMG = "kk-img-v1"; // картинки живут между выкладками, оболочка — обновляется
 const SHELL = ["./", "index.html", "manifest.json", "icon-192.png", "icon-512.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(C).then(c => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== C && k !== IMG).map(k => caches.delete(k))))); self.clients.claim(); });
@@ -27,7 +27,7 @@ self.addEventListener("push", e => {
   let d = {};
   try { const j = e.data.json(); d = j.data || j.notification || j; } catch (x) { d = { body: e.data ? e.data.text() : "" }; }
   e.waitUntil(self.registration.showNotification(d.title || "Код Креатора", {
-    body: d.body || "", icon: "icon-192.png", badge: "icon-192.png", data: { url: d.url || "./" }
+    body: d.body || "", icon: "icon-192.png", badge: "icon-192.png", silent: d.silent === "1", data: { url: d.url || "./" }
   }));
 });
 // тап по уведомлению — открываем приложение сразу на нужном экране

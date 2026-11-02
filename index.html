@@ -1031,7 +1031,7 @@ function jobAgo(j){
   if(ms<36e5)return "только что";if(ms<864e5)return Math.floor(ms/36e5)+" ч назад";
   const d=Math.floor(ms/864e5);return d===1?"вчера":d+" "+(d<5?"дня":"дней")+" назад";
 }
-function jobIsNew(j){return (JB.data.now||Date.now())-(j.added||j.at||0)<864e5}
+function jobIsNew(j){return (JB.data.now||Date.now())-(j.at||j.added||0)<2*864e5}  // 🔥 — опубликован до 2 дней назад: на свежие отвечают чаще всего
 // заказы под фильтры (без поиска и вкладок), затем — под поиск и вкладку
 function jobFiltered(){
   const d=JB.data,pr=jobPrefs(),rate=c=>(d.rates||{})[c]||1;
@@ -1150,7 +1150,7 @@ function jobNotif(first){
     :st==="denied"?"Уведомления сейчас запрещены в настройках телефона — разреши их для приложения КК.":"";
   v.innerHTML=`<div class="sheet" role="dialog" aria-label="Уведомления о заказах">
     <h3 style="margin:0">${first?"💼 Как часто присылать новые заказы?":"🔔 Уведомления о заказах"}</h3>
-    <p class="hint" style="margin:0">Одно уведомление собирает все новые заказы. Ночью (с 22:00 до 8:00 по твоему времени) не тревожим. Поменять можно в любой момент кнопкой 🔔.</p>
+    <p class="hint" style="margin:0">Одно уведомление собирает все новые заказы. Ночью (с 22:00 до 8:00 по твоему времени) не тревожим, в выходные присылаем без звука. Поменять можно в любой момент кнопкой 🔔.</p>
     <div style="display:grid;gap:6px">${JFREQ.map(f=>`<button class="chipbtn jf ${f[0]===pick?"on":""}" data-f="${f[0]}" style="text-align:left;white-space:normal">${esc(f[1])}</button>`).join("")}</div>
     ${hint?`<p class="hint" style="margin:0;color:var(--sun)">${esc(hint)}</p>`:""}
     <button class="btn y" id="jfok">${st==="default"?"Уведомлять и разрешить уведомления":"Сохранить"}</button>
@@ -1582,7 +1582,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1793601202";
+const BUILD="1793607826";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
