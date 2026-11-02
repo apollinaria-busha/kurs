@@ -2,6 +2,7 @@
 <html lang="ru">
 <head>
 <meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="base-uri 'self'; object-src 'none'">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Код Креатора</title>
 <meta name="theme-color" content="#0d0d0d">
@@ -369,6 +370,7 @@ const IC = {
 const TABS = [["", "База знаний", "les", "База<br>знаний"], ["mat", "Полезные материалы", "mat", "Полезные<br>материалы"], ["hw", "Сдать ДЗ", "hw", "Сдать ДЗ"], ["jobs", "Биржа заказов", "job", "Биржа<br>заказов"], ["me", "Профиль", "me", "Профиль"]];
 
 function tabs(){if(!(S.user&&S.user.a))return TABS;const t=[...TABS];t[2]=["hw","Демонстрация","hw","Демо"];t.splice(3,0,["st","Ученики","st","Ученики"]);return t}
+function safeUrl(u){u=String(u??"");return /^(javascript|data|vbscript|file):/i.test(u.replace(/[\x00-\x20]/g,""))?"#":u}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function store(k,v){try{v===undefined?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
 function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
@@ -634,7 +636,7 @@ function svc(u){
   if(/pin\.it|pinterest/.test(u))return ["ln","P","Pinterest"];
   return ["ln","↗",u.replace(/^https?:\/\/(www\.)?/,"").split("/")[0]];
 }
-function pill(u,label){const [c,ic,t]=svc(u);return `<a class="pill ${c}" href="${esc(u)}" target="_blank" rel="noopener"><i>${ic}</i>${esc(label||t)}</a>`}
+function pill(u,label){const [c,ic,t]=svc(u);return `<a class="pill ${c}" href="${esc(safeUrl(u))}" target="_blank" rel="noopener"><i>${ic}</i>${esc(label||t)}</a>`}
 // конспекты из ГК: пустые абзацы-отбивки (<p><br></p>) шли подряд по 2–3 — сводим к одной короткой отбивке, после подзаголовка убираем
 function tidy(h){
   const SP=/<p>(?:\s|&nbsp;|<br\s*\/?>|<(strong|b|em|i|span)[^>]*>(?:\s|&nbsp;|<br\s*\/?>)*<\/\1>)*<\/p>|<h\d>\s*<\/h\d>/gi;
@@ -646,12 +648,12 @@ function tidy(h){
 function prettyLinks(h){
   h=tidy(h);
   return h.replace(/<a href="([^"]+)"[^>]*>(.*?)<\/a>/g,(all,u,txt)=>{u=u.replace(/&amp;/g,"&");const t=txt.replace(/<[^>]+>/g,"").trim();
-    return /^(https?:\/\/|www\.)|^[\w.-]+\.(ru|com|io|me)(\/|$)/i.test(t)||!t?pill(u):`<a href="${esc(u)}" target="_blank" rel="noopener">${txt}</a>`})
+    return /^(https?:\/\/|www\.)|^[\w.-]+\.(ru|com|io|me)(\/|$)/i.test(t)||!t?pill(u):`<a href="${esc(safeUrl(u))}" target="_blank" rel="noopener">${txt}</a>`})
    .replace(/(^|[\s>(])(https?:\/\/[^\s<)"]+)/g,(all,pre,u)=>pre+pill(u));
 }
 function btnBlock(files){
   if(!files.length)return "";
-  return `<div class="gbtn">${files.map(f=>f.u.length===1?`<a class="btn y" href="${esc(f.u[0])}" target="_blank" rel="noopener">${esc(f.t)}</a>`
+  return `<div class="gbtn">${files.map(f=>f.u.length===1?`<a class="btn y" href="${esc(safeUrl(f.u[0]))}" target="_blank" rel="noopener">${esc(f.t)}</a>`
     :`<div class="box" style="padding:12px 14px;gap:8px"><b style="font-size:14px">${esc(f.t)}</b><div class="row">${f.u.map(u=>pill(u)).join("")}</div></div>`).join("")}</div>`;
 }
 
@@ -741,7 +743,7 @@ function matView(){
   if(packOk()&&!window.PK)loadPack();
   return `<h1 class="h">Полезные материалы</h1><p class="sub">Все гайды и подборки программы в одном месте — без поиска по урокам.</p>
     ${packOk()&&window.PK?PK.hero():""}
-    ${groups.map(g=>`<div class="sec-t">${esc(g||"Гайды")}</div><div class="mats">${mats.filter(x=>x.g===g).map(f=>`<a class="mat" href="${esc(f.u)}" target="_blank" rel="noopener">
+    ${groups.map(g=>`<div class="sec-t">${esc(g||"Гайды")}</div><div class="mats">${mats.filter(x=>x.g===g).map(f=>`<a class="mat" href="${esc(safeUrl(f.u))}" target="_blank" rel="noopener">
       <span class="pic">${f.c?`<img src="${esc(f.c)}" alt="" loading="lazy">`:esc((f.d||"").split("·").pop().trim()||"ФАЙЛ")}</span><b>${esc(f.t)}</b><small>${esc(f.d||"")}</small></a>`).join("")}</div>`).join("")}`;
 }
 
@@ -1180,6 +1182,7 @@ function openJob(id,url,title){
     <button class="btn g" id="jx" style="color:var(--muted)">Закрыть</button></div>`;
   let viewed=false;
   v.querySelector("#jgo").onclick=()=>{
+    if(safeUrl(url)==="#")return toast("Ссылка на этот заказ не открывается");
     /t\.me\//.test(url)?openTg(url):(TG&&TG.openLink?TG.openLink(url):window.open(url,"_blank"));
     if(!viewed){viewed=true;api({api:"jobclick",job:id,kind:"просмотр"}).then(r=>{if(r&&r.ok)JB.data=r}).catch(()=>{})}
     v.querySelector("#jgo").textContent="Открыть ещё раз ↗";
@@ -1329,12 +1332,12 @@ function updCardView(u){
     ${(c.media||[]).map((m,i)=>`<figure class="upfig">${m.video?upVid(m,i):`<img src="${esc(m.img)}" alt="${esc(m.cap||"")}" loading="lazy">`}${m.cap?`<figcaption>${esc(m.cap)}</figcaption>`:""}</figure>`).join("")}
     ${c.why?sec({h:"💡 Зачем это креатору",p:c.why,kind:"why"}):""}
     ${(c.sections||[]).map(sec).join("")}
-    ${c.link?`<a class="btn g" href="${esc(c.link.u)}" target="_blank" rel="noopener">${esc(c.link.t)} ↗</a>`:""}
+    ${c.link?`<a class="btn g" href="${esc(safeUrl(c.link.u))}" target="_blank" rel="noopener">${esc(c.link.t)} ↗</a>`:""}
     ${c.quiz?`<div class="box upbox"><b>🎮 ${esc(c.quiz.title||"Проверь себя")}</b><p>${upMd(c.quiz.q)}</p><div class="upq" id="upq">${c.quiz.opts.map((o,i)=>`<button onclick="updQuiz(${i})">${esc(o.t).replace(/\*\*(.+?)\*\*/g,"<b>$1</b>")}</button>`).join("")}<div class="res" id="upqr"></div></div></div>`:""}
     ${c.warn?sec({...c.warn,kind:"warn"}):""}
     ${c.terms&&Object.keys(c.terms).length?`<details class="box upbox"><summary><b>📖 Словарик: непонятные слова</b></summary><div class="upgl">${Object.entries(c.terms).map(([k,d])=>`<span><b>${esc(k)}</b> — ${esc(d)}</span>`).join("")}</div></details>`:""}
     <button class="btn ${u.done?"done":"y"}" onclick="updMark('${esc(u.id)}',${u.done?"false":"true"})">${u.done?"✓ Разобралась":"Разобралась ✓"}</button>
-    ${(c.src||[]).length?`<div class="upsrc">Источники:${c.src.map(x=>`<a href="${esc(x.u)}" target="_blank" rel="noopener">${esc(x.t)}</a>`).join("")}</div>`:""}`;
+    ${(c.src||[]).length?`<div class="upsrc">Источники:${c.src.map(x=>`<a href="${esc(safeUrl(x.u))}" target="_blank" rel="noopener">${esc(x.t)}</a>`).join("")}</div>`:""}`;
   UP_T=null;return out;
 }
 // видео на английском: русские субтитры включены сразу, можно переключить на английские или убрать
@@ -1583,7 +1586,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1793627662";
+const BUILD="1793643452";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
