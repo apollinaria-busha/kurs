@@ -1024,7 +1024,8 @@ async function loadJobs(force){
 // перерисовать биржу, не прыгая наверх (фильтры, отметки)
 function rerJobs(){const m=document.getElementById("main"),y=window.scrollY,t=m?m.scrollTop:0,inner=document.querySelector(".inner");if(!inner||location.hash.slice(1)!=="jobs")return route();inner.innerHTML=jobsView();if(m)m.scrollTop=t;window.scrollTo(0,y)}
 // слово «баскетбол» находит и «баскетболу», «баскетбольный» (так же ищет сервер для подписок)
-function jobRx(q){return new RegExp(q.toLowerCase().trim().split(/\s+/).map(x=>(x.length>5?x.slice(0,-2):x).replace(/[.*+?^${}()|[\]\\]/g,"\\$&")).join("[^\\n]{0,20}"),"i")}
+const JALIAS=[[/^(баскет|basket)/,"баскет|basket"],[/^(футбол|football|soccer)/,"футбол|football|soccer"],[/^(спорт|sport)/,"спорт|sport"],[/^(мод[аыеу]$|fashion)/,"мода|моды|fashion"],[/^(одежд|clothing|apparel)/,"одежд|clothing|apparel|fashion"],[/^(бьюти|красот|beauty)/,"бьюти|красот|beauty"],[/^(космет|cosmetic|makeup|макияж)/,"космет|cosmetic|makeup|макияж"],[/^(фитнес|fitness)/,"фитнес|fitness"],[/^(игр[аыу]|гейм|gaming|game)/,"игр|гейм|gaming|game"],[/^(подкаст|podcast)/,"подкаст|podcast"],[/^(крипт|crypto)/,"крипт|crypto"],[/^(недвиж|real$)/,"недвиж|real estate"],[/^(путешеств|travel|тревел)/,"путешеств|travel|тревел"],[/^(еда|ед[ыу]$|food|ресторан)/,"ресторан|food|\\bеда"],[/^(музык|music)/,"музык|music"],[/^(авто|automotive)/,"автомоб|автосалон|automotive"],[/^(свадеб|wedding)/,"свадеб|свадьб|wedding"]];
+function jobRx(q){return new RegExp(q.toLowerCase().trim().split(/\s+/).map(x=>{const a=JALIAS.find(r=>r[0].test(x));return a?"(?:"+a[1]+")":(x.length>5?x.slice(0,-2):x).replace(/[.*+?^${}()|[\]\\]/g,"\\$&")}).join("[^\\n]{0,20}"),"i")}
 function jobPrefs(){const d=JB.data;return d.prefs||(d.prefs={f:"morning",w:[],s:[],h:[],set:false})}
 function jobAgo(j){
   const ms=(JB.data.now||Date.now())-(j.at||0);if(!j.at)return "";
@@ -1582,7 +1583,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1793607826";
+const BUILD="1793608015";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
