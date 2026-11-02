@@ -1062,7 +1062,7 @@ function jobsView(){
       <div class="cnt"><span class="hint" style="flex:1;min-width:150px">Откликалась на других площадках? Добавь их сюда:</span>
         <button onclick="jobCount(-1)" aria-label="Минус отклик">−</button><button onclick="jobCount(1)" aria-label="Плюс отклик">+</button></div>
       <p class="hint">Цель — 25–35 разных откликов в день: так шансы получить заказ растут в разы. Просмотрено сегодня: ${d.viewsToday||0} · всего откликов: ${d.total}.</p></div>
-    <input type="search" id="jq" enterkeyhint="search" placeholder="🔎 Поиск: баскетбол, YouTube, подкаст…" value="${esc(JB.q)}" oninput="JB.q=this.value;jobBody()" aria-label="Поиск по заказам">
+    <input type="search" id="jq" enterkeyhint="search" placeholder="🔎 Поиск: мода, YouTube, подкаст…" value="${esc(JB.q)}" oninput="JB.q=this.value;jobBody()" aria-label="Поиск по заказам">
     <div id="jbody">${jobsBody()}</div>`;
 }
 // всё, что зависит от поиска, — отдельно, чтобы при наборе не пропадала клавиатура
@@ -1583,7 +1583,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1793609548";
+const BUILD="1793612715";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
