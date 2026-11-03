@@ -1,8 +1,8 @@
 {
 "kk-montazh": {
-"v": "1.6.0",
-"zip": "https://kodkreatora.bybusha.com/plugin/kk-montazh-1.6.0.zip",
-"notes": "автосохранение проекта и защита от падений на длинных клипах"
+"v": "1.6.1",
+"zip": "https://kodkreatora.bybusha.com/plugin/kk-montazh-1.6.1.zip",
+"notes": "распознанные фразы субтитров не теряются при падении Премьера, новые версии PNG из наборов"
 },
 "kk-animacia": {
 "v": "1.4.0",
@@ -10,9 +10,9 @@
 "notes": "автосохранение проекта и защита от падений на длинных клипах"
 },
 "kk-motion": {
-"v": "1.4.0",
-"zip": "https://kodkreatora.bybusha.com/plugin/kk-motion-1.4.0.zip",
-"notes": "автосохранение проекта и защита от падений на длинных клипах"
+"v": "1.4.1",
+"zip": "https://kodkreatora.bybusha.com/plugin/kk-motion-1.4.1.zip",
+"notes": "новые версии PNG из наборов"
 },
 "kk-hity": {
 "v": "1.3.0",
