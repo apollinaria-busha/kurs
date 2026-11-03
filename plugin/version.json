@@ -1,5 +1,23 @@
-{"kk-montazh":{"v":"1.5.0","zip":"https://kodkreatora.bybusha.com/plugin/kk-montazh-1.5.0.zip","notes":"свой шрифт в субтитрах, с компьютера и из Adobe Fonts"},
- "kk-animacia":{"v":"1.3.0","zip":"https://kodkreatora.bybusha.com/plugin/kk-animacia-1.3.0.zip","notes":""},
- "kk-motion":{"v":"1.3.2","zip":"https://kodkreatora.bybusha.com/plugin/kk-motion-1.3.2.zip","notes":""},
- "kk-hity":{"v":"1.2.0","zip":"https://kodkreatora.bybusha.com/plugin/kk-hity-1.2.0.zip","notes":""},
- "installer":"https://kodkreatora.bybusha.com/plugin/kk-plugins.zip"}
+{
+"kk-montazh": {
+"v": "1.6.0",
+"zip": "https://kodkreatora.bybusha.com/plugin/kk-montazh-1.6.0.zip",
+"notes": "автосохранение проекта и защита от падений на длинных клипах"
+},
+"kk-animacia": {
+"v": "1.4.0",
+"zip": "https://kodkreatora.bybusha.com/plugin/kk-animacia-1.4.0.zip",
+"notes": "автосохранение проекта и защита от падений на длинных клипах"
+},
+"kk-motion": {
+"v": "1.4.0",
+"zip": "https://kodkreatora.bybusha.com/plugin/kk-motion-1.4.0.zip",
+"notes": "автосохранение проекта и защита от падений на длинных клипах"
+},
+"kk-hity": {
+"v": "1.3.0",
+"zip": "https://kodkreatora.bybusha.com/plugin/kk-hity-1.3.0.zip",
+"notes": "автосохранение проекта и защита от падений на длинных клипах"
+},
+"installer": "https://kodkreatora.bybusha.com/plugin/kk-plugins.zip"
+}
