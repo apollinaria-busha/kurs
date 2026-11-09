@@ -1,0 +1,136 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:02.640
+Hi, my name is Stefan Gruenwedel.
+
+00:00:02.640 --> 00:00:04.920
+I'm an instructor on the Adobe Learn team.
+
+00:00:04.920 --> 00:00:08.560
+In this video I'll show you the basics of Color Mode,
+
+00:00:08.560 --> 00:00:10.840
+the brand new system for color grading
+
+00:00:10.840 --> 00:00:13.120
+that's right inside Adobe Premiere.
+
+00:00:13.120 --> 00:00:15.324
+To switch to Color Mode,
+
+00:00:15.324 --> 00:00:18.000
+click the Color tab at the top of the screen.
+
+00:00:18.000 --> 00:00:20.949
+The first thing you'll notice is the generous space
+
+00:00:20.949 --> 00:00:23.720
+devoted to the program monitor in the middle.
+
+00:00:23.720 --> 00:00:25.310
+The clip grid on the right
+
+00:00:25.310 --> 00:00:28.240
+displays each clip in the timeline.
+
+00:00:28.240 --> 00:00:33.320
+You can view them in a single column or as a grid.
+
+00:00:33.320 --> 00:00:37.709
+At the bottom are the various controls
+
+00:00:37.709 --> 00:00:41.000
+for color and contrast, color shift, and detail.
+
+00:00:41.000 --> 00:00:43.674
+As you click each control,
+
+00:00:43.674 --> 00:00:47.240
+a different heads-up display, or HUD, will appear.
+
+00:00:47.240 --> 00:00:50.768
+These displays show you what you're doing as you work,
+
+00:00:50.768 --> 00:00:53.840
+and they go away when you don't need them.
+
+00:00:53.840 --> 00:00:57.440
+Click once in a color control to display its HUD.
+
+00:00:57.440 --> 00:01:00.297
+Your mouse movements will then be constrained
+
+00:01:00.297 --> 00:01:02.520
+to adjust only that control.
+
+00:01:02.520 --> 00:01:05.400
+You don't have to hold the mouse button down either.
+
+00:01:05.400 --> 00:01:07.708
+Just drag the mouse up and down
+
+00:01:07.708 --> 00:01:10.120
+to adjust one parameter,
+
+00:01:10.120 --> 00:01:14.520
+then drag it sideways to adjust another.
+
+00:01:14.520 --> 00:01:17.184
+You'll see a pop-up that says contrast changes
+
+00:01:17.184 --> 00:01:19.600
+are vertical, while pivot is horizontal.
+
+00:01:19.600 --> 00:01:21.483
+Pivot determines which part of the image
+
+00:01:21.483 --> 00:01:22.480
+is affected by the contrast adjustments.
+
+00:01:22.480 --> 00:01:24.830
+Hover over exposure, and you'll see that
+
+00:01:24.830 --> 00:01:29.083
+vertical mouse movements control the exposure,
+
+00:01:29.083 --> 00:01:32.440
+while horizontal movements control the black level.
+
+00:01:32.440 --> 00:01:34.576
+Hover over temperature, and you'll see that
+
+00:01:34.576 --> 00:01:37.779
+temperature adjustments go up and down,
+
+00:01:37.779 --> 00:01:40.400
+while side-to-side movements affect the tint.
+
+00:01:40.400 --> 00:01:45.360
+Play with each control group to get the hang of it.
+
+00:01:45.360 --> 00:01:48.485
+The changes are non-destructive, and you can always
+
+00:01:48.485 --> 00:01:50.360
+click reset to return things to where they were.
+
+00:01:50.360 --> 00:01:54.655
+Color shift auto samples the clip in the program monitor
+
+00:01:54.655 --> 00:01:57.305
+and extracts its dominant hues,
+
+00:01:57.305 --> 00:02:00.320
+as you can see from the hue swatches below the controls.
+
+00:02:00.320 --> 00:02:03.029
+As you click different clips in the clip grid,
+
+00:02:03.029 --> 00:02:05.000
+you'll see the swatches change.
+
+00:02:05.000 --> 00:02:08.582
+Click a swatch to adjust the hue and saturation
+
+00:02:08.582 --> 00:02:11.000
+of that color range.
