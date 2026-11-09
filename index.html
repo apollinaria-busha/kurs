@@ -1013,7 +1013,7 @@ function studentView(i){
 }
 
 /* ---------- биржа заказов ---------- */
-const JB={data:null,country:"Все",level:"Все",cur:"Все",min:0,spec:"Все",topic:"Все",q:"",tab:"all",open:false,asked:false};
+const JB={data:null,country:"Все",level:"Все",cur:"Все",min:0,spec:"Все",topic:"Все",q:"",tab:"all",open:false,asked:false,pl:false,plc:""};
 function act0(){return JB.country!=="Все"||JB.level!=="Все"||JB.cur!=="Все"||JB.min||JB.spec!=="Все"||JB.topic!=="Все"}
 const JOB_GOAL=25;
 const JCUR={RUB:"₽",USD:"$",EUR:"€"},JSTEPS={RUB:[15000,30000,60000,100000],USD:[100,300,600,1000],EUR:[100,300,600,1000]};
@@ -1045,6 +1045,43 @@ function jobFiltered(){
   const found=rx?base.filter(j=>rx.test(j.title+" "+j.about+" "+j.site+" "+(j.topics||[]).join(" "))):base;
   return {found,hid,sav,list:found.filter(j=>JB.tab==="saved"?sav.has(String(j.id)):JB.tab==="hidden"?hid.has(String(j.id)):!hid.has(String(j.id)))};
 }
+// «Где мы ищем клиентов»: те же площадки, что читает робот биржи (kk-jobs/birzha/config.py)
+const TGL=n=>"https://t.me/"+n;
+const JOB_PLACES=[
+ {id:"tgru",i:"📱",t:"Telegram · Россия и СНГ",s:"здесь больше всего заказов",g:[
+  {t:"Монтаж и рилсы",l:[["Вакансии для монтажера",TGL("montage_job")],["Рилс Вакансии",TGL("reelsmakervacancy")],["Вакансии рилсмейкер",TGL("vakansii_reelsmaker")],["Вакансии рилсмейкеры",TGL("reelsmaker_tinder")],["Ищу монтажера / рилс-мейкера",TGL("editors_video")],["Монтажёры | Работа",TGL("montazh_geo")],["Монтаж Hub",TGL("Edit_Jobs")],["Видеомонтаж | фриланс заказы",TGL("SearchEditorr")],["Работа монтажёр",TGL("nimb_job")],["GetJob видеомонтаж",TGL("GetJob_videoedit")],["ХАЛТУРКА (видео)",TGL("videojob")],["Работа для рилсмейкеров",TGL("reels_job")],["comeinreels",TGL("comeinreels")]]},
+  {t:"Чаты с заказами (нужно вступить)",l:[["Мари про вакансии",TGL("mari_vakansii")],["Вакансии инфобизнес",TGL("profiwork")],["Вакансии инфобиза",TGL("vakansii_infobiz")],["Инфобиз Вакансии Фрилансеры",TGL("infobiz_vakansii")],["Жирный фриланс чат",TGL("jir_chat")],["GetFrilans",TGL("GetFrilans")]]},
+  {t:"SMM, инфобиз, digital",l:[["БРИФ — вакансии",TGL("brief_jobs")],["Вакансии SMM и Digital",TGL("dnative_job")],["SMM вакансии",TGL("smm_vakansii")],["Таверна СММ",TGL("vakansii_smm")],["Джобстер Digital",TGL("digital_jobster")],["Нейросети · вакансии",TGL("neirosetiwork")],["smmlancer",TGL("smmlancer")],["GetClient",TGL("GetClient")],["Удалёнка · вакансии · фриланс",TGL("vakansii_udalenka")],["Digital вакансии KZ",TGL("digital_iskra")]]},
+  {t:"UGC и креаторы",l:[["Вакансии UGC креаторы",TGL("ugc_tinder")],["mascot.ag — UGC-вакансии",TGL("mascot_vacancies")],["Вакансии | Креаторы",TGL("vakansiikreatori")],["UGC-вакансии",TGL("ugc_jobb")],["Вакансии креаторы 4STORIES",TGL("ugc4stories")],["Армия креаторов",TGL("creators_freelance")],["Мир креаторов · вакансии",TGL("mirkreatorovjob")],["CRM UGC · чат",TGL("crmugc_chat")]]},
+  {t:"По нишам: спорт, мода, игры, музыка, бьюти",l:[["Работа в спорте",TGL("sport_rabota")],["SportHunter",TGL("SportHunter")],["Факультет. Работа в спорте",TGL("facultyhr")],["Люди есть! Работа в спорте",TGL("rngn_vacancies")],["RabotaFashion",TGL("rabota_fashion")],["Вакансии. Дом моды",TGL("FashionHouseJob")],["Вакансии. Модный факультет",TGL("fashionfaculty")],["Style & Work",TGL("styleandwork")],["Работа в геймдеве",TGL("gamedevjob")],["Gamedev Job",TGL("gamedev_vacancy")],["Работа в музыкальной сфере",TGL("music_jobs")],["Вакансии BEAUTY",TGL("beauty_job")],["Вакансии в туризме",TGL("vacanciaturizm")]]}]},
+ {id:"tgint",i:"🌍",t:"Telegram · иностранные",s:"заказы в долларах, на английском",g:[
+  {t:"Видео и YouTube",l:[["YT Jobs",TGL("yt_jobs_co")],["Video & Animation Jobs",TGL("videojobs")],["Upwork Video Editors · чат",TGL("UpworkVideoEditors")],["Video Editor And Client · чат",TGL("freelancing023")],["Creatorskit UGC Jobs",TGL("creatorskit_app")],["Daily Remote",TGL("dailyremote")]]}]},
+ {id:"hh",i:"💼",t:"HeadHunter",s:"вакансии в штат и на проект, удалёнка",g:[
+  {t:"Готовые поиски — только удалёнка",l:[["Монтажёр видео","https://hh.ru/search/vacancy?text=%D0%BC%D0%BE%D0%BD%D1%82%D0%B0%D0%B6%D0%B5%D1%80+%D0%B2%D0%B8%D0%B4%D0%B5%D0%BE&schedule=remote&order_by=publication_time"],["Рилсмейкер","https://hh.ru/search/vacancy?text=%D1%80%D0%B8%D0%BB%D1%81%D0%BC%D0%B5%D0%B9%D0%BA%D0%B5%D1%80&schedule=remote&order_by=publication_time"],["Контент-креатор","https://hh.ru/search/vacancy?text=%D0%BA%D0%BE%D0%BD%D1%82%D0%B5%D0%BD%D1%82+%D0%BA%D1%80%D0%B5%D0%B0%D1%82%D0%BE%D1%80&schedule=remote&order_by=publication_time"],["Мобилограф","https://hh.ru/search/vacancy?text=%D0%BC%D0%BE%D0%B1%D0%B8%D0%BB%D0%BE%D0%B3%D1%80%D0%B0%D1%84&schedule=remote&order_by=publication_time"],["HH Казахстан · монтажёр","https://hh.kz/search/vacancy?text=%D0%BC%D0%BE%D0%BD%D1%82%D0%B0%D0%B6%D0%B5%D1%80+%D0%B2%D0%B8%D0%B4%D0%B5%D0%BE&schedule=remote&order_by=publication_time"]]}]},
+ {id:"kwork",i:"🟢",t:"Kwork",s:"биржа проектов: заказчик пишет задачу, ты откликаешься",g:[
+  {t:"Разделы с видео",l:[["Видеосъёмка и монтаж","https://kwork.ru/projects?c=78"],["Видеоролики","https://kwork.ru/projects?c=76"],["Интро и анимация логотипа","https://kwork.ru/projects?c=77"],["ИИ-генерация видео","https://kwork.ru/projects?c=300"]]}]},
+ {id:"flru",i:"🧾",t:"Фриланс-биржи (рус.)",s:"FL.ru, Freelance.ru",g:[
+  {t:"Биржи",l:[["FL.ru · проекты (раздел «Аудио, видео, фото»)","https://www.fl.ru/projects/"],["Freelance.ru · задачи","https://freelance.ru/task"]]}]},
+ {id:"intl",i:"✈️",t:"Иностранные площадки",s:"фриланс и вакансии по всему миру",g:[
+  {t:"Фриланс-биржи",l:[["Freelancer.com · Video Editing","https://www.freelancer.com/jobs/video-editing/"],["YT Jobs (для ютуберов)","https://ytjobs.co/job/search/all_categories"],["Dribbble Jobs","https://dribbble.com/jobs"]]},
+  {t:"Вакансии на удалёнке",l:[["LinkedIn · Video Editor, remote","https://www.linkedin.com/jobs/search/?keywords=video%20editor&f_WT=2&f_TPR=r604800"],["Remote Rocketship","https://www.remoterocketship.com/"],["Jobgether · Video Editor","https://jobgether.com/remote-jobs/video-editor"],["Workable · Video Editor","https://jobs.workable.com/search?query=video%20editor&workplace=remote"],["Himalayas · Video Editor","https://himalayas.app/jobs/video-editor"],["NoDesk","https://nodesk.co/remote-jobs/"],["Jobicy","https://jobicy.com/"]]},
+  {t:"Reddit (ищи посты с [Hiring])",l:[["r/forhire","https://www.reddit.com/r/forhire/new/"],["r/hireavideoeditor","https://www.reddit.com/r/hireavideoeditor/new/"],["r/VideoEditingRequests","https://www.reddit.com/r/VideoEditingRequests/new/"],["r/editors","https://www.reddit.com/r/editors/new/"]]}]}];
+function placesView(){
+  const n=c=>c.g.reduce((a,g)=>a+g.l.length,0),all=JOB_PLACES.reduce((a,c)=>a+n(c),0);
+  if(!JB.pl)return `<button class="box" style="flex-direction:row;align-items:center;gap:10px;width:100%;text-align:left" onclick="JB.pl=true;rerJobs()">
+    <span style="font-size:18px">🧭</span><span style="flex:1"><b>Где мы ищем клиентов</b><small class="hint" style="display:block">${all} площадок, которые мы рекомендуем сейчас</small></span><span style="color:var(--sun);font-weight:800">Открыть ▾</span></button>`;
+  const c=JOB_PLACES.find(x=>x.id===JB.plc);
+  return `<div class="box" style="gap:10px">
+    <div style="display:flex;align-items:center;gap:10px"><span style="font-size:18px">🧭</span><b style="flex:1">Где мы ищем клиентов</b><button class="chipbtn" onclick="JB.pl=false;JB.plc='';rerJobs()">Свернуть ▴</button></div>
+    <p class="hint" style="margin:0">Наш робот каждый час собирает заказы с этих площадок в биржу. Но заходи и сама: подпишись на каналы, вступи в чаты и откликайся первой.</p>
+    <div class="chips">${JOB_PLACES.map(x=>`<button class="chipbtn ${x.id===JB.plc?"on":""}" onclick="JB.plc=${x.id===JB.plc?"''":`'${x.id}'`};rerJobs()">${x.i} ${esc(x.t)} <small style="opacity:.6">${n(x)}</small></button>`).join("")}</div>
+    ${c?`<p class="hint" style="margin:0">${c.i} <b>${esc(c.t)}</b> — ${esc(c.s)}</p>
+      ${c.g.map(g=>`<div class="sec-t">${esc(g.t)}</div><div style="display:flex;flex-direction:column;gap:6px">${g.l.map(([t,u])=>`<a class="chipbtn" style="display:flex;justify-content:space-between;align-items:center;text-decoration:none;color:inherit" href="${esc(u)}" target="_blank" rel="noopener"><span>${esc(t)}</span><span style="opacity:.6">↗</span></a>`).join("")}</div>`).join("")}
+      <button class="btn g" onclick="placesCopy('${c.id}')">📋 Скопировать список себе</button>`:""}
+  </div>`;
+}
+function placesCopy(id){const c=JOB_PLACES.find(x=>x.id===id);if(!c)return;
+  copyText(c.i+" "+c.t+"\n"+c.g.map(g=>"\n"+g.t+":\n"+g.l.map(([t,u])=>"• "+t+" — "+u).join("\n")).join("\n"),"Список скопирован ✓ Вставь его в заметки или «Избранное»")}
 function jobsView(){
   if(S.bron)return `<h1 class="h">Биржа заказов</h1><div class="box" style="gap:8px;border-color:var(--sun);text-align:center;padding:26px 18px"><span style="font-size:34px">🔒</span><b style="font-size:17px">Откроется во время программы</b><p class="hint" style="margin:0">Здесь будут свежие заказы на монтаж со всего мира. Доступ к бирже откроем, когда начнётся обучение 💛</p></div>`;
   if(!JB.data){loadJobs();return `<h1 class="h">Биржа заказов</h1><div class="box"><div class="spinner" style="width:22px;height:22px;border-width:2px"></div></div>`}
@@ -1064,6 +1101,7 @@ function jobsView(){
       <div class="cnt"><span class="hint" style="flex:1;min-width:150px">Откликалась на других площадках? Добавь их сюда:</span>
         <button onclick="jobCount(-1)" aria-label="Минус отклик">−</button><button onclick="jobCount(1)" aria-label="Плюс отклик">+</button></div>
       <p class="hint">Цель — 25–35 разных откликов в день: так шансы получить заказ растут в разы. Просмотрено сегодня: ${d.viewsToday||0} · всего откликов: ${d.total}.</p></div>
+    ${placesView()}
     <input type="search" id="jq" enterkeyhint="search" placeholder="🔎 Поиск: мода, YouTube, подкаст…" value="${esc(JB.q)}" oninput="JB.q=this.value;jobBody()" aria-label="Поиск по заказам">
     <div id="jbody">${jobsBody()}</div>`;
 }
@@ -1586,7 +1624,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1793948390";
+const BUILD="1794242863";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
@@ -1650,7 +1688,7 @@ function openOutside(url,btn){const t=cachedHo();const u=url+(t?"?login="+encode
       <input readonly value="${esc(u)}" style="font-size:12px" onclick="this.select()"><button class="btn y" type="button">Скопировать ссылку</button>`;
     d.querySelector("button").onclick=()=>copyText(u);btn.after(d)},1500);
 }
-function copyText(t){const done=()=>toast("Ссылка скопирована ✓");
+function copyText(t,msg){const done=()=>toast(msg||"Ссылка скопирована ✓");
   if(navigator.clipboard&&navigator.clipboard.writeText)navigator.clipboard.writeText(t).then(done,()=>fb());else fb();
   function fb(){const i=document.createElement("textarea");i.value=t;i.style.position="fixed";i.style.opacity="0";document.body.appendChild(i);i.focus();i.select();try{document.execCommand("copy");done()}catch(e){toast("Выдели ссылку и скопируй вручную")}i.remove()}}
 
