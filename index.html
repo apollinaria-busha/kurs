@@ -1043,7 +1043,8 @@ function jobFiltered(){
     &&(JB.cur==="Все"||j.cur===JB.cur)&&(!JB.min||(j.rub||0)>=JB.min*rate(JB.cur==="Все"?"RUB":JB.cur)));
   const rx=JB.q.trim().length>1?jobRx(JB.q):null,hid=new Set(pr.h),sav=new Set(pr.s);
   const found=rx?base.filter(j=>rx.test(j.title+" "+j.about+" "+j.site+" "+(j.topics||[]).join(" "))):base;
-  return {found,hid,sav,list:found.filter(j=>JB.tab==="saved"?sav.has(String(j.id)):JB.tab==="hidden"?hid.has(String(j.id)):!hid.has(String(j.id)))};
+  const tgL=found.filter(j=>j.site==="TG"&&!hid.has(String(j.id))).sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
+  return {found,hid,sav,tgN:tgL.length,list:JB.tab==="tg"?tgL:found.filter(j=>JB.tab==="saved"?sav.has(String(j.id)):JB.tab==="hidden"?hid.has(String(j.id)):!hid.has(String(j.id)))};
 }
 // «Где мы ищем клиентов»: те же площадки, что читает робот биржи (kk-jobs/birzha/config.py)
 const TGL=n=>"https://t.me/"+n;
@@ -1108,7 +1109,7 @@ function jobsView(){
 // всё, что зависит от поиска, — отдельно, чтобы при наборе не пропадала клавиатура
 function jobBody(){const b=document.getElementById("jbody");if(b)b.innerHTML=jobsBody()}
 function jobsBody(){
-  const d=JB.data,pr=jobPrefs(),{found,hid,sav,list}=jobFiltered(),q=JB.q.trim().toLowerCase();
+  const d=JB.data,pr=jobPrefs(),{found,hid,sav,list,tgN}=jobFiltered(),q=JB.q.trim().toLowerCase();
   const cnt=(arr,f)=>{const m={};arr.forEach(j=>[].concat(f(j)).forEach(v=>{if(v)m[v]=(m[v]||0)+1}));return m};
   const chips=(title,key,opts,counts,label)=>`<div class="sec-t">${title}</div><div class="chips">${["Все",...opts.filter(o=>counts[o])].map(c=>`<button class="chipbtn ${c===JB[key]?"on":""}" onclick="JB.${key}=${esc(JSON.stringify(c))};rerJobs()">${esc(c==="Все"?"Все":(label?label(c):c))}${c!=="Все"?` <small style="opacity:.6">${counts[c]}</small>`:""}</button>`).join("")}</div>`;
   const REG=["Россия и СНГ","Европа","США и Канада","Азия","Ближний Восток","Латинская Америка","Австралия","Весь мир"];
@@ -1129,8 +1130,8 @@ function jobsBody(){
       <label class="chipbtn" style="display:inline-flex;align-items:center;gap:6px;cursor:text">от <input type="number" inputmode="numeric" min="0" placeholder="своя сумма" value="${JB.min&&!steps.includes(JB.min)?JB.min:""}" style="width:100px;background:none;border:0;color:inherit;font:inherit;padding:0;outline:none" onchange="JB.min=Math.max(0,+this.value||0);rerJobs()"> ${cs}</label></div>
     <p class="hint">Оплату в других валютах мы пересчитали в рубли (≈). Точная сумма — на странице вакансии. Сумма «от» учитывает все валюты.</p>
     ${act0()?`<button class="btn g" onclick="JB.country='Все';JB.level='Все';JB.cur='Все';JB.min=0;JB.spec='Все';JB.topic='Все';rerJobs()">Сбросить фильтры</button>`:""}`:""}
-    <div class="chips">${[["all","Все заказы"],["saved","⭐ Сохранённые"+(savedN?" · "+savedN:"")],...(hidN||JB.tab==="hidden"?[["hidden","Скрытые · "+hidN]]:[])].map(t=>`<button class="chipbtn ${JB.tab===t[0]?"on":""}" onclick="JB.tab='${t[0]}';rerJobs()">${esc(t[1])}</button>`).join("")}</div>
-    <div class="lessons">${list.map(jobCard).join("")||`<div class="empty">${JB.tab==="saved"?"Сохраняй заказы звёздочкой ☆ — они будут здесь":q.length>1?"По этому слову заказов пока нет — подпишись, и мы сообщим, как только появится":"Под этот фильтр заказов пока нет"}</div>`}</div>`;
+    <div class="chips">${[["all","Все заказы"],["tg","🆕 Telegram · "+tgN],["saved","⭐ Сохранённые"+(savedN?" · "+savedN:"")],...(hidN||JB.tab==="hidden"?[["hidden","Скрытые · "+hidN]]:[])].map(t=>`<button class="chipbtn ${JB.tab===t[0]?"on":""}" onclick="JB.tab='${t[0]}';rerJobs()">${esc(t[1])}</button>`).join("")}</div>
+    <div class="lessons">${list.map(jobCard).join("")||`<div class="empty">${JB.tab==="tg"?"Свежих заказов из Telegram-чатов под этот фильтр пока нет — робот проверяет 100+ чатов каждый час":JB.tab==="saved"?"Сохраняй заказы звёздочкой ☆ — они будут здесь":q.length>1?"По этому слову заказов пока нет — подпишись, и мы сообщим, как только появится":"Под этот фильтр заказов пока нет"}</div>`}</div>`;
 }
 // описание заказа (как в постах биржи) → разделы карточки
 function jobParts(t){
@@ -1624,7 +1625,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1794242863";
+const BUILD="1794498702";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
