@@ -1050,6 +1050,7 @@ function jobFiltered(){
 const TGL=n=>"https://t.me/"+n;
 const JOB_PLACES=[
  {id:"tgru",i:"📱",t:"Telegram · Россия и СНГ",s:"здесь больше всего заказов",g:[
+  {t:"Новые чаты и каналы (найдены 14.11)",l:[["Удалёнка — творческая работа",TGL("rueventjob")],["Фриланс · монтажёры и рилсмейкеры",TGL("SearchMontage")],["Ищу монтажёра/рилсмейкера",TGL("montage_free")],["SMM Биржа",TGL("smmfrilancb")],["SMM Фриланс и ИИ вакансии",TGL("smm_top_vacancy")],["Вакансии TikTok/YouTube/VK",TGL("vakansii_youtube")],["TikTok Reels Shorts чат",TGL("tiktokreelsshortschat")],["Чат мобилографов и монтажёров",TGL("mobil_ographers")],["Запуски · вакансии",TGL("helpedtech")],["Референсы · фриланс",TGL("ReferensFreelance")],["Дизайнер? Есть работа!",TGL("workfordesigner")],["Дизайн вакансии",TGL("comeindesign")],["СММ Алматы",TGL("almatysmmm")],["СММ Астана",TGL("astanasmmm")],["СММ Шымкент",TGL("shymkentsmm")],["SMM вакансии Астана",TGL("smmastana1")],["Вакансии SMM Казахстан",TGL("smmqazqroups")],["Таргетологи и СММ Казахстана",TGL("targetskz")],["Дизайнеры Казахстана",TGL("dizqazgroups")]]},
   {t:"Монтаж и рилсы",l:[["Вакансии для монтажера",TGL("montage_job")],["Рилс Вакансии",TGL("reelsmakervacancy")],["Вакансии рилсмейкер",TGL("vakansii_reelsmaker")],["Вакансии рилсмейкеры",TGL("reelsmaker_tinder")],["Ищу монтажера / рилс-мейкера",TGL("editors_video")],["Монтажёры | Работа",TGL("montazh_geo")],["Монтаж Hub",TGL("Edit_Jobs")],["Видеомонтаж | фриланс заказы",TGL("SearchEditorr")],["Работа монтажёр",TGL("nimb_job")],["GetJob видеомонтаж",TGL("GetJob_videoedit")],["ХАЛТУРКА (видео)",TGL("videojob")],["Работа для рилсмейкеров",TGL("reels_job")],["comeinreels",TGL("comeinreels")]]},
   {t:"Чаты с заказами (нужно вступить)",l:[["Мари про вакансии",TGL("mari_vakansii")],["Вакансии инфобизнес",TGL("profiwork")],["Вакансии инфобиза",TGL("vakansii_infobiz")],["Инфобиз Вакансии Фрилансеры",TGL("infobiz_vakansii")],["Жирный фриланс чат",TGL("jir_chat")],["GetFrilans",TGL("GetFrilans")]]},
   {t:"SMM, инфобиз, digital",l:[["БРИФ — вакансии",TGL("brief_jobs")],["Вакансии SMM и Digital",TGL("dnative_job")],["SMM вакансии",TGL("smm_vakansii")],["Таверна СММ",TGL("vakansii_smm")],["Джобстер Digital",TGL("digital_jobster")],["Нейросети · вакансии",TGL("neirosetiwork")],["smmlancer",TGL("smmlancer")],["GetClient",TGL("GetClient")],["Удалёнка · вакансии · фриланс",TGL("vakansii_udalenka")],["Digital вакансии KZ",TGL("digital_iskra")]]},
@@ -1627,7 +1628,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1794636506";
+const BUILD="1794636541";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
