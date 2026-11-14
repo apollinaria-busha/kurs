@@ -382,8 +382,10 @@ function plural(n,a,b,c){n=Math.abs(n)%100;const n1=n%10;return n>10&&n<20?c:n1>
 async function call(body, tries=3){
   for(let i=0;i<tries;i++){
     try{
-      const r=await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(body)});
-      return JSON.parse(await r.text());
+      // без ограничения по времени зависший запрос (Россия без VPN, Telegram) = бесконечная загрузка
+      const ac=window.AbortController?new AbortController():null,to=ac&&setTimeout(()=>ac.abort(),body.api==="login"||body.api==="course"?25000:60000);
+      try{const r=await fetch(API,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(body),signal:ac?ac.signal:undefined});
+      return JSON.parse(await r.text());}finally{if(to)clearTimeout(to)}
     }catch(e){ if(i===tries-1) throw e; await new Promise(r=>setTimeout(r,800*(i+1))); }
   }
 }
@@ -457,7 +459,7 @@ window.onTgAuth=u=>{screen(`${logo()}<div class="spinner"></div><p>Провер�
 
 async function doLogin(data){
   let res;
-  try{res=await call({api:"login",...data})}catch(e){return screen(`${logo()}<p>Не получилось связаться с сервером. Проверь интернет и обнови страницу.</p><button class="btn y" style="max-width:260px" onclick="location.reload()">Обновить</button>`)}
+  try{res=await call({api:"login",...data})}catch(e){return screen(`${logo()}<p>Не получилось связаться с сервером. Проверь интернет и обнови страницу.</p><p style="font-size:13px">Если ты в России — включи или выключи VPN. Ещё можно открыть приложение в браузере: <a href="https://kodkreatora.bybusha.com/" target="_blank">kodkreatora.bybusha.com</a></p><button class="btn y" style="max-width:260px" onclick="location.reload()">Обновить</button>`)}
   if(res.ok){S.session=res.session;store("kk_session",res.session);return loadCourse()}
   return doLoginResult(res);
 }
@@ -478,7 +480,7 @@ async function loadCourse(){
   if(cached){try{apply(JSON.parse(cached));loadAccount();loadUpd();route()}catch(e){}} // профиль и апдейты сразу из памяти, свежие — фоном
   else screen(`${logo()}<div class="spinner"></div><p>Загружаем программу…</p>`);
   let res;
-  try{res=await api({api:"course"})}catch(e){if(e.message==="auth")return;if(!cached)screen(`${logo()}<p>Нет связи с сервером. Обнови страницу чуть позже.</p>`);return}
+  try{res=await api({api:"course"})}catch(e){if(e.message==="auth")return;if(!cached)screen(`${logo()}<p>Нет связи с сервером.</p><p style="font-size:13px">Если ты в России — включи или выключи VPN. Ещё можно открыть приложение в браузере: <a href="https://kodkreatora.bybusha.com/" target="_blank">kodkreatora.bybusha.com</a></p><button class="btn y" style="max-width:260px" onclick="location.reload()">Обновить</button>`);return}
   if(!res.ok){if(!cached)screen(`${logo()}<p>Ошибка: ${esc(res.error)}</p>`);return}
   store("kk_course",JSON.stringify(res));apply(res);handoffUrl();if(!S.acc&&!accLoading)loadAccount();if(!S.upd&&!updLoading)loadUpd();
   if(!document.querySelector("#hwf"))route(); // не сбрасываем форму ДЗ, если ученица её заполняет
@@ -1628,7 +1630,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1794636541";
+const BUILD="1794669258";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
