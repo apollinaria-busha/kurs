@@ -1043,7 +1043,7 @@ function jobFiltered(){
     &&(JB.cur==="Все"||j.cur===JB.cur)&&(!JB.min||(j.rub||0)>=JB.min*rate(JB.cur==="Все"?"RUB":JB.cur)));
   const rx=JB.q.trim().length>1?jobRx(JB.q):null,hid=new Set(pr.h),sav=new Set(pr.s);
   const found=rx?base.filter(j=>rx.test(j.title+" "+j.about+" "+j.site+" "+(j.topics||[]).join(" "))):base;
-  const tgL=found.filter(j=>j.site==="TG"&&!hid.has(String(j.id))).sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
+  const tgL=found.filter(j=>(j.site==="TG"||j.site==="Threads")&&!hid.has(String(j.id))).sort((a,b)=>String(b.date||"").localeCompare(String(a.date||"")));
   return {found,hid,sav,tgN:tgL.length,list:JB.tab==="tg"?tgL:found.filter(j=>JB.tab==="saved"?sav.has(String(j.id)):JB.tab==="hidden"?hid.has(String(j.id)):!hid.has(String(j.id)))};
 }
 // «Где мы ищем клиентов»: те же площадки, что читает робот биржи (kk-jobs/birzha/config.py)
@@ -1057,6 +1057,8 @@ const JOB_PLACES=[
   {t:"По нишам: спорт, мода, игры, музыка, бьюти",l:[["Работа в спорте",TGL("sport_rabota")],["SportHunter",TGL("SportHunter")],["Факультет. Работа в спорте",TGL("facultyhr")],["Люди есть! Работа в спорте",TGL("rngn_vacancies")],["RabotaFashion",TGL("rabota_fashion")],["Вакансии. Дом моды",TGL("FashionHouseJob")],["Вакансии. Модный факультет",TGL("fashionfaculty")],["Style & Work",TGL("styleandwork")],["Работа в геймдеве",TGL("gamedevjob")],["Gamedev Job",TGL("gamedev_vacancy")],["Работа в музыкальной сфере",TGL("music_jobs")],["Вакансии BEAUTY",TGL("beauty_job")],["Вакансии в туризме",TGL("vacanciaturizm")]]}]},
  {id:"tgint",i:"🌍",t:"Telegram · иностранные",s:"заказы в долларах, на английском",g:[
   {t:"Видео и YouTube",l:[["YT Jobs",TGL("yt_jobs_co")],["Video & Animation Jobs",TGL("videojobs")],["Upwork Video Editors · чат",TGL("UpworkVideoEditors")],["Video Editor And Client · чат",TGL("freelancing023")],["Creatorskit UGC Jobs",TGL("creatorskit_app")],["Daily Remote",TGL("dailyremote")]]}]},
+ {id:"threads",i:"🧵",t:"Threads",s:"заказчики сами пишут «ищу монтажёра», вход не нужен",g:[
+  {t:"Готовые поиски",l:[["ищу монтажера","https://www.threads.com/search?q=%D0%B8%D1%89%D1%83%20%D0%BC%D0%BE%D0%BD%D1%82%D0%B0%D0%B6%D0%B5%D1%80%D0%B0&serp_type=default"],["ищу монтажера рилс","https://www.threads.com/search?q=%D0%B8%D1%89%D1%83%20%D0%BC%D0%BE%D0%BD%D1%82%D0%B0%D0%B6%D0%B5%D1%80%D0%B0%20%D1%80%D0%B8%D0%BB%D1%81&serp_type=default"],["нужен монтажер","https://www.threads.com/search?q=%D0%BD%D1%83%D0%B6%D0%B5%D0%BD%20%D0%BC%D0%BE%D0%BD%D1%82%D0%B0%D0%B6%D0%B5%D1%80&serp_type=default"],["ищу рилсмейкера","https://www.threads.com/search?q=%D0%B8%D1%89%D1%83%20%D1%80%D0%B8%D0%BB%D1%81%D0%BC%D0%B5%D0%B9%D0%BA%D0%B5%D1%80%D0%B0&serp_type=default"],["ищу ugc","https://www.threads.com/search?q=%D0%B8%D1%89%D1%83%20ugc&serp_type=default"],["ищу креатора","https://www.threads.com/search?q=%D0%B8%D1%89%D1%83%20%D0%BA%D1%80%D0%B5%D0%B0%D1%82%D0%BE%D1%80%D0%B0&serp_type=default"],["ищу моушн дизайнера","https://www.threads.com/search?q=%D0%B8%D1%89%D1%83%20%D0%BC%D0%BE%D1%83%D1%88%D0%BD%20%D0%B4%D0%B8%D0%B7%D0%B0%D0%B9%D0%BD%D0%B5%D1%80%D0%B0&serp_type=default"],["looking for video editor","https://www.threads.com/search?q=looking%20for%20video%20editor&serp_type=default"],["hiring video editor","https://www.threads.com/search?q=hiring%20video%20editor&serp_type=default"],["looking for ugc creator","https://www.threads.com/search?q=looking%20for%20ugc%20creator&serp_type=default"]]}]},
  {id:"hh",i:"💼",t:"HeadHunter",s:"вакансии в штат и на проект, удалёнка",g:[
   {t:"Готовые поиски — только удалёнка",l:[["Монтажёр видео","https://hh.ru/search/vacancy?text=%D0%BC%D0%BE%D0%BD%D1%82%D0%B0%D0%B6%D0%B5%D1%80+%D0%B2%D0%B8%D0%B4%D0%B5%D0%BE&schedule=remote&order_by=publication_time"],["Рилсмейкер","https://hh.ru/search/vacancy?text=%D1%80%D0%B8%D0%BB%D1%81%D0%BC%D0%B5%D0%B9%D0%BA%D0%B5%D1%80&schedule=remote&order_by=publication_time"],["Контент-креатор","https://hh.ru/search/vacancy?text=%D0%BA%D0%BE%D0%BD%D1%82%D0%B5%D0%BD%D1%82+%D0%BA%D1%80%D0%B5%D0%B0%D1%82%D0%BE%D1%80&schedule=remote&order_by=publication_time"],["Мобилограф","https://hh.ru/search/vacancy?text=%D0%BC%D0%BE%D0%B1%D0%B8%D0%BB%D0%BE%D0%B3%D1%80%D0%B0%D1%84&schedule=remote&order_by=publication_time"],["HH Казахстан · монтажёр","https://hh.kz/search/vacancy?text=%D0%BC%D0%BE%D0%BD%D1%82%D0%B0%D0%B6%D0%B5%D1%80+%D0%B2%D0%B8%D0%B4%D0%B5%D0%BE&schedule=remote&order_by=publication_time"]]}]},
  {id:"kwork",i:"🟢",t:"Kwork",s:"биржа проектов: заказчик пишет задачу, ты откликаешься",g:[
@@ -1130,7 +1132,7 @@ function jobsBody(){
       <label class="chipbtn" style="display:inline-flex;align-items:center;gap:6px;cursor:text">от <input type="number" inputmode="numeric" min="0" placeholder="своя сумма" value="${JB.min&&!steps.includes(JB.min)?JB.min:""}" style="width:100px;background:none;border:0;color:inherit;font:inherit;padding:0;outline:none" onchange="JB.min=Math.max(0,+this.value||0);rerJobs()"> ${cs}</label></div>
     <p class="hint">Оплату в других валютах мы пересчитали в рубли (≈). Точная сумма — на странице вакансии. Сумма «от» учитывает все валюты.</p>
     ${act0()?`<button class="btn g" onclick="JB.country='Все';JB.level='Все';JB.cur='Все';JB.min=0;JB.spec='Все';JB.topic='Все';rerJobs()">Сбросить фильтры</button>`:""}`:""}
-    <div class="chips">${[["all","Все заказы"],["tg","🆕 Telegram · "+tgN],["saved","⭐ Сохранённые"+(savedN?" · "+savedN:"")],...(hidN||JB.tab==="hidden"?[["hidden","Скрытые · "+hidN]]:[])].map(t=>`<button class="chipbtn ${JB.tab===t[0]?"on":""}" onclick="JB.tab='${t[0]}';rerJobs()">${esc(t[1])}</button>`).join("")}</div>
+    <div class="chips">${[["all","Все заказы"],["tg","🆕 Telegram и Threads · "+tgN],["saved","⭐ Сохранённые"+(savedN?" · "+savedN:"")],...(hidN||JB.tab==="hidden"?[["hidden","Скрытые · "+hidN]]:[])].map(t=>`<button class="chipbtn ${JB.tab===t[0]?"on":""}" onclick="JB.tab='${t[0]}';rerJobs()">${esc(t[1])}</button>`).join("")}</div>
     <div class="lessons">${list.map(jobCard).join("")||`<div class="empty">${JB.tab==="tg"?"Свежих заказов из Telegram-чатов под этот фильтр пока нет — робот проверяет 100+ чатов каждый час":JB.tab==="saved"?"Сохраняй заказы звёздочкой ☆ — они будут здесь":q.length>1?"По этому слову заказов пока нет — подпишись, и мы сообщим, как только появится":"Под этот фильтр заказов пока нет"}</div>`}</div>`;
 }
 // описание заказа (как в постах биржи) → разделы карточки
@@ -1625,7 +1627,7 @@ function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window
 function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1794593324";
+const BUILD="1794634436";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
