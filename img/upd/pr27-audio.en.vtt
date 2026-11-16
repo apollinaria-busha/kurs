@@ -1,0 +1,136 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:02.611
+If you ever had to record an interview or a podcast
+
+00:00:02.611 --> 00:00:05.120
+between multiple people with just one microphone,
+
+00:00:05.120 --> 00:00:07.840
+you know the pain of trying to edit that into something listenable.
+
+00:00:07.840 --> 00:00:11.360
+I'm Sarah, and as someone who has dealt with that exact situation,
+
+00:00:11.360 --> 00:00:13.020
+I still have nightmares about working
+
+00:00:13.020 --> 00:00:15.040
+with all that crosstalk and background noise.
+
+00:00:15.040 --> 00:00:17.285
+But now with Adobe's enhanced audio features,
+
+00:00:17.285 --> 00:00:19.680
+separating multiple voices on a single recording
+
+00:00:19.680 --> 00:00:23.120
+into separate editable tracks can be accomplished with the click of a button.
+
+00:00:23.120 --> 00:00:25.336
+I'm going to show you how to not only do this,
+
+00:00:25.336 --> 00:00:27.600
+but also how to automatically clean up dialogue
+
+00:00:27.600 --> 00:00:29.773
+and create contextual sound effects and ambiance,
+
+00:00:29.773 --> 00:00:31.680
+all without leaving your Premiere timeline.
+
+00:00:32.560 --> 00:00:36.960
+Today we're working on a sample podcast episode that was recorded with one microphone
+
+00:00:36.960 --> 00:00:38.910
+in the same room with lots of variation
+
+00:00:38.910 --> 00:00:40.960
+in audio volume between the two speakers.
+
+00:00:41.520 --> 00:00:46.240
+Hello and welcome to our podcast about Adobe Premiere audio tools.
+
+00:00:46.240 --> 00:00:47.440
+I'm Sarah.
+
+00:00:47.440 --> 00:00:48.480
+And I'm Lauren.
+
+00:00:48.480 --> 00:00:51.504
+And we're really excited to talk to you about some new audio tools
+
+00:00:51.504 --> 00:00:53.200
+that are coming straight to Premiere.
+
+00:00:53.200 --> 00:00:56.240
+Let's clarify, you're going to be talking about them because you're the expert.
+
+00:00:56.240 --> 00:00:56.880
+That is true.
+
+00:00:56.880 --> 00:00:59.200
+I'm just here to listen and absorb all the information.
+
+00:01:00.000 --> 00:01:01.200
+First things first.
+
+00:01:01.200 --> 00:01:04.480
+Let's get the audio track separated out so we can start editing.
+
+00:01:04.480 --> 00:01:08.880
+With the audio selected on the timeline, we're going to go up here to the properties panel and
+
+00:01:08.880 --> 00:01:10.480
+select Separate Crosstalk.
+
+00:01:11.200 --> 00:01:14.880
+A dialog box will appear informing us how many credits this will cost us.
+
+00:01:15.440 --> 00:01:17.520
+We'll go ahead and click Separate.
+
+00:01:17.520 --> 00:01:19.760
+Premiere will now create the separated clips for us.
+
+00:01:20.720 --> 00:01:23.613
+Three different clips will be created, one for each speaker
+
+00:01:23.613 --> 00:01:25.280
+and one for any background sounds.
+
+00:01:25.280 --> 00:01:29.360
+Once the process is finished, we can work with the clips as normal.
+
+00:01:29.600 --> 00:01:31.840
+And then we're recording it in this case. Yeah.
+
+00:01:31.840 --> 00:01:35.280
+I'm not filming because why? We don't need to.
+
+00:01:35.280 --> 00:01:37.680
+Nobody needs to see what we look like right now.
+
+00:01:37.680 --> 00:01:40.400
+If it's got video, it's not a podcast. That's how I feel.
+
+00:01:40.400 --> 00:01:43.600
+I mean, I agree. A lot of other people would maybe not.
+
+00:01:44.400 --> 00:01:45.440
+But anyway.
+
+00:01:45.440 --> 00:01:49.531
+The original clip will still be right here on the timeline, automatically muted but unchanged,
+
+00:01:49.531 --> 00:01:50.880
+in case we need it again later.
+
+00:01:50.880 --> 00:01:54.025
+Now, before we start trimming our clips down into what we want to use,
+
+00:01:54.025 --> 00:01:56.720
+we'll improve the sound quality with the Enhance Audio tool.
+
+00:01:56.720 --> 00:02:00.000
+With a clip selected, we're going to go back to the properties panel
