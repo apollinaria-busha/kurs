@@ -1,0 +1,158 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:02.940
+YouTube is rolling out an update to include co-views,
+
+00:00:03.140 --> 00:00:05.860
+the estimated number of people watching together on TV
+
+00:00:05.860 --> 00:00:07.860
+in the public view counts for videos.
+
+00:00:08.060 --> 00:00:10.540
+YouTube is doing this because viewers are now watching
+
+00:00:10.540 --> 00:00:13.800
+over 1 billion hours of YouTube on TVs every day
+
+00:00:13.800 --> 00:00:16.940
+and the inclusion of co-views in the public view count
+
+00:00:16.940 --> 00:00:18.960
+will credit creators true reach
+
+00:00:18.960 --> 00:00:20.680
+with a platform-backed metric
+
+00:00:20.680 --> 00:00:23.380
+to better inform everything from channel strategy
+
+00:00:23.380 --> 00:00:26.520
+to brand pitches and provide a more complete picture
+
+00:00:26.520 --> 00:00:29.120
+of how audiences are engaging with content,
+
+00:00:29.120 --> 00:00:31.500
+aligning with TV industry standards,
+
+00:00:31.800 --> 00:00:34.500
+including how traditional broadcast and streaming networks
+
+00:00:34.500 --> 00:00:37.640
+estimate the total number of people exposed to content.
+
+00:00:37.800 --> 00:00:39.380
+Co-views apply across formats,
+
+00:00:39.740 --> 00:00:42.860
+long form, shorts, and live watched on TV.
+
+00:00:43.280 --> 00:00:45.200
+They don't apply to mobile or desktop.
+
+00:00:45.540 --> 00:00:47.520
+Co-views won't be applied retroactively.
+
+00:00:48.000 --> 00:00:49.820
+Historical view counts won't change,
+
+00:00:49.820 --> 00:00:53.240
+but co-views will apply to new TV views going forward,
+
+00:00:53.540 --> 00:00:54.880
+including on old videos.
+
+00:00:54.960 --> 00:00:57.260
+To help creators understand how co-views
+
+00:00:57.260 --> 00:00:59.200
+are contributing to the total view count,
+
+00:00:59.580 --> 00:01:01.960
+YouTube Studio is also adding a new metric,
+
+00:01:02.280 --> 00:01:05.000
+co-view rate, available in the device type breakdown.
+
+00:01:05.520 --> 00:01:08.320
+Just divide the total views, which now include co-views,
+
+00:01:08.320 --> 00:01:11.700
+by the co-view rate to get views without co-views.
+
+00:01:11.700 --> 00:01:14.080
+And because co-views only apply to TV,
+
+00:01:14.440 --> 00:01:17.560
+mobile and desktop will always show a co-view rate of one.
+
+00:01:17.640 --> 00:01:20.060
+With co-views becoming part of the public view count,
+
+00:01:20.440 --> 00:01:22.940
+the previous private views co-viewed metric
+
+00:01:22.940 --> 00:01:26.440
+in YouTube Studio will be sunset in May, 2027.
+
+00:01:26.660 --> 00:01:29.320
+If you want to export that data for historical analytics,
+
+00:01:29.500 --> 00:01:30.980
+you can do it up until May.
+
+00:01:31.340 --> 00:01:33.760
+And if you're curious how co-views are estimated,
+
+00:01:34.280 --> 00:01:36.980
+YouTube doesn't use devices, cameras, microphones,
+
+00:01:36.980 --> 00:01:38.560
+or anything like that.
+
+00:01:38.940 --> 00:01:42.460
+Co-views are estimated using a privacy safe statistical model
+
+00:01:42.460 --> 00:01:44.760
+developed by Google research scientists
+
+00:01:44.760 --> 00:01:47.620
+based on factors like demographic patterns
+
+00:01:47.620 --> 00:01:51.060
+and viewing times calibrated against ground truth data sources
+
+00:01:51.060 --> 00:01:52.360
+like industry panels.
+
+00:01:52.520 --> 00:01:56.000
+Co-views don't impact ad revenue or YPP thresholds.
+
+00:01:56.080 --> 00:01:57.860
+Creator earnings, AdSense payouts,
+
+00:01:58.200 --> 00:02:00.180
+and YouTube partner program eligibility
+
+00:02:00.180 --> 00:02:03.620
+remain based on qualified views and watch hours.
+
+00:02:03.620 --> 00:02:06.520
+And while co-views also don't impact metrics
+
+00:02:06.520 --> 00:02:08.780
+like thumbnail impressions, click-through rates,
+
+00:02:09.020 --> 00:02:10.020
+and average view duration,
+
+00:02:10.660 --> 00:02:12.180
+watch time will be consistent
+
+00:02:12.180 --> 00:02:14.060
+with the updated public view counts
+
+00:02:14.060 --> 00:02:16.940
+to reflect the co-view audience watching together.
+
