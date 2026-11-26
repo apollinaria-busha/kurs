@@ -1,6 +1,6 @@
 // Кэшируем только оболочку приложения: страница открывается даже при плохой связи.
 // Уроки и прогресс всегда берутся с сервера (последняя версия уроков хранится в localStorage).
-const C = "kk-shell-1795254250", IMG = "kk-img-v1"; // картинки живут между выкладками, оболочка — обновляется
+const C = "kk-shell-1795696835", IMG = "kk-img-v1"; // картинки живут между выкладками, оболочка — обновляется
 const SHELL = ["./", "index.html", "manifest.json", "icon-192.png", "icon-512.png"];
 self.addEventListener("install", e => { e.waitUntil(caches.open(C).then(c => c.addAll(SHELL))); self.skipWaiting(); });
 self.addEventListener("activate", e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== C && k !== IMG).map(k => caches.delete(k))))); self.clients.claim(); });
@@ -18,7 +18,8 @@ self.addEventListener("fetch", e => {
     })));
     return;
   }
-  e.respondWith(fetch(e.request).then(r => { const cp = r.clone(); caches.open(C).then(c => c.put(e.request, cp)); return r; })
+  // адрес с ключом входа (?login=, ?in=) и неудачные ответы в кэш не кладём
+  e.respondWith(fetch(e.request).then(r => { const q = new URL(e.request.url).searchParams; if (r.ok && !q.has("login") && !q.has("in")) { const cp = r.clone(); caches.open(C).then(c => c.put(e.request, cp)); } return r; })
     .catch(() => caches.match(e.request).then(r => r || caches.match("index.html"))));
 });
 
@@ -33,7 +34,8 @@ self.addEventListener("push", e => {
 // тап по уведомлению — открываем приложение сразу на нужном экране
 self.addEventListener("notificationclick", e => {
   e.notification.close();
-  const url = new URL((e.notification.data && e.notification.data.url) || "./", self.registration.scope).href;
+  let url = new URL((e.notification.data && e.notification.data.url) || "./", self.registration.scope).href;
+  if (!url.startsWith(self.registration.scope)) url = self.registration.scope;   // уведомление открывает только само приложение
   e.waitUntil(clients.matchAll({ type: "window", includeUncontrolled: true }).then(ws => {
     for (const w of ws) if (w.url.startsWith(self.registration.scope) && "focus" in w) return w.focus().then(() => w.navigate ? w.navigate(url) : null);
     return clients.openWindow(url);

@@ -371,6 +371,7 @@ const TABS = [["", "База знаний", "les", "База<br>знаний"], 
 
 function tabs(){if(!(S.user&&S.user.a))return TABS;const t=[...TABS];t[2]=["hw","Демонстрация","hw","Демо"];t.splice(3,0,["st","Ученики","st","Ученики"]);return t}
 function safeUrl(u){u=String(u??"");return /^(javascript|data|vbscript|file):/i.test(u.replace(/[\x00-\x20]/g,""))?"#":u}
+function dec(s){try{return decodeURIComponent(s)}catch(e){return ""}}
 function esc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function store(k,v){try{v===undefined?localStorage.removeItem(k):localStorage.setItem(k,v)}catch(e){}}
 function load(k){try{return localStorage.getItem(k)}catch(e){return null}}
@@ -521,7 +522,7 @@ function route(){
   {const a=document.activeElement;if(!a||!/INPUT|TEXTAREA/.test(a.tagName))document.body.classList.remove("kb")} // меню снизу не должно остаться спрятанным после входа
   if(!S.user)return;
   {const m=document.getElementById("main");KEEP.t=m?m.scrollTop:0;KEEP.y=window.scrollY;if(LAST_H!=null)POS[LAST_H]={t:KEEP.t,y:KEEP.y}}
-  const h=decodeURIComponent(location.hash.slice(1));
+  const h=dec(location.hash.slice(1));
   let view,title="",back=false;
   S.cur=null;
   if(h.startsWith("l/")){const l=findLes(h.slice(2));if(l){view=lessonView(l);title="Урок "+l.id;back=true;S.open.add(l.m.n);S.cur=l.id}}
@@ -560,7 +561,7 @@ function route(){
   if(TG){back?TG.BackButton.show():TG.BackButton.hide()}
   bindView(h);
 }
-function goBack(){const h=decodeURIComponent(location.hash.slice(1));
+function goBack(){const h=dec(location.hash.slice(1));
   if(h.startsWith("l/")){const l=findLes(h.slice(2));location.hash=l&&!wide()?"m/"+l.m.n:""}
   else if(h.startsWith("hw/rv/")&&history.length>1)history.back();
   else if(h.startsWith("up/"))location.hash="up";
@@ -988,7 +989,7 @@ function studentsView(){
   list.sort((a,b)=>(/отчисл/i.test(a.status)-/отчисл/i.test(b.status))||b.pct-a.pct||a.name.localeCompare(b.name));
   return `<h1 class="h">Ученики</h1>
     <button class="cont" onclick="location.hash='hw/check'"><span class="k">Домашние задания</span><b>${RV.items?(wait?`Ждут проверки: ${wait}`:"Все работы проверены ✓"):"Проверка ДЗ"}</b><span style="font-size:12.5px;font-weight:600;opacity:.75">Открыть список работ →</span></button>
-    <div class="chips">${streams.map(s=>`<button class="chipbtn ${s===SV.stream&&!q?"on":""}" onclick="SV.stream='${esc(s)}';SV.q='';route()">${esc(s)} · ${SV.list.filter(x=>x.stream===s).length}</button>`).join("")}</div>
+    <div class="chips">${streams.map(s=>`<button class="chipbtn ${s===SV.stream&&!q?"on":""}" onclick="SV.stream=${esc(JSON.stringify(String(s)))};SV.q='';route()">${esc(s)} · ${SV.list.filter(x=>x.stream===s).length}</button>`).join("")}</div>
     <input type="search" id="svq" enterkeyhint="search" placeholder="Найти ученицу по имени или нику…" value="${esc(SV.q)}">
     <div class="lessons">${list.map(x=>`<button class="les" style="grid-template-columns:40px minmax(0,1fr) auto;${/отчисл/i.test(x.status)?"opacity:.5":""}" onclick="location.hash='hw/s/${x.i}'">
       <span class="ava" style="width:40px;height:40px;font-size:15px">${esc((x.name||"?").slice(0,1))}</span>
@@ -1003,7 +1004,7 @@ function studentView(i){
   const x=SV.list[i];if(!x)return `<div class="empty">Ученица не найдена</div>`;
   const subs=(RV.items||[]).filter(r=>x.nick&&r.nick.replace(/^@/,"").toLowerCase()===x.nick.toLowerCase()||(x.tg&&String(r.tg)===String(x.tg)));
   return `<div class="me-head"><div class="ava">${esc((x.name||"?").slice(0,1))}</div><div><b>${esc(x.name)}</b><small>${x.nick?"@"+esc(x.nick):"без ника"} · ${esc(x.stream)}</small>${x.status?`<small>${esc(x.status)}</small>`:""}</div></div>
-    ${x.nick?`<button class="btn g" onclick="openTg('https://t.me/${esc(x.nick)}')">Написать в Telegram</button>`:""}
+    ${x.nick?`<button class="btn g" onclick="openTg(${esc(JSON.stringify("https://t.me/"+String(x.nick).replace(/[^\w@]/g,"")))})">Написать в Telegram</button>`:""}
     <div class="sec-t">Прогресс</div>
     <div class="box" style="flex-direction:row;align-items:center;gap:16px"><div style="width:120px;flex:none">${ringSvg(x.pct)}</div><div><b>Пройдено ${x.pct}% программы</b><p class="hint">${x.opened?"Заходила в приложение":"Ещё не заходила в приложение — прогресс появится после первого входа"}</p></div></div>
     <div class="sec-t">Домашние задания · ${subs.length}</div>
@@ -1227,7 +1228,7 @@ function openJob(id,url,title){
   let viewed=false;
   v.querySelector("#jgo").onclick=()=>{
     if(safeUrl(url)==="#")return toast("Ссылка на этот заказ не открывается");
-    /t\.me\//.test(url)?openTg(url):(TG&&TG.openLink?TG.openLink(url):window.open(url,"_blank"));
+    /^https?:\/\/t\.me\//i.test(url)?openTg(url):(TG&&TG.openLink?TG.openLink(url):window.open(url,"_blank","noopener"));
     if(!viewed){viewed=true;api({api:"jobclick",job:id,kind:"просмотр"}).then(r=>{if(r&&r.ok)JB.data=r}).catch(()=>{})}
     v.querySelector("#jgo").textContent="Открыть ещё раз ↗";
   };
@@ -1406,7 +1407,7 @@ function upSub(b,l){
   w.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x===b));
 }
 function updQuiz(i){
-  const u=(S.upd||[]).find(x=>x.id===decodeURIComponent(location.hash.slice(4)));if(!u||!u.card.quiz)return;
+  const u=(S.upd||[]).find(x=>x.id===dec(location.hash.slice(4)));if(!u||!u.card.quiz)return;
   const o=u.card.quiz.opts[i],bs=[...document.querySelectorAll("#upq button")],r=document.getElementById("upqr");
   bs.forEach(b=>b.classList.remove("no"));bs[i].classList.add(o.ok?"ok":"no");r.className="res "+(o.ok?"ok":"no");r.innerHTML=upMd(o.a||(o.ok?"Верно!":"Не совсем, попробуй ещё"));
   if(o.ok&&TG)try{TG.HapticFeedback.notificationOccurred("success")}catch(e){}
@@ -1472,7 +1473,7 @@ const LEVELS=[{min:0,img:"img/status1.jpg",t:"Ты креатор со спящ�
 function meView(){
   const a=S.acc,boardSt=a&&a.board&&a.board.stream,p=boardSt?boardSt.avg:pct(),all=allLes();
   const lv=[...LEVELS].reverse().find(x=>p>=x.min);
-  return `<div class="me-head"><div class="ava">${a&&a.photo?`<img src="${a.photo}" alt="">`:esc((S.user.n||"К").slice(0,1))}</div>
+  return `<div class="me-head"><div class="ava">${a&&a.photo?`<img src="${esc(safeUrl(a.photo))}" alt="">`:esc((S.user.n||"К").slice(0,1))}</div>
       <div><b>${esc(a?a.name:S.user.n)}</b><small>@${esc(S.user.u)}</small></div></div>
     <div class="box" style="gap:0">
       <div class="kv"><span>Telegram</span><b>@${esc(S.user.u)}</b></div>
@@ -1539,8 +1540,8 @@ function pfHtml(list,staff){
   return `<div class="pf">${list.map(v=>{
     const pic=v.pv||v.id;
     const img=pic?`<img src="https://drive.google.com/thumbnail?id=${esc(pic)}&sz=w400" alt="" loading="lazy" onerror="this.remove()">`:"";
-    if(v.url)return `<a href="${esc(v.url)}" target="_blank" rel="noopener" onclick="if(TG){TG.openLink('${esc(v.url)}');return false}"><span class="pic">${img}<span class="pf-host">▶ ${esc(hostName(v.url))}</span></span><b>${esc(v.t)}</b></a>`;
-    return `<button onclick="playPf('${esc(v.id)}')"><span class="pic">${img}</span><b>${esc(v.t)}</b></button>`}).join("")}</div>`;
+    if(v.url)return `<a href="${esc(/^https?:\/\//i.test(String(v.url))?v.url:"#")}" target="_blank" rel="noopener" onclick="if(TG){TG.openLink(${esc(JSON.stringify(/^https?:\/\//i.test(String(v.url))?String(v.url):""))});return false}"><span class="pic">${img}<span class="pf-host">▶ ${esc(hostName(v.url))}</span></span><b>${esc(v.t)}</b></a>`;
+    return `<button onclick="playPf(${esc(JSON.stringify(String(v.id)))})"><span class="pic">${img}</span><b>${esc(v.t)}</b></button>`}).join("")}</div>`;
 }
 function hostName(u){const h=(u.match(/^https?:\/\/([^/]+)/)||[])[1]||"";return /yandex|yadi/.test(h)?"Яндекс Диск":/drive\.google/.test(h)?"Google Диск":/youtu/.test(h)?"YouTube":/instagram/.test(h)?"Instagram":/tiktok/.test(h)?"TikTok":/vk\.com|vkvideo/.test(h)?"VK":/rutube/.test(h)?"Rutube":/mail\.ru/.test(h)?"Облако Mail":"Ссылка"}
 function playPf(id){
@@ -1566,7 +1567,7 @@ function planHtml(list){
   return `<div class="box">
     ${next?`<div class="next">Следующая планерка<b>${esc(loc(next.next))}</b>${msk?"":`<span class="hint">по твоему времени · ${esc(next.day.toLowerCase())} ${esc(next.time)} МСК</span>`}</div>`:`<p class="hint">Встреч в этом потоке больше нет.</p>`}
     ${list.map(p=>`<div class="kv"><span>${esc(p.day)}${p.dates&&p.dates.length?" · раз в 2 недели":""}</span><b>${esc(p.time)} МСК</b></div>`).join("")}
-    ${next&&next.zoom?`<a class="btn y" href="${esc(next.zoom)}" target="_blank" rel="noopener">Войти в Zoom</a>`:""}
+    ${next&&next.zoom?`<a class="btn y" href="${esc(/^https?:\/\//i.test(String(next.zoom))?next.zoom:"#")}" target="_blank" rel="noopener">Войти в Zoom</a>`:""}
   </div>`;
 }
 function payHtml(p){
@@ -1626,11 +1627,16 @@ function checkNotify(){
       :b.dataset.full&&st==="denied"?`<div class="box"><small class="hint">🔕 Уведомления запрещены в настройках браузера или телефона. Разреши их для этого сайта — и обнови страницу.</small></div>`:"";
   });
 }
-function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window.open(u,'_blank')}
-function logout(){store("kk_session");store("kk_course");store("kk_acc");location.hash="";location.reload()}
+function openTg(u){if(TG&&TG.openTelegramLink)TG.openTelegramLink(u);else window.open(u,'_blank','noopener')}
+function logout(){store("kk_session");store("kk_course");store("kk_acc");
+  // на общем устройстве следующая ученица не должна увидеть следы предыдущей и войти по старой ссылке
+  try{Object.keys(localStorage).filter(k=>k.indexOf("kk_")===0).forEach(k=>localStorage.removeItem(k))}catch(e){}
+  try{sessionStorage.removeItem("kk_ho")}catch(e){}
+  try{history.replaceState(null,"",location.pathname)}catch(e){}
+  location.hash="";location.reload()}
 
 /* ---------- новая версия приложения: телефон держит старую в памяти — проверяем при каждом открытии ---------- */
-const BUILD="1795254250";
+const BUILD="1795696835";
 async function checkUpdate(){
   if(BUILD.startsWith("__"))return;
   try{const v=(await (await fetch("version.txt?t="+Date.now(),{cache:"no-store"})).text()).trim();
@@ -1686,7 +1692,7 @@ let HO_READY="";
 function cachedHo(){try{const c=JSON.parse(sessionStorage.getItem("kk_ho")||"null");if(c&&c.until>Date.now())return c.t}catch(e){}return HO_READY}
 function openOutside(url,btn){const t=cachedHo();const u=url+(t?"?login="+encodeURIComponent(t):"");
   toast("Открываю в браузере…");
-  try{TG&&TG.openLink?TG.openLink(u,{try_instant_view:false}):window.open(u,"_blank")}catch(e){try{window.open(u,"_blank")}catch(x){}}
+  try{TG&&TG.openLink?TG.openLink(u,{try_instant_view:false}):window.open(u,"_blank","noopener")}catch(e){try{window.open(u,"_blank","noopener")}catch(x){}}
   // если Telegram не открыл браузер — показываем ссылку, её можно скопировать и вставить в Safari/Chrome
   setTimeout(()=>{if(document.visibilityState!=="visible")return;const box=btn&&btn.closest(".sheet");if(!box||box.querySelector(".copylink"))return;
     const d=document.createElement("div");d.className="box copylink";d.style.gap="8px";
